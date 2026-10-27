@@ -1,0 +1,28 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        // Kawarp-AGSL is only published through JitPack. One repo, one tenant, no exceptions.
+        maven {
+            url = uri('https://jitpack.io')
+            content { includeGroup 'com.github.meowarex' }
+        }
+        // Discord Social SDK AAR (Java glue + prebuilt native + prefab headers).
+        flatDir { dirs file('../../vendor/discord_social_sdk/lib/android') }
+    }
+}
+
+rootProject.name = 'Numa Mobile'
+include ':app'

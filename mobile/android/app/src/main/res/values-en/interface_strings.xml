@@ -1,0 +1,15 @@
+<resources>
+    <string name="interface_language">Interface language</string>
+    <string name="interface_language_hint">Use the system language or choose a language for NÜMA.</string>
+    <string name="interface_system">System</string>
+    <string name="interface_language_section">Language</string>
+    <string name="interface_home">Listen now</string>
+    <string name="interface_settings">Settings</string>
+    <string name="interface_general">General</string>
+    <string name="interface_playback">Playback</string>
+    <string name="interface_downloads">Downloads</string>
+    <string name="interface_appearance">Appearance</string>
+    <string name="interface_integrations">Integrations</string>
+    <string name="interface_liked">Liked Music</string>
+    <string name="interface_episodes">Episodes for Later</string>
+</resources>

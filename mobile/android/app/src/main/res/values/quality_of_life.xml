@@ -1,0 +1,22 @@
+<resources>
+    <string name="qol_add_to_playlist">Add to playlist</string>
+    <string name="qol_liked_music">Liked music</string>
+    <string name="qol_local_playlist">On this device</string>
+    <string name="qol_youtube_playlist">YouTube Music</string>
+    <string name="qol_already_added">Already added</string>
+    <string name="qol_delete_playlist">Delete playlist</string>
+    <string name="qol_delete_title">Delete “%1$s”?</string>
+    <string name="qol_delete_message">Only the playlist is deleted from YouTube Music. Your songs are not deleted.</string>
+    <string name="qol_cancel">Cancel</string>
+    <string name="qol_delete">Delete</string>
+    <string name="qol_new_playlist">New playlist</string>
+    <string name="qol_playlist_name">Playlist name</string>
+    <string name="qol_create">Create</string>
+    <string name="qol_create_and_add">Create and add songs</string>
+    <string name="qol_local_hint">Songs stay on this device. NÜMA only remembers the list.</string>
+    <string name="qol_cloud_hint">Created on YouTube Music, private until you share it.</string>
+    <string name="qol_empty_playlists">No compatible playlists yet. Create a playlist for this song’s source first.</string>
+    <string name="qol_remove_from_playlist">Remove from playlist</string>
+    <string name="qol_remove_like">Remove like</string>
+    <string name="qol_local_delete_message">Only the playlist is deleted. Your songs stay on this device.</string>
+</resources>

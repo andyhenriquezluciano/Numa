@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Credentials, tokens, audio and translation models are outside this allowlist. -->
+<data-extraction-rules>
+    <cloud-backup disableIfNoEncryptionCapabilities="true">
+        <include domain="file" path="library-cache.json" />
+        <include domain="file" path="playlist-covers/" />
+        <include domain="sharedpref" path="automatic-playlist-covers.xml" />
+        <include domain="sharedpref" path="library-playlist-visibility.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="file" path="library-cache.json" />
+        <include domain="file" path="playlist-covers/" />
+        <include domain="sharedpref" path="automatic-playlist-covers.xml" />
+        <include domain="sharedpref" path="library-playlist-visibility.xml" />
+    </device-transfer>
+</data-extraction-rules>

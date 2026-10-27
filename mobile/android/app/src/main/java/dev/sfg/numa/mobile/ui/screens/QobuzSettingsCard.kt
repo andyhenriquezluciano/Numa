@@ -1,0 +1,142 @@
+/*
+ * Copyright (C) 2026 SFG545
+ *
+ * This file is part of Numa.
+ *
+ * Numa is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Numa is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Numa. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package dev.sfg.numa.mobile.ui.screens
+
+import dev.sfg.numa.mobile.ui.text.uiText
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import dev.sfg.numa.mobile.qobuz.QobuzQuality
+import dev.sfg.numa.mobile.qobuz.QobuzStatus
+import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import dev.sfg.numa.mobile.ui.theme.CanopyColors
+
+val QobuzGold = Color(0xFFDFB15B)
+
+@Composable
+fun QobuzSettingsCard(
+    status: QobuzStatus,
+    onConnect: () -> Unit,
+    onDisconnect: () -> Unit,
+    onEnabledChange: (Boolean) -> Unit,
+    onQualityChange: (QobuzQuality) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val isConnected = status.isConnected
+    val shape = RoundedCornerShape(20.dp)
+
+    Surface(
+        color = Color.Transparent,
+        shape = shape,
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f).padding(end = 16.dp)) {
+                    Text(
+                        text = uiText("Qobuz streaming", "Reproducción con Qobuz"),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = CanopyColors.Text,
+                    )
+                    Text(
+                        uiText("Lossless and Hi-Res audio", "Audio sin pérdida y de alta resolución"),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = CanopyColors.Muted,
+                    )
+                }
+
+                if (isConnected) {
+                    SettingsSwitch(
+                        checked = status.enabled,
+                        onCheckedChange = onEnabledChange,
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                text = uiText("Requires a Qobuz subscription and Audio quality set to Max.", "Requiere una suscripción de Qobuz y calidad de audio Max."),
+                style = MaterialTheme.typography.bodySmall,
+                color = CanopyColors.Muted,
+                lineHeight = 18.sp,
+            )
+
+            if (status.lastError.isNotBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = status.lastError,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            if (!isConnected) {
+                IntegrationAction(uiText("Sign in to Qobuz", "Iniciar sesión en Qobuz"), onClick = onConnect)
+            } else {
+                // Quality options row
+                Text(
+                    text = uiText("Streaming quality", "Calidad de transmisión"),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = CanopyColors.MutedStrong,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(Modifier.height(8.dp))
+
+                SettingsDropdownField(
+                    options = QobuzQuality.entries.map { it to it.label },
+                    selected = status.quality,
+                    onSelect = onQualityChange,
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                IntegrationAction(uiText("Sign out of Qobuz", "Cerrar sesión en Qobuz"), destructive = true, onClick = onDisconnect)
+            }
+        }
+    }
+}

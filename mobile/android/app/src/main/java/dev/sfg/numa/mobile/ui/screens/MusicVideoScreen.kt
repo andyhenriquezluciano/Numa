@@ -1,0 +1,256 @@
+/*
+ * Copyright (C) 2026 SFG545
+ *
+ * This file is part of Numa.
+ *
+ * Numa is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Numa is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Numa. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package dev.sfg.numa.mobile.ui.screens
+
+import dev.sfg.numa.mobile.ui.text.uiText
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
+import dev.sfg.numa.mobile.ui.components.ArtworkBackdrop
+import dev.sfg.numa.mobile.ui.components.KawarpArtworkBackdrop
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.Cast
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.Fullscreen
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.media3.common.Player
+import coil3.compose.AsyncImage
+import dev.sfg.numa.mobile.app.MusicVideoState
+import dev.sfg.numa.mobile.model.PlaybackSnapshot
+import dev.sfg.numa.mobile.model.Track
+import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import kotlinx.coroutines.delay
+
+/** Transport callbacks shared by the portrait and fullscreen video layouts. */
+internal class MusicVideoActions(
+    val onMinimize: () -> Unit,
+    val onSwitch: () -> Unit,
+    val onToggle: () -> Unit,
+    val onPrevious: () -> Unit,
+    val onNext: () -> Unit,
+    val onSeek: (Long) -> Unit,
+    val onShuffle: () -> Unit,
+    val onRepeat: () -> Unit,
+    val onLiked: () -> Unit,
+    val onDevices: () -> Unit,
+    val onQuality: (Int) -> Unit,
+)
+
+/** Video content shares the player's bottom mode menu. */
+@Composable
+internal fun BoxScope.MusicVideoLayer(
+    musicVideo: MusicVideoState,
+    player: Player?,
+    track: Track,
+    playback: PlaybackSnapshot,
+    liked: Boolean,
+    localControls: Boolean,
+    actions: MusicVideoActions,
+) {
+    var fullscreen by rememberSaveable(track.id) { mutableStateOf(false) }
+    LaunchedEffect(musicVideo.playing) { if (!musicVideo.playing) fullscreen = false }
+
+    AnimatedVisibility(
+        visible = musicVideo.playing,
+        enter = fadeIn(tween(260)),
+        exit = fadeOut(tween(200)),
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        FullscreenVideoEffect(fullscreen) { fullscreen = false }
+        if (fullscreen) {
+            MusicVideoFullscreen(
+                musicVideo = musicVideo,
+                player = player,
+                track = track,
+                playback = playback,
+                localControls = localControls,
+                actions = actions,
+                onExit = { fullscreen = false },
+            )
+        } else {
+            MusicVideoPortrait(
+                musicVideo = musicVideo,
+                player = player,
+                track = track,
+                playback = playback,
+                liked = liked,
+                localControls = localControls,
+                actions = actions,
+                onFullscreen = { fullscreen = true },
+            )
+        }
+    }
+
+
+}
+
+@Composable
+private fun MusicVideoPortrait(
+    musicVideo: MusicVideoState,
+    player: Player?,
+    track: Track,
+    playback: PlaybackSnapshot,
+    liked: Boolean,
+    localControls: Boolean,
+    actions: MusicVideoActions,
+    onFullscreen: () -> Unit,
+) {
+    val palette = rememberFullBleedPalette(track)
+    var pictureAspect by remember(track.id) { mutableStateOf(16f / 9f) }
+    BoxWithConstraints(Modifier.fillMaxSize().background(palette.deep)) {
+        val pictureHeight = (maxWidth / pictureAspect.coerceIn(0.7f, 2.8f)).coerceAtMost(maxHeight * 0.44f)
+        ArtworkBackdrop(palette, false, Modifier.fillMaxSize())
+        KawarpArtworkBackdrop(track.artworkUrl, playback.isPlaying, Modifier.fillMaxSize(),
+            renderScale = 0.25f)
+        Box(Modifier.fillMaxSize().background(Color(0x57030704)))
+        Column(Modifier.fillMaxSize().systemBarsPadding()) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                IconButton(onClick = actions.onMinimize) {
+                    Icon(Icons.Rounded.ExpandMore, uiText("Minimize player", "Minimizar reproductor"), tint = CanopyColors.Text)
+                }
+            }
+            Box(Modifier.fillMaxWidth().height(pictureHeight).background(Color.Black)) {
+                MusicVideoSurface(player, Modifier.fillMaxSize(), onAspectRatio = { pictureAspect = it })
+                VideoQualityButton(musicVideo, actions.onQuality, Modifier.align(Alignment.BottomStart).padding(12.dp))
+                IconButton(onClick = onFullscreen, modifier = Modifier.align(Alignment.BottomEnd)) {
+                    Box(
+                        Modifier.size(32.dp).background(Color.Black.copy(alpha = 0.5f), CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Icons.Rounded.Fullscreen, uiText("Full screen", "Pantalla completa"), tint = Color.White, modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
+            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(top = 28.dp, bottom = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            Row(
+                Modifier.fillMaxWidth().padding(start = 24.dp, end = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        track.title,
+                        color = CanopyColors.Text,
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        track.artist,
+                        color = CanopyColors.MutedStrong,
+                        fontSize = 16.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                IconButton(onClick = actions.onLiked) {
+                    Icon(
+                        if (liked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                        if (liked) uiText("Unlike", "Quitar Me gusta") else uiText("Like", "Me gusta"),
+                        tint = if (liked) CanopyColors.Favorite else CanopyColors.Text,
+                    )
+                }
+            }
+            PlayerScrubber(playback, actions.onSeek, Modifier.padding(horizontal = 24.dp))
+            PlayerTransportControls(
+                isPlaying = playback.isPlaying,
+                status = playback.status,
+                shuffle = playback.shuffle,
+                repeatMode = playback.repeatMode,
+                localControls = localControls,
+                onToggle = actions.onToggle,
+                onPrevious = actions.onPrevious,
+                onNext = actions.onNext,
+                onShuffle = actions.onShuffle,
+                onRepeat = actions.onRepeat,
+                modifier = Modifier.padding(horizontal = 20.dp),
+                showModes = false,
+            )
+            }
+            }
+            LocalPlayerVideoOptions.current?.let { options ->
+                PlayerBottomDestinations(
+                    upcomingCount = playback.upcoming.size,
+                    onLyrics = options.onLyrics, onQueue = options.onQueue,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                )
+            }
+        }
+    }
+}
+

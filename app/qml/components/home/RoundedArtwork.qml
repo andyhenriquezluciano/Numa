@@ -1,0 +1,159 @@
+/*
+ * Copyright (C) 2026 SFG545
+ *
+ * This file is part of Numa.
+ *
+ * Numa is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Numa is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Numa. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import Numa
+import QtQuick
+import QtQuick.Window
+
+Item {
+    id: root
+
+    property url source: ""
+    property real radius: 10
+    // Square bottom corners let a card footer sit flush under the cover.
+    property real bottomRadius: radius
+    // Stepped so a resizing cover refetches a few times instead of every frame, starting at 64px for crisp small thumbnails.
+    readonly property int artworkPixels: Math.max(64, Math.ceil(Math.max(width, height) * Screen.devicePixelRatio * 1.5 / 64) * 64)
+    property url shownSource: ""
+    readonly property alias status: image.status
+    readonly property bool hasImage: image.status === Image.Ready && image.opacity > 0
+
+    onSourceChanged: {
+        if (image.status === Image.Ready) {
+            image.opacity = 1;
+            root.shownSource = root.source;
+        }
+    }
+
+    function sizedSource(value) {
+        const url = value.toString();
+        // More pixels, fewer witness-protection portraits. Only resize Google's
+        // image CDN URLs; other providers may use signed image addresses.
+        if (!/^https:\/\/[^/]*(?:googleusercontent\.com|ggpht\.com)\//i.test(url))
+            return url;
+        return url.replace(/([=-])s\d+(?=[-/?#]|$)/i, "$1s" + artworkPixels)
+                  .replace(/([=-])w\d+(?=[-/?#]|$)/i, "$1w" + artworkPixels)
+                  .replace(/-h\d+(?=[-/?#]|$)/i, "-h" + artworkPixels);
+    }
+
+    function reload() {
+        if (root.source.toString().length > 0) {
+            const src = root.sizedSource(root.source);
+            image.source = "";
+            Qt.callLater(() => {
+                if (root && image)
+                    image.source = src;
+            });
+        }
+    }
+
+    Connections {
+        target: NumaNetwork
+        function onOfflineChanged() {
+            if (!NumaNetwork.offline && (image.status === Image.Error || (image.status !== Image.Ready && image.opacity < 1))) {
+                root.reload();
+            }
+        }
+    }
+
+    Timer {
+        id: retryTimer
+        interval: 3000
+        repeat: false
+        onTriggered: {
+            if (image.status === Image.Error && root.source.toString().length > 0 && !NumaNetwork.offline) {
+                root.reload();
+            }
+        }
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        radius: root.radius
+        bottomLeftRadius: root.bottomRadius
+        bottomRightRadius: root.bottomRadius
+        color: "#252a2c"
+        antialiasing: true
+        visible: (image.status !== Image.Ready || image.opacity < 1) && root.source.toString().length > 0
+    }
+
+    Image {
+        id: image
+
+        anchors.fill: parent
+        source: root.sizedSource(root.source)
+        asynchronous: true
+        fillMode: Image.PreserveAspectCrop
+        sourceSize.width: root.artworkPixels
+        sourceSize.height: root.artworkPixels
+        mipmap: true
+        smooth: true
+        // A resize reload keeps the old pixels up; only a new cover fades over the placeholder.
+        retainWhileLoading: true
+        opacity: 0
+        onStatusChanged: {
+            if (status === Image.Ready) {
+                if (opacity < 1 && !fadeIn.running)
+                    fadeIn.restart();
+                root.shownSource = root.source;
+            } else if (status === Image.Error) {
+                if (!NumaNetwork.offline)
+                    retryTimer.start();
+            } else if (root.source.toString() !== root.shownSource.toString()) {
+                opacity = 0;
+            }
+        }
+        Component.onCompleted: {
+            if (status === Image.Ready) {
+                opacity = 1;
+                root.shownSource = root.source;
+            }
+        }
+        // Sampled by the mask shader; a hidden Image still provides its texture.
+        visible: false
+    }
+
+    // Rounds corners in one pass so cards need no offscreen layers.
+    ShaderEffect {
+        readonly property real sourceAspect: image.implicitHeight > 0 ? image.implicitWidth / image.implicitHeight : 1
+        readonly property real itemAspect: height > 0 ? width / height : 1
+        property var source: image
+        property size size: Qt.size(width, height)
+        property size cropScale: sourceAspect > itemAspect ? Qt.size(itemAspect / sourceAspect, 1)
+                                                           : Qt.size(1, sourceAspect / itemAspect)
+        property real radius: root.radius
+        property real bottomRadius: root.bottomRadius
+
+        anchors.fill: parent
+        opacity: image.opacity
+        visible: image.status === Image.Ready || image.opacity > 0
+        fragmentShader: "qrc:/shaders/rounded_artwork.frag.qsb"
+    }
+
+    NumberAnimation {
+        id: fadeIn
+
+        target: image
+        property: "opacity"
+        from: 0
+        to: 1
+        duration: Motion.normal
+        easing.type: Motion.enter
+    }
+}

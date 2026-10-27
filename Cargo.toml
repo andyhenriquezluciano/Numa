@@ -1,0 +1,25 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/earmark",
+    "crates/numa-adaptive-mix",
+    "crates/numa-youtube-extractor",
+    "crates/numa-core-ffi",
+    "crates/numa-system-media",
+    "crates/numa-transition-core",
+    "crates/numa-transition-planner",
+    "crates/numa-transition-mobile"
+]
+
+[workspace.package]
+edition = "2024"
+license = "AGPL-3.0-or-later"
+publish = false
+
+[profile.release]
+lto = "thin"
+strip = true
+
+# Android's library; AGP strips it again when packaging the APK.
+[profile.android]
+inherits = "release"

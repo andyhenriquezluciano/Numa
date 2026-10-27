@@ -1,0 +1,4 @@
+module Numa
+prefer :/qt/qml/Numa/
+@QML_DECLARATIONS@
+typeinfo Numa.qmltypes

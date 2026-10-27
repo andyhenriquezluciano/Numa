@@ -1,0 +1,37 @@
+name: Reportar un error
+description: Informa un problema reproducible de Android o PC.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: No adjuntes cookies, tokens, contraseñas ni registros con datos personales.
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Plataforma
+      options: [Android, Windows, Ambas]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versión y dispositivo
+      placeholder: Android 1.5, modelo y versión del sistema
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Pasos para reproducirlo
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Resultado esperado y resultado obtenido
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Capturas o registros sin información privada

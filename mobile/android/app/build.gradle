@@ -1,0 +1,497 @@
+import com.android.build.api.instrumentation.AsmClassVisitorFactory
+import com.android.build.api.instrumentation.ClassContext
+import com.android.build.api.instrumentation.ClassData
+import com.android.build.api.instrumentation.InstrumentationParameters
+import org.objectweb.asm.ClassVisitor
+
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
+
+def numaReleaseKeystore = System.getenv("ANDROID_KEYSTORE_FILE")
+def numaReleaseStorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+def numaReleaseKeyAlias = System.getenv("ANDROID_KEY_ALIAS")
+def numaReleaseKeyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+def numaReleaseSigningReady = [numaReleaseKeystore, numaReleaseStorePassword, numaReleaseKeyAlias, numaReleaseKeyPassword].every { it }
+def numaWindows = System.getProperty('os.name').toLowerCase().contains('windows')
+def numaNpm = numaWindows ? 'npm.cmd' : 'npm'
+
+// The Rust Earmark analyzer and transition engine, shared verbatim with desktop. Cross-compiled
+// from source so DSP changes cannot reach one platform and not the other.
+def earmarkCrateDir = file('../../../crates/numa-transition-mobile')
+def earmarkCoreDir = file('../../../crates/numa-transition-core/src')
+def earmarkEngineDir = file('../../../crates/earmark/src')
+def youtubeExtractorDir = file('../../../crates/numa-youtube-extractor/src')
+// The desktop adaptive-mix worker's code and its QuickJS planner, compiled into the same library.
+def adaptiveMixDir = file('../../../crates/numa-adaptive-mix/src')
+def plannerCrateDir = file('../../../crates/numa-transition-planner')
+def plannerScriptsDir = file('../../../core/js')
+// Resolved eagerly: these are source-set roots, and a lazy provider added to `srcDirs` is
+// silently ignored rather than resolved.
+def earmarkJniLibsDir = layout.buildDirectory.dir('earmark/jniLibs').get().asFile
+def earmarkTargetDir = layout.buildDirectory.dir('earmark/rust').get().asFile
+
+// Declared here rather than read back off the android extension because two toolchains consume
+// them and AGP no longer exposes the resolved NDK path to build scripts.
+def numaNdkVersion = '28.2.13676358'
+def numaMinSdk = 31
+// Production installs are ARM64. x86_64 remains available in debug builds for the Android
+// emulator, without making every distributed APK carry a second copy of each native library.
+def numaReleaseAbis = ['arm64-v8a']
+def numaDebugAbis = numaReleaseAbis + ['x86_64']
+// Both toolchains build every ABI that any build type can package.
+def numaAbis = numaDebugAbis
+
+// Where the NDK keeps its C++ runtime, per ABI. Needed because the transition engine links
+// Signalsmith Stretch and cargo-ndk link the *shared* runtime, while AGP only packages
+// libc++_shared.so on behalf of its small CMake resampler module. Without this nothing puts the
+// runtime in the APK,
+// and `System.loadLibrary("numa_earmark")` fails at the first transition, which is silent: the
+// engine reports itself unavailable and every mix comes out as the plain volume ramp.
+def numaStlTriples = ['arm64-v8a': 'aarch64-linux-android', 'x86_64': 'x86_64-linux-android']
+
+def numaNdkDir = {
+    def fromEnvironment = System.getenv('ANDROID_NDK_HOME') ?: System.getenv('ANDROID_NDK_ROOT')
+    if (fromEnvironment) return file(fromEnvironment)
+    def sdk = System.getenv('ANDROID_HOME') ?: System.getenv('ANDROID_SDK_ROOT')
+    def properties = file('../local.properties')
+    if (!sdk && properties.exists()) {
+        def loaded = new Properties()
+        properties.withInputStream { loaded.load(it) }
+        sdk = loaded.getProperty('sdk.dir')
+    }
+    if (!sdk) {
+        throw new GradleException(
+            'Cannot locate the Android NDK: set ANDROID_NDK_HOME, or ANDROID_HOME with ' +
+                "ndk/$numaNdkVersion installed.")
+    }
+    return new File("$sdk/ndk/$numaNdkVersion")
+}
+
+android {
+    namespace = 'dev.sfg.numa.connect'
+    compileSdk = 37
+    // Pinned because two toolchains agree on it: CMake builds the streaming resampler and
+    // cargo-ndk builds Earmark, and a mismatch between them is a link error a long
+    // way from its cause.
+    ndkVersion = numaNdkVersion
+
+    packaging {
+        jniLibs {
+            // Local reduced build wins over the full library in the onnxruntime-android AAR.
+            pickFirsts += '**/libonnxruntime.so'
+            excludes += '**/libnuma_slop.so'
+        }
+    }
+
+    defaultConfig {
+        buildConfigField 'String', 'NUMA_LASTFM_URL', groovy.json.JsonOutput.toJson(providers.gradleProperty('numaLastfmUrl').getOrElse(''))
+        buildConfigField 'String', 'ACCOUNT_SERVICE_URL', groovy.json.JsonOutput.toJson(providers.gradleProperty('numaAccountUrl').getOrElse('https://numa-account.peluchito281.workers.dev'))
+        applicationId = 'dev.sfg.numa.mobile'
+        minSdk = numaMinSdk
+        targetSdk = 36
+        versionCode = 20049
+        versionName = '2.1.8'
+        buildConfigField 'String', 'CODENAME', '"Ensues Worryingly"'
+        // Only the build that is actually published may offer updates. Every other
+        // build has its own applicationId, so the published APK is neither an
+        // upgrade nor installable over it.
+        buildConfigField 'boolean', 'UPDATER_ENABLED', 'true'
+        testInstrumentationRunner = 'androidx.test.runner.AndroidJUnitRunner'
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file('src/main/cpp/CMakeLists.txt')
+            version = '3.22.1'
+        }
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs += earmarkJniLibsDir
+            // Reduced-op ORT for arm64; see native/onnxruntime/build.sh.
+            jniLibs.srcDirs += 'native/onnxruntime'
+            // Google's prebuilt LiteRT for lyric translation, shared with desktop's vendor copy.
+            jniLibs.srcDirs += '../../../vendor/litert/lib/android'
+        }
+        canaryX86 {
+            res.srcDir 'src/canary/res'
+        }
+    }
+
+    signingConfigs {
+        if (numaReleaseSigningReady) {
+            release {
+                storeFile = file(numaReleaseKeystore)
+                storePassword = numaReleaseStorePassword
+                keyAlias = numaReleaseKeyAlias
+                keyPassword = numaReleaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        // The Android plugin owns the developer-local debug keystore.
+        debug {
+            // A distinct package so a debug build installs *alongside* a release one rather than
+            // replacing it, and a distinct label so the two are tellable apart in the launcher.
+            // Everything that derives from the application id follows automatically: the
+            // FileProvider authority is declared as `${applicationId}.provider`, and UpdateManager
+            // reads `context.packageName`.
+            applicationIdSuffix = ''
+            versionNameSuffix = ''
+            resValue 'string', 'app_name', 'NÜMA'
+            buildConfigField 'boolean', 'UPDATER_ENABLED', 'false'
+            ndk {
+                abiFilters += numaDebugAbis
+            }
+        }
+        release {
+            if (numaReleaseSigningReady) signingConfig = signingConfigs.release
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles(getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro')
+            ndk {
+                abiFilters += numaReleaseAbis
+            }
+        }
+        // Test builds handed out for bug reproduction. Identical to release in
+        // everything that affects behaviour — same signing, same minification, so
+        // it can catch the R8-only faults a debug build cannot — but it installs
+        // as its own app and never offers to update itself, since the published
+        // APK would neither upgrade it nor install over it.
+        canary {
+            initWith release
+            if (!numaReleaseSigningReady) signingConfig = signingConfigs.debug
+            applicationIdSuffix = '.canary'
+            versionNameSuffix = '-canary'
+            buildConfigField 'boolean', 'UPDATER_ENABLED', 'false'
+        }
+        canaryX86 {
+            initWith canary
+            applicationIdSuffix = '.canaryx86'
+            versionNameSuffix = '-canary-x86'
+            // A generated value takes priority over Canary's source-set label without
+            // replacing an inherited build-type value (which AGP warns about).
+            resValue 'string', 'app_name', 'Numa Canary x86_64'
+            ndk {
+                abiFilters.clear()
+                abiFilters += ['x86_64']
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        compose = true
+        buildConfig = true
+        resValues = true
+        prefab = true
+    }
+
+}
+
+kotlin {
+    jvmToolchain(17)
+}
+
+tasks.register('buildEarmarkLibrary', Exec) {
+    group = 'build'
+    description = 'Cross-compiles the Earmark analyzer and transition engine for every packaged ABI.'
+
+    // The whole engine, not just this crate: the bindings crate is a marshalling shell, and a
+    // change to the core or to earmark itself is exactly the change that must reach the device.
+    inputs.files(fileTree(earmarkCrateDir) { exclude 'target/**' })
+    inputs.dir earmarkCoreDir
+    inputs.dir earmarkEngineDir
+    inputs.dir youtubeExtractorDir
+    inputs.dir adaptiveMixDir
+    inputs.files(fileTree(plannerCrateDir) { include 'src/**', 'js/**', 'build.rs' })
+    inputs.files(fileTree(plannerScriptsDir) { include 'src/audio/crossfade/*.js', 'shared/*.js' })
+    outputs.dir earmarkJniLibsDir
+
+    // cargo-ndk reads `cargo metadata` from the working directory before it looks at any
+    // --manifest-path, so the crate has to *be* the working directory.
+    workingDir = earmarkCrateDir
+    environment 'ANDROID_NDK_HOME', numaNdkDir().absolutePath
+    // Out of the shared workspace target directory, so `gradle clean` reclaims it.
+    environment 'CARGO_TARGET_DIR', earmarkTargetDir.absolutePath
+    if (numaWindows) {
+        def llvm = new File(numaNdkDir(), 'toolchains/llvm/prebuilt/windows-x86_64')
+        def resource = new File(llvm, 'lib/clang').listFiles()?.find { it.isDirectory() }
+        if (resource != null) {
+            numaStlTriples.values().each { triple ->
+                environment "BINDGEN_EXTRA_CLANG_ARGS_${triple}",
+                    ("--target=${triple}${numaMinSdk} --sysroot=${llvm}/sysroot " +
+                    "-resource-dir=${resource} -I${llvm}/sysroot/usr/include/${triple}").replace('\\', '/')
+            }
+        }
+    }
+    commandLine(['cargo', 'ndk'] +
+        numaAbis.collectMany { ['-t', it] } +
+        ['-P', numaMinSdk.toString(),
+         '-o', earmarkJniLibsDir.absolutePath,
+         'build', '--profile', 'android'])
+
+    // The engine is linked against the shared C++ runtime, so the runtime has to travel with it.
+    // Copied beside the library rather than depended on from anywhere else: this source set is
+    // already packaged, and a missing runtime is otherwise only discoverable on a device.
+    doLast {
+        // Exactly one host toolchain is installed per NDK, so finding it beats mapping os.name.
+        def prebuilt = new File(numaNdkDir(), 'toolchains/llvm/prebuilt')
+            .listFiles()?.find { it.isDirectory() }
+        if (prebuilt == null) {
+            throw new GradleException("No host toolchain under ${numaNdkDir()}/toolchains/llvm/prebuilt")
+        }
+        numaAbis.each { abi ->
+            def triple = numaStlTriples[abi]
+            if (triple == null) throw new GradleException("No C++ runtime triple known for ABI $abi")
+            def runtime = new File(prebuilt, "sysroot/usr/lib/$triple/libc++_shared.so")
+            if (!runtime.exists()) throw new GradleException("Missing C++ runtime at $runtime")
+            def target = new File(earmarkJniLibsDir, "$abi/libc++_shared.so")
+            target.parentFile.mkdirs()
+            java.nio.file.Files.copy(
+                runtime.toPath(),
+                target.toPath(),
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        }
+    }
+}
+
+// The .so files are packaged, so they have to exist before anything reads them.
+tasks.matching { it.name ==~ /^merge.*JniLibFolders$/ }.configureEach {
+    dependsOn 'buildEarmarkLibrary'
+}
+
+gradle.taskGraph.whenReady { graph ->
+    // Lint and tests inspect the release variant without publishing an APK. Keep the key check
+    // for tasks that actually put a release build into someone's hands.
+    def packagesRelease = graph.allTasks.any {
+        it.name in ['assembleRelease', 'bundleRelease', 'packageRelease', 'installRelease'] ||
+            it.name.startsWith('publishRelease')
+    }
+    if (packagesRelease && !numaReleaseSigningReady) {
+        throw new GradleException("Release signing environment is required for Numa production builds.")
+    }
+}
+
+dependencies {
+    def composeBom = platform('androidx.compose:compose-bom:2026.08.00')
+
+    implementation composeBom
+    androidTestImplementation composeBom
+
+    implementation 'androidx.activity:activity-compose:1.13.0'
+
+    implementation 'androidx.compose.animation:animation'
+    implementation 'androidx.compose.foundation:foundation'
+    implementation 'androidx.compose.material:material-icons-extended'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.11.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0'
+    implementation 'androidx.navigation:navigation-compose:2.9.8'
+    implementation 'androidx.window:window:1.5.1'
+
+    implementation 'androidx.datastore:datastore-preferences:1.2.1'
+
+    implementation 'androidx.media3:media3-datasource-okhttp:1.11.1'
+    implementation 'androidx.media3:media3-exoplayer:1.11.1'
+    implementation 'androidx.media3:media3-exoplayer-hls:1.11.1'
+    implementation 'androidx.media3:media3-session:1.11.1'
+    implementation 'androidx.media3:media3-ui:1.11.1'
+    implementation 'androidx.media3:media3-cast:1.11.1'
+
+    // No release tag exists upstream yet; pin the Kawarp-AGSL commit for reproducible builds.
+    implementation 'com.github.meowarex:kawarp-agsl:30715d619a'
+
+    implementation 'io.coil-kt.coil3:coil-compose:3.6.3'
+    implementation 'io.coil-kt.coil3:coil-network-okhttp:3.6.3'
+
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0'
+    implementation 'com.squareup.okhttp3:okhttp:5.5.0'
+    implementation 'com.google.mlkit:translate:17.0.3'
+
+    implementation 'androidx.core:core:1.19.0'
+    implementation 'androidx.webkit:webkit:1.16.0'
+    implementation 'org.jetbrains:markdown:0.7.14'
+
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+
+    implementation 'eu.buney.kopus:kopus:1.6.1.3'
+
+    implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.30.0'
+    implementation(name: 'discord_partner_sdk', ext: 'aar')
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20260719'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0'
+
+    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+    androidTestImplementation 'androidx.test:runner:1.7.0'
+}
+
+// JVM unit tests load the same QuickJS bridge compiled for the build machine,
+// and the provider bytecode comes from that build's qjsc: same engine, same format.
+def hostJsSource = file('src/main/cpp/js')
+def hostJsBuild = layout.buildDirectory.dir('intermediates/hostJs').get().asFile
+def hostQjsc = new File(hostJsBuild, numaWindows ? 'quickjs/qjsc.exe' : 'quickjs/qjsc')
+def quickJsSources = fileTree(rootProject.file('../../third_party/quickjs')) { include '*.c', '*.h', 'CMakeLists.txt' }
+tasks.register('configureHostJs', Exec) {
+    inputs.file new File(hostJsSource, 'CMakeLists.txt')
+    outputs.file new File(hostJsBuild, 'CMakeCache.txt')
+    environment 'JAVA_HOME', System.getProperty('java.home')
+    commandLine 'cmake', '-S', hostJsSource.absolutePath, '-B', hostJsBuild.absolutePath,
+        '-DCMAKE_BUILD_TYPE=Release'
+}
+tasks.register('buildHostJs', Exec) {
+    dependsOn 'configureHostJs'
+    inputs.dir hostJsSource
+    inputs.files(fileTree(rootProject.file('../../core')) { include 'native/**' })
+    inputs.files quickJsSources
+    outputs.file new File(hostJsBuild, numaWindows ? 'numa_js.dll' : 'libnuma_js.so')
+    commandLine 'cmake', '--build', hostJsBuild.absolutePath, '--target', 'numa_js'
+}
+tasks.register('buildHostQjsc', Exec) {
+    dependsOn 'configureHostJs'
+    inputs.files quickJsSources
+    outputs.file hostQjsc
+    commandLine 'cmake', '--build', hostJsBuild.absolutePath, '--target', 'qjsc'
+}
+tasks.withType(Test).configureEach {
+    dependsOn 'buildHostJs'
+    systemProperty 'java.library.path', hostJsBuild.absolutePath
+}
+
+// The desktop YouTube provider, bundled and compiled exactly as CMakeLists.txt does it.
+def providerSource = rootProject.file('../../providers/youtube')
+def providerBundles = layout.buildDirectory.dir('intermediates/youtubeProvider').get().asFile
+def providerInputs = fileTree(providerSource) {
+    include 'src/**/*.js', 'scripts/*', 'package.json', 'package-lock.json'
+}
+tasks.register('bundleYouTubeProvider', Exec) {
+    workingDir providerSource
+    inputs.files providerInputs
+    outputs.file new File(providerBundles, 'youtube-provider.js')
+    commandLine numaNpm, 'run', '--silent', 'build:runtime', '--',
+        "--outfile=${new File(providerBundles, 'youtube-provider.js')}"
+}
+tasks.register('bundleYouTubePoMinter', Exec) {
+    workingDir providerSource
+    inputs.files providerInputs
+    outputs.file new File(providerBundles, 'youtube-po-minter.js')
+    outputs.file new File(providerBundles, 'youtube-po-minter-licenses.txt')
+    commandLine numaNpm, 'run', '--silent', 'build:po-minter', '--',
+        "--outfile=${new File(providerBundles, 'youtube-po-minter.js')}"
+}
+tasks.register('compileYouTubeProvider', Exec) {
+    dependsOn 'buildHostQjsc', 'bundleYouTubeProvider'
+    inputs.file new File(providerBundles, 'youtube-provider.js')
+    inputs.file hostQjsc
+    outputs.file new File(providerBundles, 'youtube-provider.qjc')
+    commandLine hostQjsc.absolutePath, '-b', '-C', '-n', 'youtube-provider.js',
+        '-o', new File(providerBundles, 'youtube-provider.qjc').absolutePath,
+        new File(providerBundles, 'youtube-provider.js').absolutePath
+}
+// Qobuz has no npm dependencies, so it borrows the YouTube provider's esbuild, as desktop does.
+tasks.register('bundleQobuzProvider', Exec) {
+    def source = rootProject.file('../../providers/qobuz')
+    workingDir source
+    inputs.files fileTree(source) { include 'src/**/*.js' }
+    inputs.file new File(providerSource, 'package-lock.json')
+    outputs.file new File(providerBundles, 'qobuz-provider.js')
+    commandLine numaNpm, '--prefix', providerSource.absolutePath, 'exec', '--offline', '--',
+        'esbuild', new File(source, 'src/runtime.js').absolutePath, '--bundle', '--platform=browser',
+        '--format=iife', '--target=es2023', '--legal-comments=none',
+        "--outfile=${new File(providerBundles, 'qobuz-provider.js')}"
+}
+tasks.register('compileQobuzProvider', Exec) {
+    dependsOn 'buildHostQjsc', 'bundleQobuzProvider'
+    inputs.file new File(providerBundles, 'qobuz-provider.js')
+    inputs.file hostQjsc
+    outputs.file new File(providerBundles, 'qobuz-provider.qjc')
+    commandLine hostQjsc.absolutePath, '-b', '-C', '-n', 'qobuz-provider.js',
+        '-o', new File(providerBundles, 'qobuz-provider.qjc').absolutePath,
+        new File(providerBundles, 'qobuz-provider.js').absolutePath
+}
+tasks.register('compileYouTubePoMinter', Exec) {
+    dependsOn 'buildHostQjsc', 'bundleYouTubePoMinter'
+    inputs.file new File(providerBundles, 'youtube-po-minter.js')
+    inputs.file hostQjsc
+    outputs.file new File(providerBundles, 'youtube-po-minter.qjc')
+    commandLine hostQjsc.absolutePath, '-b', '-C', '-s', '-n', 'youtube-po-minter.js',
+        '-o', new File(providerBundles, 'youtube-po-minter.qjc').absolutePath,
+        new File(providerBundles, 'youtube-po-minter.js').absolutePath
+}
+
+// Copies the compiled provider into a variant's generated assets under providers/.
+abstract class ProviderAssetsTask extends DefaultTask {
+    @InputFiles abstract ConfigurableFileCollection getSources()
+    @OutputDirectory abstract DirectoryProperty getOutputDirectory()
+
+    @TaskAction void copy() {
+        def target = new File(outputDirectory.get().asFile, 'providers')
+        target.deleteDir()
+        target.mkdirs()
+        sources.each { source ->
+            java.nio.file.Files.copy(source.toPath(), new File(target, source.name).toPath())
+        }
+    }
+}
+def providerAssetFiles = ['youtube-provider.qjc', 'youtube-po-minter.qjc', 'youtube-po-minter-licenses.txt', 'qobuz-provider.qjc']
+    .collect { new File(providerBundles, it) }
+// Registered through the variant API so every asset consumer, lint included, depends on it.
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        def task = tasks.register("${variant.name}YouTubeProviderAssets", ProviderAssetsTask) {
+            dependsOn 'compileYouTubeProvider', 'compileYouTubePoMinter', 'compileQobuzProvider'
+            sources.from(providerAssetFiles)
+        }
+        variant.sources.assets?.addGeneratedSourceDirectory(task) { it.outputDirectory }
+    }
+}
+tasks.withType(Test).configureEach {
+    dependsOn 'compileYouTubeProvider', 'compileYouTubePoMinter', 'compileQobuzProvider'
+    systemProperty 'numa.providerAssets', providerBundles.absolutePath
+}
+
+android.sourceSets.test.resources.srcDir layout.buildDirectory.dir('generated/transitionPlannerTest').get().asFile
+tasks.register('generateTransitionPlannerFixtures', Exec) {
+    workingDir rootProject.file('..')
+    inputs.files(fileTree(rootProject.file('../../core/js/src/audio/crossfade')) { include '*.js' })
+    inputs.file rootProject.file('../../core/js/shared/trackAnalysis.js')
+    inputs.file rootProject.file('../../crates/numa-transition-planner/tests/mobileTransitionPlanner.js')
+    inputs.file rootProject.file('../tools/generate-planner-fixtures.mjs')
+    outputs.dir layout.buildDirectory.dir('generated/transitionPlannerTest')
+    commandLine 'node', 'tools/generate-planner-fixtures.mjs',
+        layout.buildDirectory.dir('generated/transitionPlannerTest').get().asFile.absolutePath
+}
+tasks.matching { it.name ==~ /^process.*UnitTestJavaRes$/ }.configureEach {
+    dependsOn 'generateTransitionPlannerFixtures'
+}
+
+abstract class SilentTranslationDownloadFactory implements AsmClassVisitorFactory<InstrumentationParameters.None> {
+    @Override boolean isInstrumentable(ClassData data) {
+        dev.sfg.numa.build.SilentTranslationDownloads.shouldInstrumentClass(data.className)
+    }
+    @Override ClassVisitor createClassVisitor(ClassContext context, ClassVisitor next) {
+        dev.sfg.numa.build.SilentTranslationDownloads.instrument(next)
+    }
+}
+
+androidComponents.onVariants(androidComponents.selector().all()) { variant ->
+    variant.instrumentation.transformClassesWith(SilentTranslationDownloadFactory,
+        com.android.build.api.instrumentation.InstrumentationScope.ALL) {}
+    variant.instrumentation.setAsmFramesComputationMode(
+        com.android.build.api.instrumentation.FramesComputationMode.COMPUTE_FRAMES_FOR_INSTRUMENTED_METHODS)
+}

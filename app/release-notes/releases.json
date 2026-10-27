@@ -1,0 +1,17 @@
+[
+  {
+    "version": "2.0.3",
+    "date": "2026-10-27",
+    "title": "NÜMA para Windows",
+    "sections": [
+      {
+        "title": "Actualización",
+        "items": [
+          "Salas compartidas conectadas al servidor propio de NÜMA.",
+          "Last.fm permanece desactivado hasta configurar un servicio propio.",
+          "Limpieza del proyecto y actualización de la distribución."
+        ]
+      }
+    ]
+  }
+]

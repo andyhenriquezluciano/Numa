@@ -1,0 +1,26 @@
+<resources>
+  <string name="app_name">NÜMA</string>
+  <string name="play">Reproducir</string>
+  <string name="pause">Pausar</string>
+  <string name="previous">Anterior</string>
+  <string name="next">Siguiente</string>
+  <string name="recent">Recientes</string>
+  <string name="widget_now_playing">NÜMA  ·  REPRODUCIENDO</string>
+  <string name="widget_ready">NÜMA  ·  LISTO</string>
+  <string name="widget_nothing_playing">No hay música en reproducción</string>
+  <string name="widget_open_numa">Toca para abrir NÜMA</string>
+  <string name="widget_jump_back_in">Continuar escuchando</string>
+  <string name="widget_latest_rotation">Tus canciones recientes</string>
+  <string name="widget_recent_empty">Reproduce algo en NÜMA y aparecerá aquí.</string>
+  <string name="widget_play_track">Reproducir %1$s de %2$s</string>
+  <string name="widget_player_description">Controles de reproducción adaptables con los colores de la carátula.</string>
+  <string name="widget_recent_description">Reproduce rápidamente tus cuatro canciones más recientes.</string>
+  <string name="widget_lyrics_finding">Buscando letra…</string>
+  <string name="widget_lyrics_idle">La letra aparecerá al reproducir una canción.</string>
+  <string name="widget_lyrics_unavailable">No hay letra disponible para esta canción.</string>
+  <string name="widget_lyrics_tap_to_view">Toca para ver la letra en NÜMA</string>
+  <string name="widget_lyrics_label">LETRA</string>
+  <string name="widget_player_lyrics_description">Mini reproductor arriba y letra de la canción debajo.</string>
+  <!-- Google Cast Application ID registered at cast.google.com/publish -->
+  <string name="cast_app_id" translatable="false">DEC44B9D</string>
+</resources>

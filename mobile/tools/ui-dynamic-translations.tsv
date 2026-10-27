@@ -1,0 +1,57 @@
+Keep up to ${formatCacheSize(steps[index])} of played tracks for instant replay	Conserva hasta ${formatCacheSize(steps[index])} de música reproducida para escucharla de nuevo al instante
+Downloads and your library stay intact ($formattedSize in cache)	Tus descargas y tu biblioteca se conservan ($formattedSize en caché)
+This will free up $formattedSize of cached audio streams, album artwork, and temporary files.	Se liberarán $formattedSize de audio en caché, carátulas y archivos temporales.
+Removes offline songs and motion covers ($formattedSize used)	Elimina las canciones sin conexión y las carátulas animadas ($formattedSize utilizados)
+This frees $formattedSize and cancels downloads in progress.	Libera $formattedSize y cancela las descargas en curso.
+Connected to $castDeviceName	Conectado a $castDeviceName
+Connected as ${state.user}	Conectado como ${state.user}
+Connected as ${listenBrainzState.user}	Conectado como ${listenBrainzState.user}
+Signed in as $numaEmail	Sesión iniciada como $numaEmail
+Filter items in $title...	Buscar en $title…
+Artwork for ${track.title}	Carátula de ${track.title}
+Artwork for ${detail.title}	Carátula de ${detail.title}
+Artwork for ${outTrack.title}	Carátula de ${outTrack.title}
+Artwork for ${inTrack.title}	Carátula de ${inTrack.title}
+Artwork for ${currentTrack.title}	Carátula de ${currentTrack.title}
+Actions for ${track.title}	Acciones para ${track.title}
+Remove ${track.title} from queue	Quitar ${track.title} de la cola
+No songs matching \"$searchQuery\" found in ${detail.title}.	No hay canciones que coincidan con «$searchQuery» en ${detail.title}.
+No songs matching \"$searchQuery\"	No hay canciones que coincidan con «$searchQuery»
+No playlists matching \"$searchQuery\"	No hay listas que coincidan con «$searchQuery»
+No artists matching \"$searchQuery\"	No hay artistas que coincidan con «$searchQuery»
+No albums matching \"$searchQuery\"	No hay álbumes que coincidan con «$searchQuery»
+No recently played tracks matching \"$searchQuery\"	No hay canciones recientes que coincidan con «$searchQuery»
+Find in $noun	Buscar en $noun
+About this $noun	Acerca de $noun
+Listen to $target on Numa	Escucha $target en NÜMA
+Downloading $trackCount song${if (trackCount == 1) "" else "s"} could take up to ~$estimatedMb MB of storage.	Descargar $trackCount canciones puede ocupar aproximadamente $estimatedMb MB.
+Reset to Default (${device.name})	Restablecer nombre original (${device.name})
+Offline tracks • ${formatStorageSize(totalBytesUsed)} used	Canciones sin conexión · ${formatStorageSize(totalBytesUsed)} utilizados
+Bass Boost: ${(config.bassBoost * 100).roundToInt()}%	Refuerzo de graves: ${(config.bassBoost * 100).roundToInt()}%
+Controlled by ${controlledBy.joinToString()}	Controlado por ${controlledBy.joinToString()}
+Join my Numa listening party! Room code: ${party.code}\n$shareUrl	¡Únete a mi sesión de NÜMA! Código de sala: ${party.code}\n$shareUrl
+${party.peers.size} other listeners	${party.peers.size} oyentes más
+$totalChanges changes	$totalChanges cambios
+Showing downloaded music ($downloadedCount ${if (downloadedCount == 1) "song" else "songs"})	Mostrando música descargada ($downloadedCount canciones)
+, $localSongs on this phone	, $localSongs en este teléfono
+Playback will pause in ${remainingSeconds / 60}:${(remainingSeconds % 60).toString().padStart(2, '0')}.	La reproducción se pausará en ${remainingSeconds / 60}:${(remainingSeconds % 60).toString().padStart(2, '0')}.
+$minutes minutes	$minutes minutos
+ · This device	 · Este dispositivo
+${device.platform} · Last seen $lastSeen	${device.platform} · Última conexión: $lastSeen
+@${github.login} · Used for bug reports	@${github.login} · Usada para reportar problemas
+${(sleepTimerRemainingSeconds + 59) / 60} min left	Quedan ${(sleepTimerRemainingSeconds + 59) / 60} min
+Qobuz login failed: $error	No se pudo iniciar sesión en Qobuz: $error
+Linked as @${state.github?.login.orEmpty()}	Vinculado como @${state.github?.login.orEmpty()}
+${state.reason} Numa ${state.version} was not installed.	${state.reason} No se instaló NÜMA ${state.version}.
+Numa ${state.version} has finished downloading and can be installed now.	NÜMA ${state.version} terminó de descargarse y está lista para instalar.
+${likedTracks.size} songs, ${savedAlbums.size} albums, ${savedArtists.size} artists$local	${likedTracks.size} canciones, ${savedAlbums.size} álbumes, ${savedArtists.size} artistas$local
+${artistTracks.size} downloaded ${if (artistTracks.size == 1) "song" else "songs"}	${artistTracks.size} canciones descargadas
+${filteredTracks.size} ${if (filteredTracks.size == 1) "track" else "tracks"} found	${filteredTracks.size} canciones encontradas
+FAILED (${failed.size})	FALLIDAS (${failed.size})
+Failed (${failed.size})	Fallidas (${failed.size})
+Downloaded (${completed.size}) \u00b7 ${formatStorageSize(totalBytesUsed)} used	Descargadas (${completed.size}) · ${formatStorageSize(totalBytesUsed)} utilizados
+Store up to ${formatCacheSize(steps[index])} of played music	Guarda hasta ${formatCacheSize(steps[index])} de música reproducida
+ • $trackCount ${if (trackCount == 1) "track" else "tracks"}	 • $trackCount canciones
+, $hours Hour${if (hours > 1) "s" else ""}	, $hours h
+ $remainingMinutes Minute${if (remainingMinutes > 1) "s" else ""}	 $remainingMinutes min
+, $remainingMinutes Minute${if (remainingMinutes > 1) "s" else ""}	, $remainingMinutes min

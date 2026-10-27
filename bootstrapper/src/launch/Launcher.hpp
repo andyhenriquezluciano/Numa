@@ -1,0 +1,25 @@
+/*
+ * Copyright (C) 2026 SFG545
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+#pragma once
+
+#include "install/InstallState.hpp"
+#include "install/Layout.hpp"
+#include "platform/Platform.hpp"
+
+#include <string>
+#include <vector>
+
+namespace numa::boot {
+
+// Starts an installed version with the environment its manifest asked for:
+// {app}, {root} and {component:name} expand to directories in the install,
+// and NUMA_BOOTSTRAPPER / NUMA_INSTALL_ROOT / NUMA_INSTALLED_VERSION
+// tell the app how to reach the updater. A non-empty `output` captures stdout,
+// stderr and Qt logging.
+platform::Process launchVersion(const Layout &layout, const InstallState &state, const std::string &version,
+                                const std::vector<std::string> &args, const std::filesystem::path &output = {});
+
+} // namespace numa::boot

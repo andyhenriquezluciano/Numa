@@ -1,0 +1,22 @@
+<resources>
+    <string name="qol_add_to_playlist">Añadir a la lista</string>
+    <string name="qol_liked_music">Música que te gusta</string>
+    <string name="qol_local_playlist">En este equipo</string>
+    <string name="qol_youtube_playlist">YouTube Music</string>
+    <string name="qol_already_added">Ya añadida</string>
+    <string name="qol_delete_playlist">Eliminar lista</string>
+    <string name="qol_delete_title">¿Eliminar “%1$s”?</string>
+    <string name="qol_delete_message">Solo se eliminará la lista de YouTube Music. Las canciones no se eliminan.</string>
+    <string name="qol_cancel">Cancelar</string>
+    <string name="qol_delete">Eliminar</string>
+    <string name="qol_new_playlist">Nueva lista</string>
+    <string name="qol_playlist_name">Nombre de la lista</string>
+    <string name="qol_create">Crear</string>
+    <string name="qol_create_and_add">Crear y añadir canciones</string>
+    <string name="qol_local_hint">Las canciones permanecen en este equipo. NÜMA solo recuerda la lista.</string>
+    <string name="qol_cloud_hint">Se crea en YouTube Music y será privada hasta que decidas compartirla.</string>
+    <string name="qol_empty_playlists">No hay listas compatibles. Primero crea una lista para el origen de esta canción.</string>
+    <string name="qol_remove_from_playlist">Eliminar de la lista</string>
+    <string name="qol_remove_like">Quitar Me gusta</string>
+    <string name="qol_local_delete_message">Solo se eliminará la lista. Las canciones permanecen en este equipo.</string>
+</resources>

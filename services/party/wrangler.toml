@@ -1,0 +1,23 @@
+name = "numa-party"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[observability]
+enabled = false
+
+[vars]
+PUBLIC_URL = "https://numa-party.peluchito281.workers.dev"
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "PartyRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["PartyRoom"]
+
+[[ratelimits]]
+name = "ROOM_LIMITER"
+namespace_id = "1002"
+simple = { limit = 30, period = 60 }
