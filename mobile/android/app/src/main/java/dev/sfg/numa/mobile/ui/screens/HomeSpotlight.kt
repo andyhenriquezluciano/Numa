@@ -107,7 +107,7 @@ internal fun HomeSectionTitle(
             ) {
                 label?.let {
                     Text(
-                        text = it,
+                        text = dev.sfg.numa.mobile.ui.text.catalogCaption(it),
                         style = MaterialTheme.typography.labelLarge,
                         color = CanopyColors.Text.copy(alpha = 0.6f),
                         maxLines = 1,
@@ -115,7 +115,7 @@ internal fun HomeSectionTitle(
                     )
                 }
                 Text(
-                    text = title,
+                    text = dev.sfg.numa.mobile.ui.text.catalogCaption(title),
                     fontSize = 22.sp,
                     lineHeight = 28.sp,
                     fontWeight = FontWeight.Bold,

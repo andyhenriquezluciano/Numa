@@ -63,7 +63,7 @@ class UpdateManager(
                     fetchStableUpdateMetadata()
                 }
 
-                if (metadata != null && compareVersions(metadata.version, currentVersion) > 0) {
+                if (metadata != null && isNewerUpdate(metadata, currentVersion, packageInfo.longVersionCode)) {
                     // Surface it and let the user decide; downloading and firing the system
                     // installer unprompted is what made this feel like a random intrusion.
                     mutableState.value = UpdateState.Available(metadata)
@@ -112,6 +112,12 @@ class UpdateManager(
 
     companion object {
         private const val TAG = "UpdateManager"
+
+        fun isNewerUpdate(metadata: MobileUpdateMetadata, installedVersion: String, installedCode: Long): Boolean {
+            val comparison = compareVersions(metadata.version, installedVersion)
+            return comparison > 0 || (comparison == 0 && metadata.versionCode.toLong() > installedCode)
+        }
+
 
         fun parseUpdateMetadata(jsonString: String): MobileUpdateMetadata {
             val json = JSONObject(jsonString)

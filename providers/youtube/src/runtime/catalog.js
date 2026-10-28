@@ -125,6 +125,7 @@ export function createBrowseRequest(session, options = {}, fetchImpl = globalThi
       headers: {
         ...(!options.guest ? { Authorization: authorization, Cookie: cookie } : {}),
         Accept: 'application/json',
+        'Accept-Language': clean(session.interfaceLanguage) === 'es' ? 'es' : 'en',
         'Content-Type': 'application/json',
         Origin: origin,
         Referer: `${origin}/`,

@@ -71,7 +71,7 @@ internal fun CollectionSelectionBar(
         onDismissRequest = { confirmingRemoval = false },
         title = { Text(removeLabel) },
         text = { Text(uiText("Remove ${selected.size} songs? The original files will not be deleted.",
-            "¿Quitar ${selected.size} canciones? No se borrarán los archivos originales.")) },
+            uiText("Remove ${selected.size} songs? The original files will be kept.", "¿Quitar ${selected.size} canciones? No se borrarán los archivos originales."))) },
         confirmButton = { TextButton(onClick = {
             onRemove?.invoke(selected); confirmingRemoval = false; onClear()
         }) { Text(uiText("Remove", "Quitar")) } },
@@ -104,8 +104,8 @@ private fun BulkPlaylistPicker(tracks: List<Track>, onDismiss: () -> Unit, onDon
                         failed++
                     }
                 }
-                if (failed > 0) graph.postWarning("Se añadieron $added canciones; no se pudieron añadir $failed.")
-                else graph.successEvent.tryEmit("Se añadieron $added canciones a la lista.")
+                if (failed > 0) graph.postWarning(uiText("Added $added songs; $failed could not be added.", "Se añadieron $added canciones; no se pudieron añadir $failed."))
+                else graph.successEvent.tryEmit(uiText("Added $added songs to the playlist.", "Se añadieron $added canciones a la lista."))
             }
             onDone()
         },

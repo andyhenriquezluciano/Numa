@@ -180,7 +180,7 @@ internal fun quickGridItems(
             add(
                 QuickGridItem(
                     id = "pl_${playlist.id}",
-                    title = playlist.title,
+                    title = dev.sfg.numa.mobile.ui.text.playlistDisplayTitle(playlist.id, playlist.title),
                     artworkUrl = playlist.artworkUrl,
                     onClick = { onOpenDetail(playlist.id) },
                     onPlay = { playCatalogItem(CatalogItem.Collection(playlist)) },

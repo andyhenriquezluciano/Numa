@@ -139,6 +139,7 @@ class DownloadStore(
         lines: List<LyricLine>,
         spanishTranslations: List<String?> = emptyList(),
         timingIdentity: String = "",
+        translationTarget: String = "es",
     ): Boolean = synchronized(lock) {
         if (videoId.isBlank() || lines.isEmpty()) return false
         runCatching {
@@ -151,7 +152,7 @@ class DownloadStore(
                     obj.put("timingValidatedAt", System.currentTimeMillis())
                 }
                 spanishTranslations.getOrNull(index)?.takeIf(String::isNotBlank)?.let {
-                    obj.put("translationEs", it)
+                    obj.put(if (translationTarget == "en") "translationEn" else "translationEs", it)
                 }
                 line.startMs?.let { obj.put("startMs", it) }
                 line.endMs?.let { obj.put("endMs", it) }
@@ -252,13 +253,15 @@ class DownloadStore(
     }
 
     /** Loads the Spanish lines saved with an offline track. */
-    fun loadSpanishLyrics(videoId: String): List<String?>? = synchronized(lock) {
+    fun loadSpanishLyrics(videoId: String): List<String?>? = loadTranslatedLyrics(videoId, "es")
+
+    fun loadTranslatedLyrics(videoId: String, target: String): List<String?>? = synchronized(lock) {
         val file = getLyricsFile(videoId)
         if (!file.exists() || file.length() == 0L) return null
         runCatching {
             val array = JSONArray(file.readText())
             List(array.length()) { index ->
-                array.optJSONObject(index)?.optString("translationEs")?.takeIf(String::isNotBlank)
+                array.optJSONObject(index)?.optString(if (target == "en") "translationEn" else "translationEs")?.takeIf(String::isNotBlank)
             }.takeIf { values -> values.any { it != null } }
         }.onFailure {
             Log.w(TAG, "Failed to load offline Spanish lyrics for $videoId", it)

@@ -7,5 +7,5 @@ data class TranslationConditions(val online: Boolean, val metered: Boolean, val 
         else "Conéctate a una red Wi-Fi sin consumo medido para preparar el traductor"
 }
 
-internal fun missingTranslationModels(source: String, installed: Set<String>): Set<String> =
-    if (source == "es") emptySet() else setOf(source, "es") - "en" - installed
+internal fun missingTranslationModels(source: String, installed: Set<String>, target: String = "es"): Set<String> =
+    if (source == target) emptySet() else setOf(source, target) - "en" - installed

@@ -27,4 +27,20 @@ class UiTextTest {
             assertEquals("Siguiendo en YouTube", catalogCaption("Subscribed on YouTube"))
         } finally { Locale.setDefault(original) }
     }
+    @Test fun cachedSpanishCaptionsAndDefaultListsFollowEnglishWithoutRenamingPersonalLists() {
+        val previous = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.ENGLISH)
+            assertEquals("Home", navigationTitle(dev.sfg.numa.mobile.ui.navigation.Routes.HOME))
+            assertEquals("Your daily discovery", catalogCaption("Tu descubrimiento diario"))
+            assertEquals("Personalized mixes", catalogCaption("Mixes personalizados"))
+            assertEquals("Listen together", catalogCaption("Escuchar juntos"))
+            assertEquals("Liked music", playlistDisplayTitle("VLLM", "Música que me gusta"))
+            assertEquals("Mi lista personal", playlistDisplayTitle("VLPLpersonal", "Mi lista personal"))
+            Locale.setDefault(Locale.forLanguageTag("es"))
+            assertEquals("Música que me gusta", playlistDisplayTitle("VLLM", "Liked music"))
+            assertEquals("Mixes personalizados", catalogCaption("Personalized mixes"))
+        } finally { Locale.setDefault(previous) }
+    }
+
 }

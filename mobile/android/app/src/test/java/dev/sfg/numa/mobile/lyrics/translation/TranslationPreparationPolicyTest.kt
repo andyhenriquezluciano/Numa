@@ -23,4 +23,14 @@ class TranslationPreparationPolicyTest {
         assertTrue(missingTranslationModels("ko", setOf("ko", "es")).isEmpty())
         assertTrue(missingTranslationModels("es", emptySet()).isEmpty())
     }
+    @org.junit.Test fun modelsAndCachesAreIndependentForEachTargetLanguage() {
+        assertEquals(setOf("es"), missingTranslationModels("es", emptySet(), "en"))
+        assertEquals(setOf("ko"), missingTranslationModels("ko", setOf("es"), "en"))
+        assertTrue(missingTranslationModels("en", emptySet(), "en").isEmpty())
+        org.junit.Assert.assertNotEquals(OnDeviceLyricTranslation().revision("spa", "en"), OnDeviceLyricTranslation().revision("spa", "es"))
+        org.junit.Assert.assertNotEquals(
+            RemoteLyricTranslation.cacheRevision(dev.sfg.numa.mobile.model.LyricTranslationProvider.GOOGLE, "", "", "en"),
+            RemoteLyricTranslation.cacheRevision(dev.sfg.numa.mobile.model.LyricTranslationProvider.GOOGLE, "", "", "es"))
+    }
+
 }

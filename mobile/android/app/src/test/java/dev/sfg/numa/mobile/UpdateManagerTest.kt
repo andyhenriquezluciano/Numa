@@ -194,4 +194,11 @@ class UpdateManagerTest {
 
         org.junit.Assert.assertNull(metadata)
     }
+    @Test fun acceptsAnUpdatedBuildOfTheSamePublicVersionWithoutOfferingOlderBuilds() {
+        val updated = MobileUpdateMetadata(version = "2.2", versionCode = 20051)
+        org.junit.Assert.assertTrue(UpdateManager.isNewerUpdate(updated, "2.2", 20050))
+        org.junit.Assert.assertFalse(UpdateManager.isNewerUpdate(updated, "2.2", 20051))
+        org.junit.Assert.assertFalse(UpdateManager.isNewerUpdate(updated, "2.3", 20052))
+    }
+
 }

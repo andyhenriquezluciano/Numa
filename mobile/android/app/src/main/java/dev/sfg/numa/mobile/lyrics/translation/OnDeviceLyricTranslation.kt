@@ -14,13 +14,13 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.suspendCancellableCoroutine
 
-internal class SpanishOnDeviceTranslation {
-    suspend fun prepare(sourceCode: String, allowModelDownload: Boolean, requireWifi: Boolean = true, onDownload: () -> Unit = {}) {
+internal class OnDeviceLyricTranslation {
+    suspend fun prepare(sourceCode: String, allowModelDownload: Boolean, requireWifi: Boolean = true, target: String = "es", onDownload: () -> Unit = {}) {
         val source = languageTag(sourceCode) ?: error("Este idioma todavía no admite traducción local.")
-        if (source == TranslateLanguage.SPANISH) return
+        if (source == target) return
         val manager = RemoteModelManager.getInstance()
         val installed = manager.getDownloadedModels(TranslateRemoteModel::class.java).await().map { it.language }.toSet()
-        val missing = missingTranslationModels(source, installed)
+        val missing = missingTranslationModels(source, installed, target)
         if (missing.isEmpty()) return
         if (!allowModelDownload) throw TranslationModelPending()
         onDownload()
@@ -36,18 +36,18 @@ internal class SpanishOnDeviceTranslation {
 
     suspend fun translate(sourceCode: String, texts: Collection<String>, allowModelDownload: Boolean,
         onDownload: () -> Unit = {}, onReady: () -> Unit = {},
-        onTranslated: suspend (String, String) -> Unit = { _, _ -> }, requireWifi: Boolean = true,
+        onTranslated: suspend (String, String) -> Unit = { _, _ -> }, requireWifi: Boolean = true, target: String = "es",
     ): Map<String, String> {
         if (texts.isEmpty()) return emptyMap()
         val source = languageTag(sourceCode) ?: error("Este idioma todavía no admite traducción local.")
-        if (source == TranslateLanguage.SPANISH) return texts.associateWith { it }
-        prepare(sourceCode, allowModelDownload, requireWifi, onDownload)
+        if (source == target) return texts.associateWith { it }
+        prepare(sourceCode, allowModelDownload, requireWifi, target, onDownload)
         onReady()
 
         val translator = Translation.getClient(
             TranslatorOptions.Builder()
                 .setSourceLanguage(source)
-                .setTargetLanguage(TranslateLanguage.SPANISH)
+                .setTargetLanguage(target)
                 .build(),
         )
         try {
@@ -63,7 +63,7 @@ internal class SpanishOnDeviceTranslation {
         }
     }
 
-    fun revision(sourceCode: String): String = "mlkit-es-v1-${sourceCode.ifBlank { "eng" }}"
+    fun revision(sourceCode: String, target: String = "es"): String = "mlkit-$target-v1-${sourceCode.ifBlank { "eng" }}"
 
     private fun languageTag(code: String): String? = when (code.ifBlank { "eng" }) {
         "eng" -> TranslateLanguage.ENGLISH

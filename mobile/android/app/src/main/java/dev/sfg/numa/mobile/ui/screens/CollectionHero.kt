@@ -150,7 +150,7 @@ internal fun CollectionHero(
             modifier = Modifier.padding(horizontal = HeroGutter),
         ) {
             Text(
-                text = detail.title,
+                text = if (detail.kind == CatalogKind.PLAYLIST) dev.sfg.numa.mobile.ui.text.playlistDisplayTitle(detail.id, detail.title) else detail.title,
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 30.sp,

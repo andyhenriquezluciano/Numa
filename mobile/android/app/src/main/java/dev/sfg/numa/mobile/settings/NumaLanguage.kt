@@ -8,16 +8,24 @@ import android.os.Build
 import android.os.LocaleList
 
 object NumaLanguage {
-    fun selected(context: Context): String = if (Build.VERSION.SDK_INT >= 33) {
-        context.getSystemService(LocaleManager::class.java).applicationLocales.toLanguageTags()
-    } else context.getSharedPreferences("interface", Context.MODE_PRIVATE).getString("language", "").orEmpty()
+    private val mutableLanguage = kotlinx.coroutines.flow.MutableStateFlow("es")
+    val language: kotlinx.coroutines.flow.StateFlow<String> = mutableLanguage
+
+    fun selected(context: Context): String {
+        val saved = context.getSharedPreferences("interface", Context.MODE_PRIVATE).getString("language", "es").orEmpty()
+        val application = if (Build.VERSION.SDK_INT >= 33)
+            context.getSystemService(LocaleManager::class.java).applicationLocales.toLanguageTags().substringBefore('-') else saved
+        return explicitInterfaceLanguage(application.ifBlank { saved })
+    }
 
     fun apply(activity: Activity, tag: String) {
-        require(tag in listOf("", "es", "en"))
+        require(tag in listOf("es", "en"))
         activity.getSharedPreferences("interface", Context.MODE_PRIVATE).edit().putString("language", tag).apply()
         if (Build.VERSION.SDK_INT >= 33) {
             activity.getSystemService(LocaleManager::class.java).applicationLocales = LocaleList.forLanguageTags(tag)
         } else activity.recreate()
+        java.util.Locale.setDefault(java.util.Locale.forLanguageTag(tag))
+        mutableLanguage.value = tag
         refreshWidgets(activity)
     }
 
@@ -33,15 +41,13 @@ object NumaLanguage {
     }
 
     fun wrap(context: Context): Context {
-        val requested = selected(context)
-        val locale = if (requested.isBlank()) android.content.res.Resources.getSystem().configuration.locales[0]
-            else java.util.Locale.forLanguageTag(requested)
-        java.util.Locale.setDefault(locale)
-        if (Build.VERSION.SDK_INT >= 33) return context
         val tag = selected(context)
-        if (tag.isBlank()) return context
+        java.util.Locale.setDefault(java.util.Locale.forLanguageTag(tag))
+        mutableLanguage.value = tag
         val config = Configuration(context.resources.configuration)
         config.setLocales(LocaleList.forLanguageTags(tag))
         return context.createConfigurationContext(config)
     }
 }
+
+internal fun explicitInterfaceLanguage(saved: String): String = if (saved.substringBefore('-') == "en") "en" else "es"

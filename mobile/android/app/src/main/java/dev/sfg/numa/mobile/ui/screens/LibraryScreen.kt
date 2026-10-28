@@ -230,5 +230,5 @@ private fun LibrarySnapshot.summary(localSongs: Int): String {
         return uiText("Nothing saved yet", "Todavía no hay contenido guardado")
     }
     val local = if (localSongs > 0) uiText(", $localSongs on this phone", ", $localSongs en este teléfono") else ""
-    return uiText("${likedTracks.size} songs, ${savedAlbums.size} albums, ${savedArtists.size} artists$local", "${likedTracks.size} canciones, ${savedAlbums.size} álbumes, ${savedArtists.size} artistas$local")
+    return uiText("${likedTracks.size} ${if (likedTracks.size == 1) "song" else "songs"}, ${savedAlbums.size} ${if (savedAlbums.size == 1) "album" else "albums"}, ${savedArtists.size} ${if (savedArtists.size == 1) "artist" else "artists"}$local", "${likedTracks.size} ${if (likedTracks.size == 1) "canción" else "canciones"}, ${savedAlbums.size} ${if (savedAlbums.size == 1) "álbum" else "álbumes"}, ${savedArtists.size} ${if (savedArtists.size == 1) "artista" else "artistas"}$local")
 }

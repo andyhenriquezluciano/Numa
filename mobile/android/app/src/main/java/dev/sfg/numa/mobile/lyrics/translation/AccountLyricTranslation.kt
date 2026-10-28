@@ -24,11 +24,11 @@ internal class AccountLyricTranslation(http: OkHttpClient, private val account: 
     private val client = http.newBuilder().followRedirects(false).followSslRedirects(false)
         .callTimeout(130, TimeUnit.SECONDS).readTimeout(130, TimeUnit.SECONDS).build()
 
-    suspend fun translate(songId: String, lines: List<String>): List<String> {
+    suspend fun translate(songId: String, lines: List<String>, target: String = "es"): List<String> {
         check(account.state.value.signedIn) { "Sign in to Numa to translate lyrics." }
         require(songId.isNotBlank()) { "This song has no ID." }
         val token = account.accessToken() ?: error("Sign in to Numa again.")
-        val payload = JSONObject().put("song_id", songId).put("target_language", "es").put("lines", JSONArray(lines))
+        val payload = JSONObject().put("song_id", songId).put("target_language", if (target == "en") "english" else "spanish").put("lines", JSONArray(lines))
         val request = Request.Builder().url("${account.serviceUrl}/lyrics/translate")
             .header("Authorization", "Bearer $token")
             .post(payload.toString().toRequestBody("application/json".toMediaType())).build()

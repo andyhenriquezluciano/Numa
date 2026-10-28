@@ -219,7 +219,7 @@ fun NumaBottomBar(currentRoute: String?, onSelect: (String) -> Unit, showSetting
                                 )
                                 Icon(
                                     destination.icon,
-                                    contentDescription = destination.label,
+                                    contentDescription = dev.sfg.numa.mobile.ui.text.navigationTitle(destination.route),
                                     modifier = Modifier
                                         .size(20.dp)
                                         .scale(iconScale)
@@ -228,7 +228,7 @@ fun NumaBottomBar(currentRoute: String?, onSelect: (String) -> Unit, showSetting
                             },
                             label = {
                                 Text(
-                                    destination.label,
+                                    dev.sfg.numa.mobile.ui.text.navigationTitle(destination.route),
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                 )
                             },

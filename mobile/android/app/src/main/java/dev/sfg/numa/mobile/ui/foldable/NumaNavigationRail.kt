@@ -199,13 +199,13 @@ fun NumaNavigationRail(
                         ) {
                             Icon(
                                 destination.icon,
-                                contentDescription = destination.label,
+                                contentDescription = dev.sfg.numa.mobile.ui.text.navigationTitle(destination.route),
                                 tint = itemColor,
                                 modifier = Modifier.size(22.dp).scale(1f + 0.08f * activeProgress),
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                text = destination.label,
+                                text = dev.sfg.numa.mobile.ui.text.navigationTitle(destination.route),
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = textColor,

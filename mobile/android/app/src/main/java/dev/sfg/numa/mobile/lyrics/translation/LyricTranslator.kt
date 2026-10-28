@@ -52,12 +52,13 @@ data class LyricTranslationState(
     val progress: Float = 0f,
     val lines: List<LyricLine>? = null,
     val translations: List<String?> = emptyList(),
+    val targetLanguage: String = dev.sfg.numa.mobile.settings.NumaLanguage.language.value,
 ) {
     enum class Status { OFF, IDLE, UNSUPPORTED, DOWNLOADING, TRANSLATING, READY, FAILED, WAITING }
 
     /** Translations for [current], or null when they belong to another song. */
     fun translationsFor(current: List<LyricLine>): List<String?>? =
-        translations.takeIf { lines === current || lines == current }
+        translations.takeIf { targetLanguage == dev.sfg.numa.mobile.settings.NumaLanguage.language.value && (lines === current || lines == current) }
 }
 
 /**
@@ -78,7 +79,7 @@ class LyricTranslator(
     private val account = dev.sfg.numa.mobile.auth.NumaAccountService.get(context)
     private val accountRemote = AccountLyricTranslation(http, account)
     private val remote = RemoteLyricTranslation(http)
-    private val spanish = SpanishOnDeviceTranslation()
+    private val localTranslator = OnDeviceLyricTranslation()
     data class ApiKeyState(val saved: Set<LyricTranslationProvider>, val message: String = "") {
         fun has(provider: LyricTranslationProvider) = provider in saved
     }
@@ -104,15 +105,16 @@ class LyricTranslator(
     private val retries = MutableStateFlow(0)
     private data class Config(
         val enabled: Boolean, val quality: String, val provider: LyricTranslationProvider,
-        val model: String, val endpoint: String,
+        val model: String, val endpoint: String, val target: String,
     )
 
     init {
+        dev.sfg.numa.mobile.settings.NumaLanguage.wrap(context)
         scope.launch(Dispatchers.IO) { mutableInstalled.value = packs.installedPacks() }
-        val wanted = settings.map {
+        val wanted = combine(settings, dev.sfg.numa.mobile.settings.NumaLanguage.language) { it, target ->
             Config(it.translateLyrics && (it.lyricTranslationProvider != LyricTranslationProvider.LOCAL || TranslationNative.available),
                 it.lyricTranslationQuality.key, it.lyricTranslationProvider,
-                it.lyricTranslationModels[it.lyricTranslationProvider.key].orEmpty(), it.lyricTranslationEndpoint)
+                it.lyricTranslationModels[it.lyricTranslationProvider.key].orEmpty(), it.lyricTranslationEndpoint, target)
         }
             .distinctUntilChanged()
         scope.launch {
@@ -136,7 +138,8 @@ class LyricTranslator(
                 next.takeIf { config.translateLyrics && config.lyricTranslationProvider == LyricTranslationProvider.LOCAL &&
                     limits.allowPreparation && !busy && current.status in setOf(LyricTranslationState.Status.READY, LyricTranslationState.Status.IDLE) }
             }
-            prepareNextTranslation(requests) { next -> resolveSpanish(next.lines, next.songId, conditions.value.allowPreparation) }
+            val localizedRequests = combine(requests, dev.sfg.numa.mobile.settings.NumaLanguage.language) { next, target -> next?.let { it to target } }
+            prepareNextTranslation(localizedRequests) { (next, target) -> resolveLocal(next.lines, next.songId, conditions.value.allowPreparation, target = target) }
         }
     }
 
@@ -202,11 +205,11 @@ class LyricTranslator(
             return
         }
         if (lines == null) {
-            if (config.provider == LyricTranslationProvider.LOCAL) prepareLocalModel()
+            if (config.provider == LyricTranslationProvider.LOCAL) prepareLocalModel(config.target)
             return
         }
         if (config.provider == LyricTranslationProvider.NUMA) {
-            runAccount(lines, songId)
+            runAccount(lines, songId, config.target)
             return
         }
         if (config.provider != LyricTranslationProvider.LOCAL) {
@@ -221,20 +224,20 @@ class LyricTranslator(
             runRemote(lines, config)
             return
         }
-        runSpanish(lines, songId, foreground)
+        runLocal(lines, songId, foreground, config.target)
     }
 
     suspend fun translateForDownload(lines: List<LyricLine>, songId: String): List<String?>? {
         if (!settings.value.translateLyrics) return null
-        return try { resolveSpanish(lines, songId, conditions.value.allowPreparation).third }
+        return try { resolveLocal(lines, songId, conditions.value.allowPreparation).third }
         catch (cancelled: CancellationException) { throw cancelled }
         catch (_: Exception) { null }
     }
 
-    private suspend fun prepareLocalModel() {
+    private suspend fun prepareLocalModel(target: String) {
         try {
             localWork.withLock {
-                spanish.prepare("eng", conditions.value.allowPreparation) {
+                localTranslator.prepare(if (target == "en") "spa" else "eng", conditions.value.allowPreparation, target = target) {
                     mutableState.value = LyricTranslationState(LyricTranslationState.Status.DOWNLOADING,
                         message = "Preparando el traductor local…")
                 }
@@ -248,18 +251,19 @@ class LyricTranslator(
         }
     }
 
-    private suspend fun runSpanish(lines: List<LyricLine>, songId: String, foreground: Boolean) {
+    private suspend fun runLocal(lines: List<LyricLine>, songId: String, foreground: Boolean, target: String) {
         val empty = LyricTranslationState(
             status = LyricTranslationState.Status.TRANSLATING,
-            message = "Traduciendo al español",
+            message = if (target == "en") "Translating into English" else "Traduciendo al español",
+            targetLanguage = target,
             lines = lines,
             translations = List(lines.size) { null },
         )
         mutableState.value = empty
         try {
-            val (sourceName, complete, translations) = resolveSpanish(lines, songId, conditions.value.allowModelDownload(foreground),
+            val (sourceName, complete, translations) = resolveLocal(lines, songId, conditions.value.allowModelDownload(foreground),
                 onDownload = { mutableState.value = empty.copy(status = LyricTranslationState.Status.DOWNLOADING, message = "Preparando el modelo del idioma…") },
-                onReady = { mutableState.value = empty }, requireWifi = !foreground)
+                onReady = { mutableState.value = empty }, requireWifi = !foreground, target = target)
             mutableState.value = empty.copy(
                 status = if (complete) LyricTranslationState.Status.READY else LyricTranslationState.Status.FAILED,
                 message = if (complete) "Traducido de $sourceName" else "Conéctate para descargar el modelo de traducción.",
@@ -278,37 +282,38 @@ class LyricTranslator(
         }
     }
 
-    private suspend fun resolveSpanish(
+    private suspend fun resolveLocal(
         lines: List<LyricLine>,
         songId: String,
         allowModelDownload: Boolean,
         onDownload: () -> Unit = {},
         onReady: () -> Unit = {},
         requireWifi: Boolean = true,
+        target: String = dev.sfg.numa.mobile.settings.NumaLanguage.language.value,
     ): Triple<String, Boolean, List<String?>> = localWork.withLock {
         val saved = withContext(Dispatchers.IO) {
-            downloadStore?.takeIf { it.loadLyrics(songId) == lines }?.loadSpanishLyrics(songId)
+            downloadStore?.takeIf { it.loadLyrics(songId) == lines }?.loadTranslatedLyrics(songId, target)
         }
         saved?.takeIf { it.size == lines.size }?.let { return@withLock Triple("la copia descargada", true, it) }
         val texts = lines.map(::lineText)
         val plan = JSONObject(TranslationNative.plan(texts.map { it.encodeToByteArray() }.toTypedArray()).decodeToString())
         val source = plan.optString("source").ifBlank { "eng" }
         val sourceName = plan.optString("name").ifBlank { if (source == "eng") "inglés" else source }
-        if (source == "spa") return@withLock Triple("español", true, List(lines.size) { null })
+        if (source == if (target == "en") "eng" else "spa") return@withLock Triple(sourceName, true, List(lines.size) { null })
 
         val pending = LinkedHashMap<String, MutableList<Int>>()
         texts.forEachIndexed { index, text ->
             if (text.isNotEmpty()) pending.getOrPut(text) { mutableListOf() } += index
         }
         val results = arrayOfNulls<String>(lines.size)
-        val revision = spanish.revision(source)
+        val revision = localTranslator.revision(source, target)
         withContext(Dispatchers.IO) { store.lookup(revision, pending.keys) }.forEach { (text, translation) ->
             pending.remove(text)?.forEach { results[it] = shown(text, translation) }
         }
         if (pending.isNotEmpty()) {
             val total = pending.size
             var completed = 0
-            val translated = spanish.translate(source, pending.keys.toList(), allowModelDownload, onDownload, onReady,
+            val translated = localTranslator.translate(source, pending.keys.toList(), allowModelDownload, onDownload, onReady,
                 onTranslated = { text, value ->
                     withContext(Dispatchers.IO) { store.store(revision, text, value) }
                     pending[text]?.forEach { results[it] = shown(text, value) }
@@ -317,7 +322,7 @@ class LyricTranslator(
                         mutableState.update { it.copy(status = LyricTranslationState.Status.TRANSLATING,
                             progress = completed.toFloat() / total, translations = results.toList()) }
                     }
-                }, requireWifi = requireWifi)
+                }, requireWifi = requireWifi, target = target)
             translated.forEach { (text, value) ->
                 pending.remove(text)?.forEach { results[it] = shown(text, value) }
             }
@@ -327,7 +332,7 @@ class LyricTranslator(
 
     private suspend fun runRemote(lines: List<LyricLine>, config: Config) {
         val texts = lines.map(::lineText)
-        val base = LyricTranslationState(LyricTranslationState.Status.IDLE, lines = lines,
+        val base = LyricTranslationState(LyricTranslationState.Status.IDLE, lines = lines, targetLanguage = config.target,
             translations = List(lines.size) { null })
         val pending = LinkedHashMap<String, MutableList<Int>>()
         texts.forEachIndexed { index, text ->
@@ -341,7 +346,7 @@ class LyricTranslator(
             if (config.provider !in listOf(LyricTranslationProvider.CUSTOM, LyricTranslationProvider.GOOGLE) && key.isBlank())
                 error("Add an API key in Settings.")
             RemoteLyricTranslation.endpoint(config.provider, config.endpoint, key)
-            val revision = RemoteLyricTranslation.cacheRevision(config.provider, config.model, config.endpoint)
+            val revision = RemoteLyricTranslation.cacheRevision(config.provider, config.model, config.endpoint, config.target)
             val cached = withContext(Dispatchers.IO) { store.lookup(revision, pending.keys) }
             cached.forEach { (text, translation) -> pending.remove(text)?.forEach { results[it] = shown(text, translation) } }
             val ready = base.copy(status = LyricTranslationState.Status.READY,
@@ -354,7 +359,7 @@ class LyricTranslator(
                 message = "Translating with ${config.provider.label}", translations = results.toList())
             // Twenty-four lines fit comfortably in a response without losing chorus alignment.
             pending.keys.toList().chunked(RemoteLyricTranslation.BATCH_SIZE).forEach { batch ->
-                val output = remote.translate(config.provider, config.model, config.endpoint, key, batch)
+                val output = remote.translate(config.provider, config.model, config.endpoint, key, batch, config.target)
                 withContext(Dispatchers.IO) {
                     batch.zip(output).forEach { (text, translated) -> store.store(revision, text, translated) }
                 }
@@ -373,15 +378,15 @@ class LyricTranslator(
         }
     }
 
-    private suspend fun runAccount(lines: List<LyricLine>, songId: String) {
+    private suspend fun runAccount(lines: List<LyricLine>, songId: String, target: String) {
         val texts = lines.map(::lineText)
         val wanted = texts.filter(String::isNotEmpty).distinct()
         val base = LyricTranslationState(LyricTranslationState.Status.TRANSLATING,
-            message = "Translating with Numa Account", lines = lines, translations = List(lines.size) { null })
+            message = "Translating with Numa Account", targetLanguage = target, lines = lines, translations = List(lines.size) { null })
         mutableState.value = base
         try {
             check(account.state.value.signedIn) { "Sign in to Numa to translate lyrics." }
-            val output = if (wanted.isEmpty()) emptyList() else accountRemote.translate(songId, wanted)
+            val output = if (wanted.isEmpty()) emptyList() else accountRemote.translate(songId, wanted, target)
             val translations = wanted.zip(output).toMap()
             mutableState.value = base.copy(status = LyricTranslationState.Status.READY,
                 message = "Translated with Numa Account",

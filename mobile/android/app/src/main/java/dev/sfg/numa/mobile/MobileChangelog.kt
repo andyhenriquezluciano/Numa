@@ -31,13 +31,13 @@ object MobileChangelog {
             """
             ### Fixed
             - **Artwork**: Recover missing covers from library metadata and retry alternative image sources.
-            - **Lyrics**: Spanish and English labels, translation messages, settings and widgets.
+            - **Lyrics**: Lyrics follow the selected English or Spanish app language, with separate caches. Navigation, default playlists, catalog headings, settings and widgets use that language. System language detection was removed.
             - **Lock-screen player**: Open Android permission settings on every activation or deactivation. Close the player immediately when disabled.
             """.trimIndent(),
             """
             ### Corregido
             - **Carátulas**: Recuperación desde la biblioteca y reintento con otras fuentes de imagen.
-            - **Letras**: Etiquetas, mensajes de traducción, ajustes y widgets en español e inglés.
+            - **Letras**: Traducción al inglés o español según el idioma elegido, con cachés separadas. Navegación, listas predeterminadas, encabezados, ajustes y widgets en ese idioma. Eliminada la detección del idioma del sistema.
             - **Reproductor al bloquear**: Ajustes de permiso de Android en cada activación o desactivación y cierre inmediato al desactivarlo.
             """.trimIndent(),
         )

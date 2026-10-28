@@ -73,7 +73,7 @@ internal data class SettingsEntry(
 )
 
 private val entries = listOf(
-    SettingsEntry("Idioma de la interfaz", "Sistema, español o inglés", SettingsPage.Home, "language idioma"),
+    SettingsEntry("Idioma de la interfaz", "Español o inglés", SettingsPage.Home, "language idioma"),
     SettingsEntry("Calidad de audio", "Desde menor consumo hasta mayor tasa de bits", SettingsPage.Audio, "bitrate stream datos ahorro"),
     SettingsEntry("Ecualizador", "Ajusta el sonido con preajustes o bandas", SettingsPage.Audio, "eq graves agudos"),
     SettingsEntry("Mostrar tasa de bits", "Tasa de transmisión bajo la barra de progreso", SettingsPage.Appearance),
@@ -93,7 +93,7 @@ private val entries = listOf(
     SettingsEntry("Fuentes de carátulas", "Elige el orden de las fuentes animadas", SettingsPage.Appearance, "m8tec boidu spotify canvas"),
     SettingsEntry("Descargar carátula animada", "Guarda portadas en movimiento sin conexión", SettingsPage.Storage),
     SettingsEntry("Fondo animado", "Los colores de la carátula se mueven por la aplicación", SettingsPage.Appearance, "fondo"),
-    SettingsEntry("Traducir letras", "Muestra las letras en español", SettingsPage.Lyrics, "traducción idioma español"),
+    SettingsEntry("Traducir letras", "Muestra las letras en el idioma de la app", SettingsPage.Lyrics, "traducción idioma español"),
     SettingsEntry("Calidad de traducción", "Modelos de traducción", SettingsPage.Lyrics, "letras modelo tamaño"),
     SettingsEntry("Fuente de traducción", "Local o Google Translate", SettingsPage.Lyrics, "letras google proveedor"),
     SettingsEntry("Discord", "Comparte lo que estás escuchando", SettingsPage.Connections, "presencia"),

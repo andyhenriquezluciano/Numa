@@ -5,11 +5,14 @@ import { createBrowseRequest } from '../src/runtime/catalog.js';
 for (const [language, expected] of [['es', 'es'], ['en', 'en'], [undefined, 'en']]) {
   test(`catalog locale ${language ?? 'default'}`, async () => {
     let requestBody;
+    let headers;
     const browse = createBrowseRequest({ interfaceLanguage: language }, { guest: true }, async (_, options) => {
       requestBody = JSON.parse(options.body);
+      headers = options.headers;
       return { ok: true, text: async () => '{}' };
     });
     await browse({ browseId: 'FEmusic_home' });
     assert.equal(requestBody.context.client.hl, expected);
+    assert.equal(headers['Accept-Language'], expected);
   });
 }

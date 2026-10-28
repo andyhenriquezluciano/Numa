@@ -14,11 +14,11 @@ import org.json.JSONArray
 
 /** Translate each distinct line independently so timing cannot shift between lyric lines. */
 internal class GoogleLyricTranslation(private val client: OkHttpClient) {
-    suspend fun translate(texts: List<String>): List<String> = texts.map { text ->
+    suspend fun translate(texts: List<String>, target: String = "es"): List<String> = texts.map { text ->
         val request = Request.Builder()
             .url("https://translate.googleapis.com/translate_a/single")
             .post(FormBody.Builder().add("client", "gtx").add("sl", "auto")
-                .add("tl", "es").add("dt", "t").add("q", text).build())
+                .add("tl", target).add("dt", "t").add("q", text).build())
             .build()
         val body = suspendCancellableCoroutine<String> { continuation ->
             val call = client.newCall(request)

@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.components
 
+import dev.sfg.numa.mobile.ui.text.uiText
+
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.rememberScrollState
@@ -77,7 +79,7 @@ internal fun NewPlaylistSheet(
             Text(stringResource(R.string.qol_new_playlist), style = MaterialTheme.typography.titleLarge, color = CanopyColors.Text)
             Spacer(Modifier.height(14.dp))
             SettingsSegmented(
-                options = listOf(false to "YouTube Music", true to "En este teléfono"),
+                options = listOf(false to "YouTube Music", true to uiText("On this phone", "En este teléfono")),
                 selected = local, onSelect = { local = it },
                 isEnabled = { it || youtubeAvailable },
             )

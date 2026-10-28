@@ -367,8 +367,9 @@ class DownloadManager(
         runCatching {
             val lines = lyricsResolver(track)
             if (!lines.isNullOrEmpty()) {
-                val translations = lyricTranslationResolver(track, lines).orEmpty()
-                store.saveLyrics(videoId, lines, translations, timingIdentity = lyricIdentity(track))
+                val language = dev.sfg.numa.mobile.settings.NumaLanguage.language.value
+                val translations = lyricTranslationResolver(track, lines).orEmpty().takeIf { language == dev.sfg.numa.mobile.settings.NumaLanguage.language.value }.orEmpty()
+                store.saveLyrics(videoId, lines, translations, timingIdentity = lyricIdentity(track), translationTarget = language)
                 Log.d(TAG, "Saved offline lyrics for $videoId (${lines.size} lines)")
             } else {
                 Log.d(TAG, "No lyrics found for offline track $videoId")

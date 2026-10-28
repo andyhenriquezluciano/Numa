@@ -24,7 +24,7 @@ internal fun TranslationSourceSheet(
         Column(Modifier.padding(start = 24.dp, end = 24.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             RowTitle(uiText("Translation source", "Fuente de traducción"))
-            RowSubtitle(uiText("Choose where lyrics are translated into Spanish.", "Elige dónde se traducen las letras al español."))
+            RowSubtitle(uiText("Choose where lyrics are translated into English.", "Elige dónde se traducen las letras al español."))
             listOf(LyricTranslationProvider.LOCAL, LyricTranslationProvider.GOOGLE).forEach { choice ->
                 ActionRow(
                     title = choice.label,

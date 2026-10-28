@@ -220,4 +220,15 @@ class DownloadStoreTest {
         assertNull(store.loadLyrics("song_123"))
         assertNull(store.loadSpanishLyrics("song_123"))
     }
+    @Test fun englishOfflineLyricsAreNeverReturnedAsSpanish() {
+        val store = DownloadStore(baseDir = tempFolder.newFolder("bilingual-lyrics"))
+        val lines = listOf(dev.sfg.numa.mobile.model.LyricLine("Hola", 1200))
+        assertTrue(store.saveLyrics("english", lines, listOf("Hello"), translationTarget = "en"))
+        assertEquals(listOf("Hello"), store.loadTranslatedLyrics("english", "en"))
+        assertNull(store.loadSpanishLyrics("english"))
+        assertTrue(store.saveLyrics("spanish", lines, listOf("Hola")))
+        assertEquals(listOf("Hola"), store.loadTranslatedLyrics("spanish", "es"))
+        assertNull(store.loadTranslatedLyrics("spanish", "en"))
+    }
+
 }

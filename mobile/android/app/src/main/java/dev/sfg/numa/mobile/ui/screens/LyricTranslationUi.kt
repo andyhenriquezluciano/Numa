@@ -155,7 +155,7 @@ internal fun LyricTranslateChip(modifier: Modifier = Modifier) {
             )
         } else {
             Icon(Icons.Rounded.Translate,
-                contentDescription = if (enabled) uiText("Turn off translation", "Desactivar traducción") else uiText("Translate lyrics into Spanish", "Traducir letras al español"),
+                contentDescription = if (enabled) uiText("Turn off translation", "Desactivar traducción") else uiText("Translate lyrics into English", "Traducir letras al español"),
                 tint = tint, modifier = Modifier.size(18.dp))
         }
         }

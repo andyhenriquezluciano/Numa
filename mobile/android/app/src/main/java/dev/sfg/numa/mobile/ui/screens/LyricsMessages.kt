@@ -6,6 +6,7 @@ import java.util.Locale
 
 // Resolve at display time: translation jobs can outlive an interface-language change.
 private val lyricMessages = listOf(
+    "Translating into English" to "Traduciendo al inglés",
     "This source needs an Internet connection." to "Esta fuente necesita conexión.",
     "Preparing the on-device translator…" to "Preparando el traductor local…",
     "On-device translator ready" to "Traductor local preparado",

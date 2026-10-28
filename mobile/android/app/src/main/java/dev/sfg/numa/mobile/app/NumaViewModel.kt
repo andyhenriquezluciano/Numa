@@ -53,6 +53,7 @@ import dev.sfg.numa.mobile.songlinks.SongShareState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -246,6 +247,13 @@ class NumaViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         refreshHome()
+        viewModelScope.launch {
+            dev.sfg.numa.mobile.settings.NumaLanguage.language.drop(1).collect {
+                homeRefreshJob?.cancel()
+                homeRefreshJob = null
+                refreshHome()
+            }
+        }
         refreshCacheSize()
         observeNetworkState()
         searcher.observe()

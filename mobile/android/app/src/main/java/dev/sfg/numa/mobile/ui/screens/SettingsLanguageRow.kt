@@ -21,7 +21,7 @@ internal fun SettingsLanguageRow() {
         Column(Modifier.padding(20.dp)) {
             RowTitle(stringResource(R.string.interface_language), help = null)
             SettingsDropdownField(
-                options = listOf("" to stringResource(R.string.interface_system), "es" to "Español", "en" to "English"),
+                options = listOf("es" to "Español", "en" to "English"),
                 selected = selected,
                 onSelect = { tag ->
                     var owner = context

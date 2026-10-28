@@ -57,7 +57,7 @@ internal fun LyricTranslationSection(
     SectionLabel(uiText("Lyrics", "Letras"), labelIndex)
     SettingsPanel(index = labelIndex + 1) {
         ToggleRow(
-            title = uiText("Translate lyrics into Spanish", "Traducir letras al español"),
+            title = uiText("Translate lyrics into English", "Traducir letras al español"),
             subtitle = if (provider == LyricTranslationProvider.LOCAL)
                 if (settings.translateLyrics && translationState.message.isNotBlank()) translationStatusMessage(translationState)
                 else uiText("Translate offline with models downloaded over Wi-Fi.", "Traduce sin conexión con modelos descargados por Wi-Fi.")

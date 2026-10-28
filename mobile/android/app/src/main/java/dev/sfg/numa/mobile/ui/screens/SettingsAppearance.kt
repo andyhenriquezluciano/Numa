@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.text.uiText
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -53,17 +55,17 @@ internal fun ThemeStyleSection(
     onSettings: (NumaSettings) -> Unit,
 ) {
     Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-        AppearanceOptionTitle("Temas", Icons.Rounded.Palette)
+        AppearanceOptionTitle(uiText("Themes", "Temas"), Icons.Rounded.Palette)
         val themeSubtitle = when (settings.glassTheme) {
-            GlassTheme.CRISTAL -> "Cristales claros y translúcidos."
-            GlassTheme.CRISTAL_OSCURO -> "Cristales oscuros con mayor contraste."
-            GlassTheme.ROSE_PINE -> "Colores Rosé Pine y menor transparencia."
+            GlassTheme.CRISTAL -> uiText("Light, translucent glass.", "Cristales claros y translúcidos.")
+            GlassTheme.CRISTAL_OSCURO -> uiText("Dark glass with higher contrast.", "Cristales oscuros con mayor contraste.")
+            GlassTheme.ROSE_PINE -> uiText("Rosé Pine colors with less transparency.", "Colores Rosé Pine y menor transparencia.")
         }
         RowSubtitle(themeSubtitle)
         SettingsDropdownField(
             options = listOf(
-                GlassTheme.CRISTAL to "Cristal",
-                GlassTheme.CRISTAL_OSCURO to "Cristal Oscuro",
+                GlassTheme.CRISTAL to uiText("Glass", "Cristal"),
+                GlassTheme.CRISTAL_OSCURO to uiText("Dark glass", "Cristal Oscuro"),
                 GlassTheme.ROSE_PINE to "Rosé Pine",
             ),
             selected = settings.glassTheme,
@@ -75,16 +77,16 @@ internal fun ThemeStyleSection(
     PanelDivider()
 
     Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-        AppearanceOptionTitle("Estilo de bordes", Icons.Rounded.BorderStyle)
+        AppearanceOptionTitle(uiText("Border style", "Estilo de bordes"), Icons.Rounded.BorderStyle)
         val bordersSubtitle = when (settings.glassBorders) {
-            GlassBorders.PREDETERMINADO -> "Bordes sutiles en cristales y botones."
-            GlassBorders.LIMPIO -> "Cristales y botones sin bordes."
+            GlassBorders.PREDETERMINADO -> uiText("Subtle borders on glass and buttons.", "Bordes sutiles en cristales y botones.")
+            GlassBorders.LIMPIO -> uiText("Borderless glass and buttons.", "Cristales y botones sin bordes.")
         }
         RowSubtitle(bordersSubtitle)
         SettingsDropdownField(
             options = listOf(
-                GlassBorders.PREDETERMINADO to "Predeterminado",
-                GlassBorders.LIMPIO to "Limpio",
+                GlassBorders.PREDETERMINADO to uiText("Default", "Predeterminado"),
+                GlassBorders.LIMPIO to uiText("Clean", "Limpio"),
             ),
             selected = settings.glassBorders,
             iconFor = { if (it == GlassBorders.LIMPIO) Icons.Rounded.BorderClear else Icons.Rounded.BorderStyle },
@@ -93,15 +95,15 @@ internal fun ThemeStyleSection(
 
         Spacer(Modifier.height(14.dp))
         val comboName = when {
-            settings.glassTheme == GlassTheme.CRISTAL && settings.glassBorders == GlassBorders.LIMPIO -> "Cristal Limpio (Clear Glass)"
-            settings.glassTheme == GlassTheme.CRISTAL_OSCURO && settings.glassBorders == GlassBorders.LIMPIO -> "Cristal Oscuro Limpio"
-            settings.glassTheme == GlassTheme.ROSE_PINE && settings.glassBorders == GlassBorders.LIMPIO -> "Rosé Pine Limpio"
-            settings.glassTheme == GlassTheme.ROSE_PINE -> "Rosé Pine Minimal"
-            settings.glassTheme == GlassTheme.CRISTAL_OSCURO -> "Cristal Oscuro"
-            else -> "Cristal Clásico"
+            settings.glassTheme == GlassTheme.CRISTAL && settings.glassBorders == GlassBorders.LIMPIO -> uiText("Clear glass", "Cristal Limpio (Clear Glass)")
+            settings.glassTheme == GlassTheme.CRISTAL_OSCURO && settings.glassBorders == GlassBorders.LIMPIO -> uiText("Clean dark glass", "Cristal Oscuro Limpio")
+            settings.glassTheme == GlassTheme.ROSE_PINE && settings.glassBorders == GlassBorders.LIMPIO -> uiText("Clean Rosé Pine", "Rosé Pine Limpio")
+            settings.glassTheme == GlassTheme.ROSE_PINE -> uiText("Minimal Rosé Pine", "Rosé Pine Minimal")
+            settings.glassTheme == GlassTheme.CRISTAL_OSCURO -> uiText("Dark glass", "Cristal Oscuro")
+            else -> uiText("Classic glass", "Cristal Clásico")
         }
         Text(
-            text = "Modo activo: $comboName",
+            text = uiText("Active mode: $comboName", "Modo activo: $comboName"),
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Normal),
             color = SettingsStyle.Caption,
         )

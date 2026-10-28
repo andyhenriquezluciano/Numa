@@ -37,7 +37,7 @@ import org.json.JSONObject
 
 /** The session fields the provider signs requests with. */
 fun YouTubeSession?.providerJson(): JSONObject = JSONObject().apply {
-    put("interfaceLanguage", if (java.util.Locale.getDefault().language == "en") "en" else "es")
+    put("interfaceLanguage", dev.sfg.numa.mobile.settings.NumaLanguage.language.value)
     if (this@providerJson == null) return@apply
     put("cookie", cookie)
     if (visitorData.isNotBlank()) put("visitorData", visitorData)
