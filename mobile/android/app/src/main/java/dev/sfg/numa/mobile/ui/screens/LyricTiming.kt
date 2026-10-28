@@ -48,6 +48,12 @@ private const val LYRIC_PAUSE_MIN_MS = 7_000L
 private const val LYRIC_PAUSE_LINE_TAIL_ACCURATE_MS = 400L
 private const val LYRIC_PAUSE_LINE_TAIL_FALLBACK_MS = 2_400L
 
+/** A provider's paragraph boundary can follow the first sung word. */
+internal fun lyricHighlightStartMs(line: LyricLine): Long? {
+    val firstWord = line.words.minOfOrNull { it.startMs }
+    return listOfNotNull(line.startMs, firstWord).minOrNull()
+}
+
 internal fun lyricPauseWindow(line: LyricLine, nextLine: LyricLine): Pair<Long, Long>? {
     val lineStart = line.startMs ?: return null
     val nextStart = nextLine.startMs ?: return null

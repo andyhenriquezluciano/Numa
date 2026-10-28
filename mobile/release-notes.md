@@ -4,6 +4,7 @@
 - Respaldo con el traductor de Google en el dispositivo cuando el servicio web está bloqueado.
 - Errores de traducción visibles y espera antes de repetir solicitudes limitadas.
 - Vista previa del reproductor de bloqueo desde Ajustes.
+- Resaltado inmediato de las letras, sin demora de entrada ni espera al inicio del párrafo cuando la primera palabra comienza antes.
 
 - Recuperación de carátulas y metadatos antiguos en las métricas.
 - Letras traducidas al inglés o español según el idioma elegido, con cachés independientes.

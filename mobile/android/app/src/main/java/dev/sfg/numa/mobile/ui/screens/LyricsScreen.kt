@@ -110,8 +110,7 @@ internal fun LyricLines(
             } else {
                 displayItems.indexOfLast { item ->
                     item is LyricDisplayItem.Line &&
-                        item.line.startMs != null &&
-                        item.line.startMs.toFloat() <= pos
+                    lyricHighlightStartMs(item.line)?.toFloat()?.let { it <= pos } == true
                 }
             }
         }
@@ -213,7 +212,8 @@ internal fun LyricLines(
                         }
                         val animatedAlpha by animateFloatAsState(
                             targetValue = targetAlpha,
-                            animationSpec = tween(280),
+                            // The sung word must be visible at its timestamp, not after a fade-in.
+                            animationSpec = tween(if (active) 0 else 280),
                             label = "LyricAlpha",
                         )
 
