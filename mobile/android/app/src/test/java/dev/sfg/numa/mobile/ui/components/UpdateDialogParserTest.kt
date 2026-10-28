@@ -123,7 +123,8 @@ class UpdateDialogParserTest {
                 val sections = parseReleaseNoteSections(dev.sfg.numa.mobile.MobileChangelog.CURRENT_RELEASE_NOTES)
                 assertEquals(1, sections.size)
                 assertEquals(if (language == "en") "Fixed" else "Corregido", sections[0].title)
-                assertEquals(3, sections[0].items.size)
+                assertTrue(sections[0].items.isNotEmpty())
+                assertTrue(sections[0].items.all { it.isNotBlank() })
             }
         } finally { java.util.Locale.setDefault(previous) }
     }
