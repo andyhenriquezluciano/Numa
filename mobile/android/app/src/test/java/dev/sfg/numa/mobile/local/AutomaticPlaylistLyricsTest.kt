@@ -8,6 +8,17 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
 class AutomaticPlaylistLyricsTest {
+    private val previousLocale = java.util.Locale.getDefault()
+    @org.junit.Before fun spanishInterface() { java.util.Locale.setDefault(java.util.Locale.forLanguageTag("es")) }
+    @org.junit.After fun restoreInterfaceLanguage() { java.util.Locale.setDefault(previousLocale) }
+
+    @Test fun englishSummaryIncludesOnlyNonzeroOutcomes() {
+        java.util.Locale.setDefault(java.util.Locale.ENGLISH)
+        assertEquals("100 lyrics added.", automaticLyricsSummary(100, 0, 0, 0))
+        assertEquals("1 lyrics added. No lyrics found for 2 songs. 3 already had lyrics. 4 could not be checked.",
+            automaticLyricsSummary(1, 2, 3, 4))
+    }
+
     @Test fun automaticTranscriptRetainsRealWordTimingAcrossRestart() {
         val line = LyricLine("First phrase", 23_981, 25_000, words = listOf(
             LyricWord("First", 23_981, 24_500), LyricWord("phrase", 24_500, 25_000),
