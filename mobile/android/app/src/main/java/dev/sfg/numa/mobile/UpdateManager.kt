@@ -113,7 +113,7 @@ class UpdateManager(
     companion object {
         private const val TAG = "UpdateManager"
 
-        fun isNewerUpdate(metadata: MobileUpdateMetadata, installedVersion: String, installedCode: Long): Boolean {
+        fun isNewerUpdate(metadata: MobileUpdateMetadata, installedVersion: String?, installedCode: Long): Boolean {
             val comparison = compareVersions(metadata.version, installedVersion)
             return comparison > 0 || (comparison == 0 && metadata.versionCode.toLong() > installedCode)
         }
