@@ -153,8 +153,11 @@ jobs:
         env:
           VERSION: ${{ needs.verify-tag.outputs.version }}
         run: |
-          gh release create "$GITHUB_REF_NAME" release-assets/* \
+          version_code="$(sed -n 's/^[[:space:]]*versionCode[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' mobile/android/app/build.gradle)"
+          cp mobile/release-notes.md release-assets/notes.md
+          printf '\n<!-- android-version-code: %s -->\n' "$version_code" >> release-assets/notes.md
+          gh release create "$GITHUB_REF_NAME" release-assets/*.apk \
             --repo "$GITHUB_REPOSITORY" \
             --title "Numa Mobile $VERSION (beta)" \
-            --notes-file mobile/release-notes.md \
+            --notes-file release-assets/notes.md \
             --prerelease

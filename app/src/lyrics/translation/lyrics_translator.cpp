@@ -29,6 +29,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QSettings>
+#include <algorithm>
 
 namespace {
 const QString kEnabledKey = QStringLiteral("lyrics/translate");
@@ -164,7 +165,7 @@ QVariantList LyricsTranslator::packs() const { return m_packs->list(); }
 double LyricsTranslator::installedMegabytes() const { return double(m_packs->installedBytes()) / 1e6; }
 
 void LyricsTranslator::removePack(const QString &code) {
-  if (code == m_pack) {
+  if (code == m_pack || m_localRoute.contains(code)) {
     ++*m_generation;
     m_lines = QStringList(m_texts.size(), QString());
     setStatus(QStringLiteral("failed"), tr("The %1 model was removed.").arg(sourceName()));
@@ -222,15 +223,20 @@ void LyricsTranslator::sync() {
 void LyricsTranslator::start() {
   ++*m_generation;
   cancelRemote();
+  m_googleFallback = false;
   m_flush.stop();
   m_pending.clear();
   m_progress = 0;
   m_lines = QStringList(m_texts.size(), QString());
+  m_localRoute.clear();
+  m_localSourceTexts.clear();
   std::vector<std::string> utf8;
   utf8.reserve(m_texts.size());
   for (const QString &text : std::as_const(m_texts))
     utf8.push_back(text.toStdString());
   const lyric_language::SongPlan plan = lyric_language::plan(utf8);
+  for (qsizetype i = 0; i < m_texts.size(); ++i)
+    if (plan.translate[size_t(i)]) m_localSourceTexts.append(m_texts.at(i));
   m_source = QString::fromStdString(plan.source);
   m_pack.clear();
   if ((m_targetLanguage == QStringLiteral("english") && m_source.isEmpty()) ||
@@ -241,12 +247,10 @@ void LyricsTranslator::start() {
   const bool useGoogle = m_provider == QStringLiteral("google");
   const QString packSource = m_source.isEmpty() && m_targetLanguage == QStringLiteral("spanish")
                                  ? QStringLiteral("eng") : m_source;
-  const TranslationPack *pack = (!useGoogle && m_provider == QStringLiteral("local"))
-                                    ? TranslationPacks::resolve(packSource, m_targetLanguage, m_quality)
-                                    : nullptr;
-  if (pack)
-    m_pack = QLatin1String(pack->id);
-  if (!useGoogle && m_provider == QStringLiteral("local") && (!pack || !m_packs->available(m_pack))) {
+  if (!useGoogle) m_localRoute = localRoute(packSource);
+  if (!m_localRoute.isEmpty()) m_pack = m_localRoute.first();
+  if (!useGoogle && (m_localRoute.isEmpty() ||
+      std::any_of(m_localRoute.cbegin(), m_localRoute.cend(), [this](const QString &id) { return !m_packs->available(id); }))) {
     setStatus(QStringLiteral("unsupported"), tr("%1 lyrics can't be translated yet.").arg(sourceName()));
     return;
   }
@@ -256,7 +260,7 @@ void LyricsTranslator::start() {
     if (!useGoogle && m_provider == QStringLiteral("local") &&
         m_targetLanguage == QStringLiteral("english") && !plan.translate[size_t(i)])
       continue;
-    if (m_texts.at(i).isEmpty())
+    if (m_texts.at(i).isEmpty() || lyric_language::isVocalization(m_texts.at(i).toStdString()))
       continue;
     if (!m_pending.contains(m_texts.at(i)))
       wanted.append(m_texts.at(i));
@@ -278,12 +282,30 @@ void LyricsTranslator::start() {
     runGoogleRemote();
     return;
   }
-  if (m_packs->installed(m_pack)) {
-    runModel();
+  prepareLocal();
+}
+
+QStringList LyricsTranslator::localRoute(const QString &source) const {
+  const auto route = TranslationPacks::route(source, m_targetLanguage, m_quality);
+  if (std::any_of(route.cbegin(), route.cend(), [this](const QString &id) { return m_unavailablePacks.contains(id); }))
+    return TranslationPacks::route(source, m_targetLanguage, QStringLiteral("standard"));
+  return route;
+}
+
+void LyricsTranslator::prepareLocal() {
+  for (const auto &id : std::as_const(m_localRoute)) {
+    if (m_packs->installed(id)) continue;
+    m_pack = id;
+    const bool reducedQuality = m_quality == QStringLiteral("high") && m_localRoute !=
+        TranslationPacks::route(m_source.isEmpty() ? QStringLiteral("eng") : m_source, m_targetLanguage, m_quality);
+    setStatus(QStringLiteral("downloading"), reducedQuality
+        ? tr("High-quality model unavailable. Preparing the standard local model.") : m_googleFallback
+        ? tr("Google is unavailable. Downloading a local translation model.")
+        : tr("Preparing local translation models."));
+    m_packs->ensure(id);
     return;
   }
-  setStatus(QStringLiteral("downloading"), tr("Downloading the %1 model").arg(sourceName()));
-  m_packs->ensure(m_pack);
+  runModel();
 }
 
 void LyricsTranslator::runModel() {
@@ -293,18 +315,20 @@ void LyricsTranslator::runModel() {
     if (m_pending.contains(text) && !texts.contains(text))
       texts.append(text);
   const int generation = m_generation->load();
-  const QString directory = m_packs->directory(m_pack);
-  setStatus(QStringLiteral("translating"), tr("Translating from %1").arg(sourceName()));
-  QMetaObject::invokeMethod(m_worker, [worker = m_worker, generation, directory, texts] {
-    worker->translate(generation, directory, texts);
+  QStringList directories;
+  for (const auto &id : std::as_const(m_localRoute)) directories.append(m_packs->directory(id));
+  setStatus(QStringLiteral("translating"),
+            (m_googleFallback ? tr("Google is unavailable. Translating locally from %1")
+                              : tr("Translating from %1")).arg(sourceName()));
+  QMetaObject::invokeMethod(m_worker, [worker = m_worker, generation, directories, texts, sourceTexts = m_localSourceTexts] {
+    worker->translateRoute(generation, directories, texts, sourceTexts);
   });
 }
 
 void LyricsTranslator::accept(int generation, const QString &text, const QString &translation) {
   if (generation != m_generation->load())
     return;
-  if (const auto *pack = TranslationPacks::find(m_pack))
-    m_store.store(QLatin1String(pack->revision), text, translation);
+  m_store.store(cacheRevision(), text, translation);
   for (const int index : m_pending.take(text))
     m_lines[index] = sameText(text, translation) ? QString() : translation;
   if (!m_flush.isActive())
@@ -321,19 +345,34 @@ void LyricsTranslator::jobFinished(int generation, const QString &error) {
   if (!error.isEmpty())
     setStatus(QStringLiteral("failed"), error);
   else
-    setStatus(QStringLiteral("ready"), tr("Translated from %1").arg(sourceName()));
+    setStatus(QStringLiteral("ready"),
+              (m_googleFallback ? tr("Translated locally from %1 (Google unavailable)")
+                                : tr("Translated from %1")).arg(sourceName()));
 }
 
 void LyricsTranslator::packReady(const QString &id) {
   emit packsChanged();
   if (id == m_pack && m_status == QStringLiteral("downloading"))
-    runModel();
+    prepareLocal();
 }
 
 void LyricsTranslator::packFailed(const QString &id, const QString &message) {
   emit packsChanged();
-  if (id == m_pack && m_status == QStringLiteral("downloading"))
-    setStatus(QStringLiteral("failed"), message);
+  if (id != m_pack || m_status != QStringLiteral("downloading")) return;
+  const auto *pack = TranslationPacks::find(id);
+  const int http = m_packs->lastHttpStatus();
+  if (pack && QLatin1String(pack->quality) == QStringLiteral("high")
+      && (http == 401 || http == 403 || http == 404)) {
+    m_unavailablePacks.insert(id);
+    const auto fallback = localRoute(m_source.isEmpty() ? QStringLiteral("eng") : m_source);
+    if (!fallback.isEmpty() && fallback != m_localRoute) {
+      m_localRoute = fallback;
+      m_pack = m_localRoute.first();
+      prepareLocal();
+      return;
+    }
+  }
+  setStatus(QStringLiteral("failed"), message);
 }
 
 void LyricsTranslator::packProgress(const QString &id, double fraction) {

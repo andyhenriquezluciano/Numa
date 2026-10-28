@@ -68,6 +68,8 @@ Rectangle {
             transitioning: NumaPlayback.crossfadeActive
             progress: NumaPlayback.crossfadeProgress
             dissolve: true
+            motionCoverVisible: motionLoader.active && motionLoader.item !== null
+                                && motionLoader.item.live && motionLoader.opacity >= 1
 
             MouseArea {
                 anchors.fill: parent
@@ -80,6 +82,7 @@ Rectangle {
 
             // Motion cover plays over the still one and bows out early in a crossfade.
             Loader {
+                id: motionLoader
                 anchors.fill: parent
                 active: NumaAppearance.animatedArtworkEnabled
                         && Boolean(NumaPlayback.animatedArtworkUrl)

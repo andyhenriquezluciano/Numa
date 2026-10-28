@@ -39,6 +39,8 @@ public:
 
 public slots:
   void translate(int generation, const QString &packDirectory, const QStringList &texts);
+  void translateRoute(int generation, const QStringList &directories, const QStringList &texts,
+                      const QStringList &sourceLanguageTexts);
 
 signals:
   void translated(int generation, const QString &text, const QString &translation);

@@ -1,4 +1,4 @@
-project('Numa', ['c', 'cpp'], version: '2.0.3', meson_version: '>=1.12.0',
+project('Numa', ['c', 'cpp'], version: '2.0.4', meson_version: '>=1.12.0',
   subproject_dir: 'third_party', default_options: ['cpp_std=c++20', 'b_lto=false'])
 
 cmake = import('cmake')

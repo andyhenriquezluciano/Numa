@@ -37,21 +37,21 @@ ListeningParty::ListeningParty(PlaybackController *playback, AuthManager *auth, 
   });
   m_handshake.setSingleShot(true);
   m_handshake.setInterval(10000);
-  connect(&m_handshake, &QTimer::timeout, this, [this] { reset(tr("La conexión a la sala agotó el tiempo de espera.")); });
+  connect(&m_handshake, &QTimer::timeout, this, [this] { reset(tr("The connection to the room timed out.")); });
   connect(&m_socket, &QWebSocket::connected, this, [this] {
     m_handshake.stop();
     m_connected = true;
-    emit noticeRequested(m_host ? tr("Sala creada. Comparte el código %1.").arg(code()) : tr("Te has unido a la sala compartida."));
+    emit noticeRequested(m_host ? tr("Room created. Share the code %1.").arg(code()) : tr("You joined the shared room."));
     emit changed();
     m_tick.start();
     publish();
   });
   connect(&m_socket, &QWebSocket::textMessageReceived, this, &ListeningParty::receive);
   connect(&m_socket, &QWebSocket::disconnected, this, [this] {
-    if (m_active) { reset(tr("La sala se desconectó.")); emit noticeRequested(tr("La sala se desconectó.")); }
+    if (m_active) { reset(tr("The room disconnected.")); emit noticeRequested(tr("The room disconnected.")); }
   });
   connect(&m_socket, &QWebSocket::errorOccurred, this, [this](QAbstractSocket::SocketError) {
-    if (m_active) reset(tr("No se pudo conectar a la sala compartida."));
+    if (m_active) reset(tr("Could not connect to the shared room."));
   });
 }
 
@@ -65,14 +65,14 @@ void ListeningParty::create() { start("/rooms", {{"hostName", m_auth->userName()
 
 void ListeningParty::join(const QString &value) {
   const auto code = party_protocol::cleanCode(value);
-  if (code.size() != 6) { m_message = tr("Introduce el código de seis caracteres."); emit changed(); return; }
+  if (code.size() != 6) { m_message = tr("Enter the six-character code."); emit changed(); return; }
   start("/rooms/" + code + "/join", {{"name", m_auth->userName().isEmpty() ? "NÜMA PC" : m_auth->userName()}});
 }
 
 void ListeningParty::start(const QString &path, const QJsonObject &body) {
   if (m_active) return;
-  if (!m_auth->isSignedIn()) { m_message = tr("Inicia sesión en YouTube Music para escuchar con otros dispositivos."); emit changed(); return; }
-  if (m_playback->remoteActive()) { m_message = tr("Selecciona la reproducción local antes de compartir una sala."); emit changed(); return; }
+  if (!m_auth->isSignedIn()) { m_message = tr("Sign in to YouTube Music to listen with other devices."); emit changed(); return; }
+  if (m_playback->remoteActive()) { m_message = tr("Select local playback before sharing a room."); emit changed(); return; }
   reset();
   m_active = true;
   const auto generation = m_generation;
@@ -86,7 +86,7 @@ void ListeningParty::start(const QString &path, const QJsonObject &body) {
     if (generation != m_generation) return;
     const auto response = QJsonDocument::fromJson(reply->readAll()).object();
     if (reply->error() != QNetworkReply::NoError || !response.value("ok").toBool()) {
-      reset(tr("No se pudo abrir la sala. Comprueba el código y la conexión.")); return;
+      reset(tr("Could not open the room. Check the code and your connection.")); return;
     }
     const auto data = response.value("data").toObject();
     m_room = data.value("room").toObject();
@@ -94,10 +94,10 @@ void ListeningParty::start(const QString &path, const QJsonObject &body) {
     m_host = m_participant.value("role").toString() == "host";
     const auto id = m_participant.value("id").toString();
     const auto token = m_participant.value("token").toString();
-    if (code().isEmpty() || id.isEmpty() || token.isEmpty()) { reset(tr("El servicio devolvió una sala no válida.")); return; }
+    if (code().isEmpty() || id.isEmpty() || token.isEmpty()) { reset(tr("The service returned an invalid room.")); return; }
     QUrl url(m_room.value("socketUrl").toString());
     if (url.isEmpty()) url = QUrl("wss://numa-party.peluchito281.workers.dev/rooms/" + code() + "/socket");
-    if (url.scheme() != "wss" || url.host() != "numa-party.peluchito281.workers.dev") { reset(tr("Dirección de sala no válida.")); return; }
+    if (url.scheme() != "wss" || url.host() != "numa-party.peluchito281.workers.dev") { reset(tr("Invalid room address.")); return; }
     QUrlQuery query(url);
     query.addQueryItem("participantId", id);
     query.addQueryItem("token", token);
@@ -117,10 +117,10 @@ void ListeningParty::send(const QJsonObject &message) {
 
 void ListeningParty::leave() {
   if (!m_active) return;
-  if (!m_host || !m_connected) { reset(); emit noticeRequested(tr("Has salido de la sala compartida.")); return; }
+  if (!m_host || !m_connected) { reset(); emit noticeRequested(tr("You left the shared room.")); return; }
   send({{"type", "party:close"}});
   const auto generation = m_generation;
-  QTimer::singleShot(1500, this, [this, generation] { if (generation == m_generation) { reset(); emit noticeRequested(tr("La sala compartida ha finalizado.")); } });
+  QTimer::singleShot(1500, this, [this, generation] { if (generation == m_generation) { reset(); emit noticeRequested(tr("The shared room has ended.")); } });
 }
 
 void ListeningParty::transferHost(const QString &id) {
@@ -170,12 +170,12 @@ void ListeningParty::receive(const QString &text) {
   } else if (type == "peer:joined") {
     const auto peer = message.value("peer").toObject().toVariantMap();
     if (!peer.value("id").toString().isEmpty()) m_peers.append(peer);
-    emit noticeRequested(tr("%1 se ha unido a la sala.").arg(peer.value("name", tr("Un participante")).toString()));
+    emit noticeRequested(tr("%1 joined the room.").arg(peer.value("name", tr("A participant")).toString()));
     publish();
   } else if (type == "peer:left") {
     const auto id = message.value("participantId").toString();
     if (!m_host && party_protocol::hostDeparted(id, m_room.value("hostId").toString())) {
-      reset(); emit noticeRequested(tr("El anfitrión ha salido. La sala compartida se ha cerrado.")); return;
+      reset(); emit noticeRequested(tr("The host left. The shared room has closed.")); return;
     }
     for (qsizetype i = m_peers.size(); i-- > 0;) if (m_peers[i].toMap().value("id").toString() == id) m_peers.removeAt(i);
   } else if (type == "party:update" && !m_host) {
@@ -204,9 +204,9 @@ void ListeningParty::receive(const QString &text) {
     for (auto &value : m_peers) { auto peer = value.toMap(); peer["role"] = peer.value("id").toString() == id ? "host" : "guest"; value = peer; }
     publish();
   } else if (type == "party:closed") {
-    reset(); emit noticeRequested(tr("La sala compartida ha finalizado.")); return;
+    reset(); emit noticeRequested(tr("The shared room has ended.")); return;
   } else if (type == "error") {
-    m_message = tr("El servicio no pudo completar la solicitud de la sala.");
+    m_message = tr("The service could not complete the room request.");
   }
   emit changed();
 }

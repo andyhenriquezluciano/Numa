@@ -57,36 +57,52 @@ void TranslationWorker::unload() {
 }
 
 void TranslationWorker::translate(int generation, const QString &packDirectory, const QStringList &texts) {
+  translateRoute(generation, {packDirectory}, texts, texts);
+}
+
+void TranslationWorker::translateRoute(int generation, const QStringList &directories,
+                                      const QStringList &texts, const QStringList &sourceLanguageTexts) {
   const auto cancelled = [this, generation] { return m_current->load(std::memory_order_relaxed) != generation; };
-  if (cancelled())
+  if (cancelled()) return;
+  if (directories.isEmpty()) {
+    emit finished(generation, tr("No local translation route is available."));
     return;
+  }
   if (!m_idle) {
-    // Created here so the timer lives on the worker thread.
     m_idle = new QTimer(this);
     m_idle->setSingleShot(true);
     m_idle->setInterval(kUnloadAfterMs);
     connect(m_idle, &QTimer::timeout, this, &TranslationWorker::unload);
   }
   m_idle->stop();
-  if (!m_model || m_loadedDirectory != packDirectory) {
-    unload();
-    std::string error;
-    const LiteRtApi *api = LiteRtApi::get(QFile::encodeName(liteRtLibraryPath()).toStdString(), &error);
-    auto model = std::make_unique<MarianModel>();
-    if (!api || !model->load(*api, QFile::encodeName(packDirectory).toStdString(), kThreads, &error)) {
-      emit finished(generation, QString::fromStdString(error));
-      return;
+  QStringList values = texts;
+  bool incomplete = false;
+  for (qsizetype stage = 0; stage < directories.size(); ++stage) {
+    if (cancelled()) { m_idle->start(); return; }
+    const auto &directory = directories.at(stage);
+    if (!m_model || m_loadedDirectory != directory) {
+      unload();
+      std::string error;
+      const LiteRtApi *api = LiteRtApi::get(QFile::encodeName(liteRtLibraryPath()).toStdString(), &error);
+      auto model = std::make_unique<MarianModel>();
+      if (!api || !model->load(*api, QFile::encodeName(directory).toStdString(), kThreads, &error)) {
+        emit finished(generation, QString::fromStdString(error));
+        return;
+      }
+      m_model = std::move(model);
+      m_loadedDirectory = directory;
     }
-    m_model = std::move(model);
-    m_loadedDirectory = packDirectory;
-  }
-  for (const QString &text : texts) {
-    if (cancelled())
-      break;
-    const QString out = QString::fromStdString(m_model->translate(text.toStdString(), cancelled));
-    if (!out.isEmpty())
-      emit translated(generation, text, out);
+    for (qsizetype i = 0; i < texts.size(); ++i) {
+      if (cancelled()) { m_idle->start(); return; }
+      // Already-English lines bypass the first leg of a source -> English -> Spanish route.
+      if (stage == 0 && directories.size() > 1 && !sourceLanguageTexts.contains(texts.at(i))) continue;
+      if (values.at(i).isEmpty()) continue;
+      const auto out = QString::fromStdString(m_model->translate(values.at(i).toStdString(), cancelled));
+      if (out.isEmpty() && !cancelled()) incomplete = true;
+      values[i] = out;
+      if (stage == directories.size() - 1 && !out.isEmpty()) emit translated(generation, texts.at(i), out);
+    }
   }
   m_idle->start();
-  emit finished(generation, QString());
+  emit finished(generation, incomplete ? tr("Some lyric lines could not be translated locally.") : QString());
 }

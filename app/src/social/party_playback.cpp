@@ -86,7 +86,7 @@ void ListeningParty::applyState(const QJsonObject &state) {
 bool ListeningParty::intercept(const QString &action, const QVariantMap &args) {
   if (m_connected && m_host && !m_applying) QTimer::singleShot(0, this, &ListeningParty::publish);
   if (!m_active || m_host || m_applying) return false;
-  m_message = tr("Solo el anfitrión puede controlar la reproducción. Pídele que te ceda el control.");
+  m_message = tr("Only the host can control playback. Ask them to give you control.");
   emit changed();
   return true;
 }

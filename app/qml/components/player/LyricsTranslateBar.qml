@@ -21,81 +21,78 @@ import ".."
 import QtQuick
 import QtQuick.Controls
 
-// Translate toggle plus what the translator is up to, pinned over the lyrics.
+// Same compact, neutral control as the mobile lyrics view.
 Row {
     id: bar
-
     property color accentColor: NumaAppearance.textColor
     property color primaryText: NumaAppearance.textColor
-
     readonly property bool on: NumaTranslation.enabled
     readonly property string status: NumaTranslation.status
     readonly property bool failed: status === "failed"
-    readonly property string label: {
-        switch (status) {
-        case "downloading":
-            return qsTr("Downloading %1 model · %2%").arg(NumaTranslation.sourceName)
-                    .arg(Math.round(NumaTranslation.progress * 100));
-        case "translating":
-        case "ready":
-        case "unsupported":
-        case "failed":
-            return NumaTranslation.message;
-        default:
-            return "";
-        }
-    }
-
-    spacing: 6
+    readonly property bool loading: on && (status === "downloading" || status === "translating")
+    readonly property string label: NumaTranslation.message
+        + (status === "downloading" ? " · " + Math.round(NumaTranslation.progress * 100) + "%" : "")
+        + (failed ? " · " + qsTr("Try translating again") : "")
     layoutDirection: Qt.RightToLeft
 
     Button {
         id: toggle
-        width: 30
-        height: 30
+        width: 48
+        height: 48
+        padding: 0
         hoverEnabled: true
         Accessible.name: bar.on ? qsTr("Stop translating lyrics") : qsTr("Translate lyrics")
-        onClicked: NumaTranslation.enabled = !bar.on
-        background: Rectangle {
-            radius: height / 2
-            color: bar.on ? Qt.rgba(bar.accentColor.r, bar.accentColor.g, bar.accentColor.b, toggle.hovered ? 0.3 : 0.22)
-                          : toggle.down ? "#26ffffff" : toggle.hovered ? "#1affffff" : "#10ffffff"
-            Behavior on color { ColorAnimation { duration: 160 } }
+        Accessible.description: bar.label
+        onClicked: {
+            if (bar.on && bar.failed) NumaTranslation.retry();
+            else NumaTranslation.enabled = !bar.on;
+        }
+        background: Item {
+            Rectangle {
+                anchors.centerIn: parent
+                width: 34
+                height: 34
+                radius: 12
+                color: toggle.down ? "#30ffffff" : toggle.hovered ? "#24ffffff"
+                    : bar.on ? "#20ffffff" : "#10ffffff"
+            }
         }
         contentItem: Item {
             LucideIcon {
                 anchors.centerIn: parent
-                width: 15
-                height: 15
+                width: 18
+                height: 18
+                visible: !bar.loading
                 name: "languages"
-                color: bar.on ? bar.primaryText : Qt.rgba(bar.primaryText.r, bar.primaryText.g, bar.primaryText.b, 0.6)
+                color: bar.on ? "#f2ffffff" : "#99ffffff"
+            }
+            Item {
+                anchors.centerIn: parent
+                width: 16
+                height: 16
+                visible: bar.loading
+                Canvas {
+                    anchors.fill: parent
+                    onPaint: {
+                        const ctx = getContext("2d");
+                        ctx.clearRect(0, 0, width, height);
+                        ctx.lineWidth = 1.5;
+                        ctx.lineCap = "round";
+                        ctx.strokeStyle = "#f2ffffff";
+                        ctx.beginPath();
+                        ctx.arc(width / 2, height / 2, 6.5, -Math.PI / 2, Math.PI);
+                        ctx.stroke();
+                    }
+                }
+                RotationAnimator on rotation {
+                    running: bar.loading
+                    from: 0
+                    to: 360
+                    duration: 900
+                    loops: Animation.Infinite
+                }
             }
         }
-    }
-
-    // Failures are clickable; everything else is a quiet caption.
-    Button {
-        id: caption
-        visible: bar.on && bar.label.length > 0
-        height: 30
-        leftPadding: 10
-        rightPadding: 10
-        enabled: bar.failed
-        hoverEnabled: bar.failed
-        Accessible.name: bar.failed ? qsTr("Try translating again") : bar.label
-        onClicked: NumaTranslation.retry()
-        background: Rectangle {
-            radius: height / 2
-            color: caption.hovered ? "#1affffff" : "#10ffffff"
-        }
-        contentItem: Text {
-            text: bar.failed ? qsTr("%1 Try again").arg(bar.label) : bar.label
-            color: Qt.rgba(bar.primaryText.r, bar.primaryText.g, bar.primaryText.b, 0.78)
-            font.family: "Inter"
-            font.pixelSize: 11
-            font.bold: true
-            verticalAlignment: Text.AlignVCenter
-            elide: Text.ElideRight
-        }
+        GlassToolTip { control: toggle; text: bar.label || toggle.Accessible.name }
     }
 }

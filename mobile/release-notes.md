@@ -1,16 +1,13 @@
-# NÜMA 2.2 para Android
+# NÜMA 2.2
 
-- Bloqueo conectado directamente al reproductor, sin depender de tener widgets.
-- Respaldo con el traductor de Google en el dispositivo cuando el servicio web está bloqueado.
-- Errores de traducción visibles y espera antes de repetir solicitudes limitadas.
-- Vista previa del reproductor de bloqueo desde Ajustes.
-- Resaltado inmediato de las letras, sin demora de entrada ni espera al inicio del párrafo cuando la primera palabra comienza antes.
+Una puesta a punto para seguir escuchando desde el móvil.
 
-- Recuperación de carátulas y metadatos antiguos en las métricas.
-- Letras traducidas al inglés o español según el idioma elegido, con cachés independientes.
-- Navegación, listas predeterminadas, encabezados de Inicio y ajustes localizados.
-- Selector de idioma con solo Español e Inglés, sin detección del sistema.
-- Ajustes de permiso en cada activación y desactivación del reproductor al bloquear.
-- Cierre inmediato del reproductor al desactivarlo y apertura más fiable al bloquear.
+- Letras y traducción en español e inglés, según el idioma que elijas.
+- Mejor detección del idioma en canciones con coros repetidos.
+- Actualizaciones más sencillas, sin archivos extra en los releases.
 
-Android exige confirmar el permiso para aparecer sobre otras aplicaciones en sus ajustes.
+## Tu biblioteca, en ambos dispositivos
+
+Entra con la misma cuenta NÜMA de Google en PC y Android para compartir listas, favoritos, carátulas, artistas, álbumes y métricas. Las descargas se quedan en cada dispositivo.
+
+Instala el APK sobre la versión que ya tienes para conservar tus datos.

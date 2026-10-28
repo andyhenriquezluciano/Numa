@@ -254,9 +254,12 @@ Item {
                         transitioning: NumaPlayback.crossfadeActive
                         progress: NumaPlayback.crossfadeProgress
                         dissolve: true
+                        motionCoverVisible: compactMotionLoader.active && compactMotionLoader.item !== null
+                                            && compactMotionLoader.item.live && compactMotionLoader.opacity >= 1
                     }
 
                     Loader {
+                        id: compactMotionLoader
                         anchors.fill: parent
                         active: parent.visible && popup.hasTrack
                                 && NumaAppearance.animatedArtworkEnabled

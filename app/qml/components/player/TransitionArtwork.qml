@@ -29,6 +29,7 @@ Item {
     property bool transitioning: false
     property real progress: 0
     property bool motionEnabled: true
+    property bool motionCoverVisible: false
     // Cloudy dissolve for the fullscreen cover. Sliding a 500px cover sideways looks like a bug.
     property bool dissolve: false
     // Fresh blob layout per mix so no two handoffs look rehearsed.
@@ -43,7 +44,8 @@ Item {
         anchors.fill: parent
         source: root.source
         radius: root.radius
-        opacity: root.transitioning && !root.dissolve ? 1 - root.eased : 1
+        opacity: root.motionCoverVisible && !root.transitioning ? 0
+                 : root.transitioning && !root.dissolve ? 1 - root.eased : 1
         scale: root.transitioning && root.motionEnabled && !root.dissolve ? 1 - 0.16 * root.eased : 1
         transform: Translate { x: root.transitioning && root.motionEnabled && !root.dissolve ? -root.width * 0.12 * root.eased : 0 }
     }
@@ -68,16 +70,5 @@ Item {
             property real seed: root.seed
             fragmentShader: "qrc:/shaders/artwork_dissolve.frag.qsb"
         }
-    }
-    // A quiet shared edge echoes the reference's settling cover, without
-    // turning the album into a PowerPoint slide that discovered caffeine.
-    Rectangle {
-        anchors.fill: parent
-        radius: root.radius
-        color: "transparent"
-        border.color: "#d7e4dc"
-        border.width: 1
-        opacity: root.transitioning ? 0.22 * Math.sin(Math.PI * root.p) : 0
-        antialiasing: true
     }
 }

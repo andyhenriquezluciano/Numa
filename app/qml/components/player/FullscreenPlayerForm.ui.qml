@@ -378,6 +378,8 @@ Item {
             transitioning: root.crossfadeActive
             progress: root.crossfadeProgress
             dissolve: true
+            motionCoverVisible: canvasLoader.active && canvasLoader.item !== null
+                                && canvasLoader.item.live && canvasLoader.opacity >= 1
 
             Loader {
                 id: canvasLoader

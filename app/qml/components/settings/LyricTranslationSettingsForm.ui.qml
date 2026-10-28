@@ -46,7 +46,7 @@ SettingsSection {
         iconName: "languages"
         title: root.targetLanguage === "spanish" ? qsTr("Translate lyrics to Spanish") : qsTr("Translate lyrics to English")
         description: root.provider === "google"
-            ? qsTr("NÜMA translates lyrics automatically using Google Translate.")
+            ? qsTr("Google Translate, with local translation when the web service is unavailable.")
             : qsTr("NÜMA translates supported languages on this computer. Lyrics never leave your computer.")
 
         SettingsSwitch {
@@ -75,7 +75,7 @@ SettingsSection {
         iconName: "plug"
         title: qsTr("Translation source")
         description: qsTr("Choose online or local translation.")
-        helpText: qsTr("Google Translate requires an internet connection. Local translation downloads a supported language model once and then works offline. The available languages depend on the model.")
+        helpText: qsTr("Google Translate requires an internet connection. If Google blocks the web request, NÜMA uses a local model and identifies it in the translation status. Local models download once and then work offline; supported languages depend on the model.")
 
         SettingsSelect {
             id: providerPicker

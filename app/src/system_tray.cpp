@@ -35,6 +35,7 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QResizeEvent>
+#include <QRegion>
 #include <QScreen>
 #include <QSystemTrayIcon>
 #include <QVBoxLayout>
@@ -58,7 +59,7 @@ bool applyWindowEffects(HWND hwnd, bool rose)
     DwmSetWindowAttribute(hwnd, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, &darkMode, sizeof(darkMode));
     DwmSetWindowAttribute(hwnd, 19, &darkMode, sizeof(darkMode));
 
-    const DWORD corner = 1; // DWMWCP_DONOTROUND
+    const DWORD corner = rose ? 1 : 2; // Let DWM round the single acrylic surface.
     DwmSetWindowAttribute(hwnd, 33 /* DWMWA_WINDOW_CORNER_PREFERENCE */, &corner, sizeof(corner));
 
     const DWORD noBorder = 0xFFFFFFFE; // DWMWA_COLOR_NONE
@@ -143,7 +144,7 @@ protected:
     void resizeEvent(QResizeEvent *event) override
     {
         QMenu::resizeEvent(event);
-        clearMask();
+        updateSurfaceMask();
     }
 
     void changeEvent(QEvent *event) override
@@ -160,9 +161,21 @@ protected:
 #ifdef Q_OS_WIN
         setProperty("nativeBlur", applyWindowEffects(reinterpret_cast<HWND>(winId()), property("rosePine").toBool()));
 #endif
+        updateSurfaceMask();
     }
 
 private:
+    void updateSurfaceMask()
+    {
+        if (!property("nativeBlur").toBool()) {
+            clearMask();
+            return;
+        }
+        QPainterPath shape;
+        shape.addRoundedRect(QRectF(rect()), 12, 12);
+        setMask(QRegion(shape.toFillPolygon().toPolygon()));
+    }
+
     std::function<void()> m_onLanguageChanged;
     std::function<QRect()> m_anchor;
     void adjustTrayPosition()

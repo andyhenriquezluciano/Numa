@@ -22,6 +22,7 @@
 #include "translation_store.h"
 
 #include <QHash>
+#include <QSet>
 #include <QObject>
 #include <QStringList>
 #include <QThread>
@@ -88,6 +89,9 @@ private:
   void start();
   void runModel();
   void runGoogleRemote();
+  void useLocalFallback();
+  void prepareLocal();
+  [[nodiscard]] QStringList localRoute(const QString &source) const;
   void cancelRemote();
   [[nodiscard]] QString cacheRevision() const;
   void setStatus(const QString &status, const QString &message = QString());
@@ -112,10 +116,15 @@ private:
   QString m_provider{QStringLiteral("local")};
   QString m_targetLanguage{QStringLiteral("english")};
   QNetworkReply *m_reply{nullptr};
+  bool m_googleFallback{false};
+  qint64 m_googleRetryAtMs{0};
   QStringList m_remoteQueue;
   QStringList m_remoteBatch;
   // Pack chosen for the current song; empty when nothing needs translating.
   QString m_pack;
+  QStringList m_localRoute;
+  QSet<QString> m_unavailablePacks;
+  QStringList m_localSourceTexts;
   QString m_status{QStringLiteral("off")};
   QString m_message;
   QString m_source;

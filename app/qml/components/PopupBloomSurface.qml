@@ -13,6 +13,7 @@ import Numa
 import QtQuick
 import QtQuick.Effects
 import QtQuick.Window
+import QtQuick.Controls
 
 Item {
     id: root
@@ -23,9 +24,23 @@ Item {
     property real tintOpacity: 0.38
     property bool refractionEnabled: true
     property bool opaqueInPerformanceMode: true
-    property Item backdrop: root.Window.window
-        && root.Window.window.contentItem.children.length > 0
-        ? root.Window.window.contentItem.children[0] : null
+    function backdropBehind(overlay, item, scene) {
+        if (!overlay) return scene;
+        let layer = item;
+        while (layer && layer.parent !== overlay) layer = layer.parent;
+        if (!layer) return scene;
+        let ownIndex = -1;
+        for (let i = 0; i < overlay.children.length; ++i)
+            if (overlay.children[i] === layer) ownIndex = i;
+        for (let i = ownIndex - 1; i >= 0; --i) {
+            const behind = overlay.children[i];
+            if (behind.visible && behind.contentItem !== undefined) return behind;
+        }
+        return scene;
+    }
+    property Item backdrop: backdropBehind(root.Overlay.overlay, root.parent,
+        root.Window.window && root.Window.window.contentItem.children.length > 0
+            ? root.Window.window.contentItem.children[0] : null)
 
     Rectangle {
         id: bloomCore

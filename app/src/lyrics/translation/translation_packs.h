@@ -23,6 +23,7 @@
 #include <QObject>
 #include <QPointer>
 #include <QString>
+#include <QStringList>
 #include <QVariantList>
 
 #include "translation/translation_pack_table.h"
@@ -42,10 +43,12 @@ public:
   static const TranslationPack *find(const QString &id);
   // The pack for a language at a quality, falling back to standard where no larger model exists.
   static const TranslationPack *resolve(const QString &source, const QString &target, const QString &quality);
+  static QStringList route(const QString &source, const QString &target, const QString &quality);
   [[nodiscard]] bool available(const QString &id) const;
   [[nodiscard]] bool installed(const QString &id) const;
   [[nodiscard]] QString directory(const QString &id) const;
   [[nodiscard]] QString downloading() const { return m_id; }
+  [[nodiscard]] int lastHttpStatus() const { return m_lastHttpStatus; }
   // Starts a download unless installed or already running. Emits ready() or failed().
   void ensure(const QString &id);
   void cancel();
@@ -72,6 +75,7 @@ private:
   QString m_root;
   QString m_id;
   int m_fileIndex{0};
+  int m_lastHttpStatus{0};
   qint64 m_doneBytes{0};
   qint64 m_totalBytes{0};
   QPointer<QNetworkReply> m_reply;

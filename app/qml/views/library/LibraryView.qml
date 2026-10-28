@@ -34,7 +34,7 @@ Item {
     property bool sortDescending: false
     readonly property string query: header.query.trim().toLowerCase()
     readonly property var categories: [
-        { key: "metrics", title: qsTr("Métricas"), empty: qsTr("Las canciones aparecen aquí después de 15 segundos de escucha.") },
+        { key: "metrics", title: qsTr("Listening metrics"), empty: qsTr("Songs appear here after 15 seconds of listening.") },
         { key: "artists", title: qsTr("Subscribed artists"), empty: qsTr("Artists you subscribe to on YouTube will appear here.") },
         { key: "albums", title: qsTr("Albums"), empty: qsTr("Albums you save to your YouTube Music library will appear here.") },
         { key: "songs", title: qsTr("Songs"), empty: qsTr("Songs you save to your YouTube Music library will appear here.") },

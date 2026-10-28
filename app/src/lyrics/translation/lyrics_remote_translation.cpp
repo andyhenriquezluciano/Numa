@@ -11,6 +11,8 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QUrlQuery>
+#include <QDateTime>
+#include <algorithm>
 
 namespace {
 constexpr int kBatchSize = 1;
@@ -21,9 +23,15 @@ bool sameText(const QString &a, const QString &b) {
 }
 
 QString LyricsTranslator::cacheRevision() const {
-  if (m_provider == QStringLiteral("local")) {
-    if (const auto *pack = TranslationPacks::find(m_pack)) return QLatin1String(pack->revision);
-    return {};
+  if (m_provider == QStringLiteral("local") || m_googleFallback) {
+    QStringList revisions;
+    for (const auto &id : m_localRoute) {
+      const auto *pack = TranslationPacks::find(id);
+      if (!pack) return {};
+      revisions.append(QLatin1String(pack->revision));
+    }
+    if (revisions.size() == 1) return revisions.first();
+    return revisions.isEmpty() ? QString() : QStringLiteral("pivot-v1:") + revisions.join(QLatin1Char('|'));
   }
   return QStringLiteral("google-v2-") + m_targetLanguage;
 }
@@ -40,6 +48,10 @@ void LyricsTranslator::cancelRemote() {
 }
 
 void LyricsTranslator::runGoogleRemote() {
+  if (QDateTime::currentMSecsSinceEpoch() < m_googleRetryAtMs) {
+    useLocalFallback();
+    return;
+  }
   if (m_remoteQueue.isEmpty()) {
     setStatus(QStringLiteral("ready"), tr("Translated from %1").arg(sourceName()));
     return;
@@ -76,22 +88,26 @@ void LyricsTranslator::runGoogleRemote() {
     const QByteArray body = reply->readAll();
     const int http = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     const QNetworkReply::NetworkError error = reply->error();
+    const QByteArray retryAfter = reply->rawHeader("Retry-After");
     reply->deleteLater();
     if (error != QNetworkReply::NoError || http >= 300) {
-      setStatus(QStringLiteral("failed"), tr("Translation request failed (%1). Try again.")
-                    .arg(http > 0 ? QString::number(http) : tr("network error")));
+      const qint64 now = QDateTime::currentMSecsSinceEpoch();
+      m_googleRetryAtMs = now + googleTranslationRetryDelay(http, retryAfter, now);
+      useLocalFallback();
       return;
     }
 
     const QJsonDocument doc = QJsonDocument::fromJson(body);
     if (!doc.isArray() || doc.array().isEmpty() || !doc.array().at(0).isArray()) {
-      setStatus(QStringLiteral("failed"), tr("Translation request failed."));
+      m_googleRetryAtMs = QDateTime::currentMSecsSinceEpoch() + 600'000;
+      useLocalFallback();
       return;
     }
     const QJsonArray segments = doc.array().at(0).toArray();
     const QString translatedLine = googleTranslatedLine(segments);
     if (translatedLine.isEmpty()) {
-      setStatus(QStringLiteral("failed"), tr("Translation request failed."));
+      m_googleRetryAtMs = QDateTime::currentMSecsSinceEpoch() + 600'000;
+      useLocalFallback();
       return;
     }
 
@@ -107,4 +123,31 @@ void LyricsTranslator::runGoogleRemote() {
     emit stateChanged();
     if (generation == m_generation->load()) runGoogleRemote();
   });
+}
+
+void LyricsTranslator::useLocalFallback() {
+  m_remoteQueue.clear();
+  m_remoteBatch.clear();
+  m_googleFallback = true;
+  const QString source = m_source.isEmpty() ? QStringLiteral("eng") : m_source;
+  m_localRoute = localRoute(source);
+  if (m_localRoute.isEmpty() || std::any_of(m_localRoute.cbegin(), m_localRoute.cend(),
+      [this](const QString &id) { return !m_packs->available(id); })) {
+    setStatus(QStringLiteral("failed"), tr("Google is unavailable and no local model supports this language pair."));
+    return;
+  }
+  m_pack = m_localRoute.first();
+  if (m_targetLanguage == QStringLiteral("english")) {
+    for (const auto &text : m_pending.keys())
+      if (!m_localSourceTexts.contains(text)) m_pending.remove(text);
+  }
+  const auto cached = m_store.lookup(cacheRevision(), m_pending.keys());
+  for (auto it = cached.cbegin(); it != cached.cend(); ++it)
+    for (const int index : m_pending.take(it.key()))
+      m_lines[index] = sameText(it.key(), it.value()) ? QString() : it.value();
+  if (m_pending.isEmpty()) {
+    setStatus(QStringLiteral("ready"), tr("Translated locally from %1 (Google unavailable)").arg(sourceName()));
+  } else {
+    prepareLocal();
+  }
 }

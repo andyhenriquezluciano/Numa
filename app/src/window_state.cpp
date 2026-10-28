@@ -43,6 +43,13 @@ void configureNativeFrame(QWindow *window, bool compact, bool videoFullScreen = 
     if (!window)
         return;
     const HWND handle = reinterpret_cast<HWND>(window->winId());
+    const qulonglong nativeId = reinterpret_cast<qulonglong>(handle);
+    const bool firstConfiguration = window->property("numaConfiguredFrame").toULongLong() != nativeId;
+    // Match the direct fullscreen/windowed transition instead of the taskbar zoom.
+    const BOOL disableTransitions = TRUE;
+    if (firstConfiguration)
+        DwmSetWindowAttribute(handle, DWMWA_TRANSITIONS_FORCEDISABLED,
+                              &disableTransitions, sizeof(disableTransitions));
     static const HICON smallIcon = static_cast<HICON>(LoadImageW(GetModuleHandleW(nullptr),
         MAKEINTRESOURCEW(1), IMAGE_ICON, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), LR_SHARED));
     static const HICON largeIcon = static_cast<HICON>(LoadImageW(GetModuleHandleW(nullptr),
@@ -56,12 +63,16 @@ void configureNativeFrame(QWindow *window, bool compact, bool videoFullScreen = 
         || window->visibility() == QWindow::FullScreen;
     const int cornerPreference = fillsScreen ? 1 : 2;
     const DWORD borderColor = 0xFFFFFFFE;
-    DwmSetWindowAttribute(handle, 33, &cornerPreference, sizeof(cornerPreference));
-    DwmSetWindowAttribute(handle, 34, &borderColor, sizeof(borderColor));
-
-    const MARGINS margins = {-1, -1, -1, -1};
-    DwmExtendFrameIntoClientArea(handle, &margins);
-    SetWindowRgn(handle, nullptr, TRUE);
+    if (firstConfiguration || window->property("numaFrameCorners").toInt() != cornerPreference) {
+        DwmSetWindowAttribute(handle, 33, &cornerPreference, sizeof(cornerPreference));
+        window->setProperty("numaFrameCorners", cornerPreference);
+    }
+    if (firstConfiguration) {
+        DwmSetWindowAttribute(handle, 34, &borderColor, sizeof(borderColor));
+        const MARGINS margins = {-1, -1, -1, -1};
+        DwmExtendFrameIntoClientArea(handle, &margins);
+        window->setProperty("numaConfiguredFrame", nativeId);
+    }
     Q_UNUSED(compact)
 #else
     Q_UNUSED(window)
@@ -137,11 +148,6 @@ void WindowState::setWindow(QWindow *window)
     connect(window, &QWindow::widthChanged, this, scheduleSave);
     connect(window, &QWindow::heightChanged, this, scheduleSave);
     connect(window, &QWindow::visibilityChanged, this, [this](QWindow::Visibility visibility) {
-        if (!m_videoFullScreen) {
-            m_saveTimer.start();
-            applyFrame();
-        }
-
         if (visibility == QWindow::Minimized || visibility == QWindow::Hidden) {
             m_wasMaximizedBeforeHide = m_wasMaximizedBeforeHide
                 || m_previousVisibility == QWindow::Maximized;
@@ -152,23 +158,23 @@ void WindowState::setWindow(QWindow *window)
         if (m_wasFullScreenBeforeMinimize) {
             m_wasFullScreenBeforeMinimize = false;
             if (visibility != QWindow::FullScreen) {
-                QTimer::singleShot(0, m_window, [this] {
-                    if (m_window && m_window->isVisible()
-                        && m_window->visibility() != QWindow::Minimized)
-                        m_window->showFullScreen();
-                });
+                m_wasMaximizedBeforeHide = false;
+                m_window->showFullScreen();
+                return;
             }
         }
         if (m_wasMaximizedBeforeHide) {
             m_wasMaximizedBeforeHide = false;
             if (!m_videoFullScreen && visibility == QWindow::Windowed) {
-                QTimer::singleShot(0, m_window, [this] {
-                    if (m_window && m_window->visibility() == QWindow::Windowed && !m_videoFullScreen)
-                        m_window->showMaximized();
-                });
+                m_window->showMaximized();
+                return;
             }
         }
         m_previousVisibility = visibility;
+        if (!m_videoFullScreen) {
+            m_saveTimer.start();
+            applyFrame();
+        }
     });
     connect(window, &QWindow::visibilityChanged, this, &WindowState::updateState);
     connect(window, &QWindow::visibleChanged, this, &WindowState::updateState);

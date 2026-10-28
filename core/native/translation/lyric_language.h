@@ -28,6 +28,7 @@
 namespace lyric_language {
 
 std::string detectLine(std::string_view text);
+bool isVocalization(std::string_view text);
 
 struct SongPlan {
   // Main non-English language of the song, or empty when it is English or unclear.

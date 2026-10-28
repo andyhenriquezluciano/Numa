@@ -44,13 +44,13 @@ ColumnLayout {
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 5
-            Text { text: qsTr("Salas Compartidas"); color: root.ink; font.pixelSize: 20; font.weight: Font.DemiBold }
+            Text { text: qsTr("Shared rooms"); color: root.ink; font.pixelSize: 20; font.weight: Font.DemiBold }
             RowLayout {
                 visible: root.active
                 spacing: 6
                 Rectangle { width: 6; height: 6; radius: 3; color: root.party && root.party.connected ? "#9ccfd8" : root.muted }
                 Text {
-                    text: root.party && root.party.connected ? qsTr("Conectado") : qsTr("Conectando…")
+                    text: root.party && root.party.connected ? qsTr("Connected") : qsTr("Connecting…")
                     color: root.muted
                     font.pixelSize: 12
                 }
@@ -61,7 +61,7 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: !root.active
         wrapMode: Text.WordWrap
-        text: qsTr("Escucha junto a otras personas desde PC o Android.")
+        text: qsTr("Listen together on PC or Android.")
         color: root.muted
         font.pixelSize: 13
     }
@@ -69,14 +69,14 @@ ColumnLayout {
         visible: !root.active
         Layout.fillWidth: true
         primary: true
-        text: qsTr("Crear sala")
+        text: qsTr("Create room")
         onClicked: root.party.create()
     }
     ColumnLayout {
         visible: !root.active
         Layout.fillWidth: true
         spacing: 10
-        Text { text: qsTr("O únete con un código"); color: root.muted; font.pixelSize: 12 }
+        Text { text: qsTr("Or join with a code"); color: root.muted; font.pixelSize: 12 }
         RowLayout {
             spacing: 10
             TextField {
@@ -105,7 +105,7 @@ ColumnLayout {
                 implicitHeight: 44
                 background: Rectangle { radius: 12; color: "#0cffffff"; border.width: NumaAppearance.controlBorderWidth; border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : roomCode.activeFocus ? root.accent : "#25ffffff" }
             }
-            PartyButton { text: qsTr("Unirse"); enabled: roomCode.text.length === 6; onClicked: root.party.join(roomCode.text) }
+            PartyButton { text: qsTr("Join"); enabled: roomCode.text.length === 6; onClicked: root.party.join(roomCode.text) }
         }
     }
     ColumnLayout {
@@ -122,7 +122,7 @@ ColumnLayout {
             ColumnLayout {
                 anchors.centerIn: parent
                 spacing: 8
-                Text { Layout.alignment: Qt.AlignHCenter; text: qsTr("CÓDIGO DE INVITACIÓN"); color: root.muted; font.pixelSize: 10; font.letterSpacing: 1.4 }
+                Text { Layout.alignment: Qt.AlignHCenter; text: qsTr("INVITATION CODE"); color: root.muted; font.pixelSize: 10; font.letterSpacing: 1.4 }
                 RowLayout {
                     spacing: 10
                     TextEdit {
@@ -140,21 +140,21 @@ ColumnLayout {
                         implicitWidth: 34
                         implicitHeight: 34
                         enabled: root.party && root.party.connected
-                        Accessible.name: qsTr("Copiar código")
+                        Accessible.name: qsTr("Copy code")
                         onClicked: { root.party.copyCode(); copyFeedback.restart(); }
                         contentItem: LucideIcon { name: copyFeedback.running ? "check" : "copy"; color: root.accent }
                         background: Rectangle { radius: 17; color: copy.hovered ? "#18ffffff" : "transparent" }
                         Timer { id: copyFeedback; interval: 1400 }
                         ToolTip.visible: hovered
-                        ToolTip.text: qsTr("Copiar código")
+                        ToolTip.text: qsTr("Copy code")
                     }
                 }
             }
         }
         RowLayout {
             Layout.fillWidth: true
-            Text { Layout.fillWidth: true; text: qsTr("Participantes"); color: root.ink; font.pixelSize: 13; font.weight: Font.DemiBold }
-            Text { text: root.party && root.party.host ? qsTr("Eres el anfitrión") : qsTr("Siguiendo al anfitrión"); color: root.muted; font.pixelSize: 11 }
+            Text { Layout.fillWidth: true; text: qsTr("Participants"); color: root.ink; font.pixelSize: 13; font.weight: Font.DemiBold }
+            Text { text: root.party && root.party.host ? qsTr("You are the host") : qsTr("Following the host"); color: root.muted; font.pixelSize: 11 }
         }
         Repeater {
             model: root.party ? root.party.peers : []
@@ -166,15 +166,15 @@ ColumnLayout {
                     width: 34; height: 34; radius: 17; color: "#20c4a7e7"
                     Text { anchors.centerIn: parent; text: (modelData.name || "?").slice(0, 1).toUpperCase(); color: root.accent; font.pixelSize: 14 }
                 }
-                Text { Layout.fillWidth: true; text: modelData.name || qsTr("Participante"); color: root.ink; elide: Text.ElideRight; font.pixelSize: 13 }
-                PartyButton { visible: root.party && root.party.host; implicitHeight: 32; text: qsTr("Dar control"); onClicked: root.party.transferHost(modelData.id) }
+                Text { Layout.fillWidth: true; text: modelData.name || qsTr("Participant"); color: root.ink; elide: Text.ElideRight; font.pixelSize: 13 }
+                PartyButton { visible: root.party && root.party.host; implicitHeight: 32; text: qsTr("Give control"); onClicked: root.party.transferHost(modelData.id) }
             }
         }
-        Text { visible: root.party && root.party.peers.length === 0; text: qsTr("Comparte el código para invitar a alguien."); color: root.muted; font.pixelSize: 12; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+        Text { visible: root.party && root.party.peers.length === 0; text: qsTr("Share the code to invite someone."); color: root.muted; font.pixelSize: 12; wrapMode: Text.WordWrap; Layout.fillWidth: true }
         Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: "#18ffffff" }
         PartyButton {
             Layout.fillWidth: true
-            text: root.party && root.party.host ? qsTr("Cerrar sala") : qsTr("Salir de la sala")
+            text: root.party && root.party.host ? qsTr("Close room") : qsTr("Leave room")
             onClicked: root.party.leave()
         }
     }

@@ -62,20 +62,20 @@ ColumnLayout {
 
     SettingsSection {
         Layout.fillWidth: true
-        title: qsTr("Tema")
+        title: qsTr("Theme")
         rowSpacing: 0
         verticalPadding: 0
 
         SettingsRow {
             iconName: "sparkles"
-            title: qsTr("Apariencia")
-            description: qsTr("Cristal con desenfoque transparente o los tonos suaves de Rosé Pine.")
+            title: qsTr("Appearance")
+            description: qsTr("Transparent Crystal blur or the soft colors of Rosé Pine.")
 
             SettingsSegmented {
                 id: themePicker
                 objectName: "themePicker"
                 currentValue: root.theme
-                model: [{ value: "crystal", label: qsTr("Cristal") }, { value: "rose_pine", label: "Rosé Pine" }]
+                model: [{ value: "crystal", label: qsTr("Crystal") }, { value: "rose_pine", label: "Rosé Pine" }]
             }
         }
 
@@ -83,17 +83,17 @@ ColumnLayout {
 
     SettingsSection {
         Layout.fillWidth: true
-        title: qsTr("Bordes de cristal")
+        title: qsTr("Crystal borders")
         rowSpacing: 0
         verticalPadding: 0
         SettingsRow {
             iconName: "maximize"
-            title: qsTr("Bordes")
-            description: qsTr("Conserva los bordes del tema o desactívalos sin quitar el desenfoque.")
+            title: qsTr("Borders")
+            description: qsTr("Keep the theme borders or turn them off without removing blur.")
             SettingsSegmented {
                 id: borderPicker
                 currentValue: root.bordersEnabled ? "default" : "off"
-                model: [{ value: "default", label: qsTr("Predeterminado") }, { value: "off", label: qsTr("Desactivados") }]
+                model: [{ value: "default", label: qsTr("Default") }, { value: "off", label: qsTr("Off") }]
             }
         }
     }

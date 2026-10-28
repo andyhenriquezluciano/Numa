@@ -74,7 +74,26 @@ class UpdateManager(
         }
     }
 
-    private fun fetchStableUpdateMetadata(): MobileUpdateMetadata? = runCatching {
+    private fun fetchStableUpdateMetadata(): MobileUpdateMetadata? {
+        val release = runCatching {
+            val connection = URL("$githubReleasesUrl/latest").openConnection() as HttpURLConnection
+            connection.setRequestProperty("Accept", "application/vnd.github+json")
+            connection.setRequestProperty("User-Agent", "Numa-Android")
+            connection.connectTimeout = 5000
+            connection.readTimeout = 5000
+            try {
+                if (connection.responseCode != HttpURLConnection.HTTP_OK) null
+                else connection.inputStream.bufferedReader().use {
+                    parseGitHubReleasesMetadata(JSONArray().put(JSONObject(it.readText())).toString())
+                }
+            } finally {
+                connection.disconnect()
+            }
+        }.getOrNull()
+        return release ?: fetchLegacyUpdateMetadata()
+    }
+
+    private fun fetchLegacyUpdateMetadata(): MobileUpdateMetadata? = runCatching {
         val connection = URL(jsonUrl).openConnection() as HttpURLConnection
         connection.requestMethod = "GET"
         connection.connectTimeout = 5000
@@ -155,6 +174,7 @@ class UpdateManager(
                 val assets = releaseObj.optJSONArray("assets") ?: JSONArray()
                 var manifestUrl: String? = null
                 var apkUrl: String? = null
+                var apkDigest = ""
 
                 for (j in 0 until assets.length()) {
                     val asset = assets.getJSONObject(j)
@@ -164,6 +184,7 @@ class UpdateManager(
                         manifestUrl = downloadUrl
                     } else if (name.endsWith(".apk", ignoreCase = true) && apkUrl == null) {
                         apkUrl = downloadUrl
+                        apkDigest = asset.optString("digest", "").removePrefix("sha256:")
                     }
                 }
 
@@ -177,10 +198,14 @@ class UpdateManager(
                 if (apkUrl != null) {
                     val body = releaseObj.optString("body", "")
                     val publishedAt = releaseObj.optString("published_at", "")
+                    val buildMarker = Regex("<!--\\s*android-version-code:\\s*(\\d+)\\s*-->")
+                    val versionCode = buildMarker.find(body)?.groupValues?.get(1)?.toIntOrNull() ?: 0
                     return MobileUpdateMetadata(
                         version = tagName,
+                        versionCode = versionCode,
                         apkUrl = apkUrl,
-                        releaseNotes = body,
+                        sha256 = apkDigest.takeIf { it.matches(Regex("[a-fA-F0-9]{64}")) }.orEmpty(),
+                        releaseNotes = body.replace(buildMarker, "").trim(),
                         publishedAt = publishedAt,
                     )
                 }

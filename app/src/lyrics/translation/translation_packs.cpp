@@ -80,6 +80,15 @@ const TranslationPack *TranslationPacks::resolve(const QString &source, const QS
   return fallback;
 }
 
+QStringList TranslationPacks::route(const QString &source, const QString &target, const QString &quality) {
+  if (const auto *direct = resolve(source, target, quality)) return {QLatin1String(direct->id)};
+  if (target != QStringLiteral("spanish") || source == QStringLiteral("eng")) return {};
+  const auto *first = resolve(source, QStringLiteral("english"), quality);
+  const auto *last = resolve(QStringLiteral("eng"), target, quality);
+  if (!first || !last) return {};
+  return {QLatin1String(first->id), QLatin1String(last->id)};
+}
+
 bool TranslationPacks::available(const QString &id) const {
   const TranslationPack *pack = find(id);
   return pack && (*pack->baseUrl || installed(id));
@@ -119,6 +128,7 @@ void TranslationPacks::ensure(const QString &id) {
     return;
   cancel();
   m_id = id;
+  m_lastHttpStatus = 0;
   m_fileIndex = 0;
   m_doneBytes = 0;
   m_totalBytes = packBytes(*pack);
@@ -179,8 +189,11 @@ bool TranslationPacks::consume() {
 void TranslationPacks::finishFile() {
   if (!m_reply || m_id.isEmpty())
     return;
+  m_lastHttpStatus = m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
   if (m_reply->error() != QNetworkReply::NoError) {
-    fail(tr("Couldn't download the translation model. Check your connection."));
+    fail(m_lastHttpStatus >= 400
+        ? tr("The translation model server returned HTTP %1.").arg(m_lastHttpStatus)
+        : tr("Couldn't download the translation model. Check your connection."));
     return;
   }
   if (!consume())

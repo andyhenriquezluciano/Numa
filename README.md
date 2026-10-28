@@ -1,28 +1,26 @@
 # NÜMA
 
-Reproductor de música para Android y Windows con biblioteca de YouTube Music,
-letras sincronizadas, traducción, descargas y salas compartidas.
+Tu música en Android y Windows, con letras sincronizadas, traducción, descargas y salas para escuchar en compañía.
 
-## Descargar
+## Pruébalo
 
-Los archivos vigentes están en [Releases](https://github.com/andyhenriquezluciano/Numa/releases/latest).
+Los dos archivos están en [la última versión](https://github.com/andyhenriquezluciano/Numa/releases/latest):
 
-| Plataforma | Archivo | Requisitos |
-| --- | --- | --- |
-| Android 2.2 | [Numa-Android-2.2.apk](https://github.com/andyhenriquezluciano/Numa/releases/download/v2.2/Numa-Android-2.2.apk) | Android 12 o posterior, ARM64 |
-| Windows 2.0.3 | [Numa-Windows-2.0.3-x64.zip](https://github.com/andyhenriquezluciano/Numa/releases/download/v2.1.8/Numa-Windows-2.0.3-x64.zip) | Windows x64 |
+- **Android:** instala el APK. Necesitas Android 12 o posterior y un dispositivo ARM64.
+- **Windows:** descarga el setup y sigue los pasos del instalador.
 
-En Android, instala la actualización sin desinstalar para conservar tus datos.
-En Windows, extrae la carpeta completa y abre `Numa/numa.exe`.
-Las sumas de comprobación se incluyen en `SHA256SUMS.txt`.
+Actualiza sin desinstalar para conservar tus datos.
 
-## Desarrollo
+## Tu biblioteca va contigo
 
-Consulta los [requisitos y comandos de compilación](docs/DEVELOPMENT.md).
-Los servicios de cuenta y Last.fm tienen su configuración en `services/`.
-No publiques cookies, contraseñas, tokens ni claves de firma en el repositorio o en incidencias.
+Entra con la misma cuenta NÜMA de Google en PC y Android. Tus listas, carátulas, favoritos, artistas, álbumes y métricas se sincronizan automáticamente. También puedes pulsar **Sincronizar ahora**.
+
+Las canciones descargadas se quedan en cada dispositivo. La cuenta NÜMA es independiente de la sesión de YouTube Music.
+
+## Para tocar el código
+
+Los requisitos y comandos están en [Desarrollo](docs/DEVELOPMENT.md).
 
 ## Licencia
 
-[AGPL-3.0](LICENSE), con las condiciones de [LICENSE-EXCEPTION.md](LICENSE-EXCEPTION.md)
-y [LICENSE-OOL](LICENSE-OOL). Consulta también los [avisos de terceros](THIRD_PARTY_NOTICES.md).
+[AGPL-3.0](LICENSE), [excepciones](LICENSE-EXCEPTION.md), [LICENSE-OOL](LICENSE-OOL) y [avisos de terceros](THIRD_PARTY_NOTICES.md).

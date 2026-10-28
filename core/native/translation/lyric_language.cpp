@@ -152,9 +152,31 @@ Scripts countScripts(const std::u32string &text) {
   return s;
 }
 
+bool onlyVocalSyllables(const std::u32string &text) {
+  static const std::set<std::u32string> vocalSyllables{
+      U"oh", U"ooh", U"ah", U"aah", U"eh", U"uh", U"la", U"na", U"da", U"do",
+      U"doo", U"dey", U"day", U"ba", U"bop", U"bom", U"dum", U"hmm", U"mm", U"woah", U"whoa"};
+  std::u32string syllable;
+  int syllableCount = 0;
+  bool onlyVocals = true;
+  const auto finishSyllable = [&] {
+    if (syllable.empty()) return;
+    ++syllableCount;
+    onlyVocals = onlyVocals && vocalSyllables.contains(syllable);
+    syllable.clear();
+  };
+  for (const auto c : text) {
+    if (isLetter(c)) syllable += lower(c);
+    else finishSyllable();
+  }
+  finishSyllable();
+  return onlyVocals && syllableCount >= 2;
+}
+
 std::string detectLatin(const std::u32string &text) {
   std::u32string lowered = text;
   std::transform(lowered.begin(), lowered.end(), lowered.begin(), lower);
+  if (onlyVocalSyllables(lowered)) return {};
   std::map<std::string, int> scores;
   std::u32string word;
   const auto score = [&] {
@@ -221,6 +243,8 @@ std::string detect(const std::u32string &text) {
 
 std::string detectLine(std::string_view text) { return detect(decode(text)); }
 
+bool isVocalization(std::string_view text) { return onlyVocalSyllables(decode(text)); }
+
 SongPlan plan(const std::vector<std::string> &lines) {
   std::vector<std::u32string> decoded;
   std::vector<std::string> detected;
@@ -273,7 +297,8 @@ SongPlan plan(const std::vector<std::string> &lines) {
   for (size_t i = 0; i < lines.size(); ++i) {
     const std::string &code = detected[i];
     // Short Latin lines with no telling words lean on the song's language.
-    const bool unclearLatin = code.empty() && latinSource && countScripts(decoded[i]).latin > 0;
+    const bool unclearLatin = code.empty() && latinSource && countScripts(decoded[i]).latin > 0
+        && !onlyVocalSyllables(decoded[i]);
     out.translate.push_back(!out.source.empty() && (code == out.source || unclearLatin));
   }
   return out;

@@ -294,6 +294,12 @@ int main(int argc, char *argv[]) {
   lyrics->setDownloadManager(&downloads);
   // Lyrics in English, courtesy of a 20 MB model that has never heard a song in its life.
   LyricsTranslator lyricsTranslation(lyrics.get());
+  const auto syncTranslationLanguage = [&] {
+    lyricsTranslation.setTargetLanguage(uiLanguage.effectiveLanguage() == QStringLiteral("es")
+        ? QStringLiteral("spanish") : QStringLiteral("english"));
+  };
+  QObject::connect(&uiLanguage, &UiLanguage::languageChanged, &lyricsTranslation, syncTranslationLanguage);
+  syncTranslationLanguage();
   MusicVideoController musicVideo(&youtubeProvider, &authManager, playback.get());
   ArtistVideoBackdrop artistVideo(&youtubeProvider, &authManager);
   // Local imports announce themselves through the same pill as copied links.

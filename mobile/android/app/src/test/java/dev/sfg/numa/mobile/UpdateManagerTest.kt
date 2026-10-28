@@ -25,6 +25,21 @@ import org.junit.Test
 class UpdateManagerTest {
 
     @Test
+    fun releaseWithOnlyApkRetainsBuildNumberAndChecksum() {
+        val digest = "a".repeat(64)
+        val json = """[{
+            "tag_name":"v2.2",
+            "body":"Listas y carátulas sincronizadas.\n\n<!-- android-version-code: 20053 -->",
+            "assets":[{"name":"Numa-Android-2.2.apk","browser_download_url":"https://example.com/numa.apk","digest":"sha256:$digest"}]
+        }]"""
+        val metadata = requireNotNull(UpdateManager.parseGitHubReleasesMetadata(json))
+        assertEquals(20053, metadata.versionCode)
+        assertEquals(digest, metadata.sha256)
+        assertEquals("Listas y carátulas sincronizadas.", metadata.releaseNotes)
+        assertEquals(true, UpdateManager.isNewerUpdate(metadata, "2.2", 20052))
+    }
+
+    @Test
     fun parsesMetadataWithReleaseNotes() {
         val json = """
             {

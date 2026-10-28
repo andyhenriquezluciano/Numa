@@ -109,7 +109,9 @@ private slots:
     }
 
     void cleanup() {
-        QSettings settings;
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        QSettings settings(directory.filePath("playback.ini"), QSettings::IniFormat);
         settings.clear();
     }
 
@@ -149,7 +151,9 @@ private slots:
     }
 
     void persistsAndRestoresQueueHistoryAndShuffleSource() {
-        QSettings settings;
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        QSettings settings(directory.filePath("playback.ini"), QSettings::IniFormat);
         settings.clear();
 
         QVariantList queueTracks;
@@ -189,7 +193,9 @@ private slots:
     }
 
     void disablingPersistenceClearsPersistedKeys() {
-        QSettings settings;
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        QSettings settings(directory.filePath("playback.ini"), QSettings::IniFormat);
         settings.setValue(QStringLiteral("playback/persistedTrack"), sampleTrack(QStringLiteral("t1"), QStringLiteral("T1")));
         settings.setValue(QStringLiteral("playback/persistedPosition"), 42.5);
         settings.setValue(QStringLiteral("playback/persistedQueue"), QVariantList{sampleTrack(QStringLiteral("q1"), QStringLiteral("Q1"))});
@@ -211,7 +217,9 @@ private slots:
     }
 
     void fallbacksToLastSongWhenPersistedTrackIsEmpty() {
-        QSettings settings;
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        QSettings settings(directory.filePath("playback.ini"), QSettings::IniFormat);
         settings.clear();
         settings.setValue(QStringLiteral("playback/persistedTrack"), QVariantMap{});
         settings.setValue(QStringLiteral("playback/lastSong"), sampleTrack(QStringLiteral("fallback_id"), QStringLiteral("Fallback Title")));

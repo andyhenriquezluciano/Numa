@@ -27,7 +27,7 @@ Row {
     property bool running: true
     property color color: NumaAppearance.textColor
 
-    spacing: 8
+    spacing: 4
     height: active ? 40 : 0
     opacity: active ? 1 : 0
     clip: true
@@ -37,31 +37,38 @@ Row {
     // Every line carries one of these; the dots and their loops exist only while one is open.
     Repeater {
         model: dots.active || dots.height > 0 ? 3 : 0
-        Rectangle {
-            id: dot
+        Item {
+            id: slot
             required property int index
-            y: 15
-            width: 9
-            height: 9
-            radius: 4.5
-            color: dots.color
-            scale: 0.85
-            opacity: 0.45
+            width: 13
+            height: 40
 
-            SequentialAnimation {
-                running: dots.active && dots.running
-                loops: Animation.Infinite
-                onRunningChanged: if (!running) { dot.scale = 0.85; dot.opacity = 0.45; }
-                PauseAnimation { duration: dot.index * 200 }
-                ParallelAnimation {
-                    NumberAnimation { target: dot; property: "scale"; to: 1.25; duration: 700; easing.type: Easing.InOutSine }
-                    NumberAnimation { target: dot; property: "opacity"; to: 1; duration: 700; easing.type: Easing.InOutSine }
+            Rectangle {
+                id: dot
+                anchors.centerIn: parent
+                width: 9
+                height: 9
+                radius: 4.5
+                antialiasing: true
+                color: dots.color
+                scale: 0.85
+                opacity: 0.45
+
+                SequentialAnimation {
+                    running: dots.active && dots.running
+                    loops: Animation.Infinite
+                    onRunningChanged: if (!running) { dot.scale = 0.85; dot.opacity = 0.45; }
+                    PauseAnimation { duration: slot.index * 200 }
+                    ParallelAnimation {
+                        NumberAnimation { target: dot; property: "scale"; to: 1.25; duration: 700; easing.type: Easing.InOutSine }
+                        NumberAnimation { target: dot; property: "opacity"; to: 1; duration: 700; easing.type: Easing.InOutSine }
+                    }
+                    ParallelAnimation {
+                        NumberAnimation { target: dot; property: "scale"; to: 0.85; duration: 700; easing.type: Easing.InOutSine }
+                        NumberAnimation { target: dot; property: "opacity"; to: 0.45; duration: 700; easing.type: Easing.InOutSine }
+                    }
+                    PauseAnimation { duration: (2 - slot.index) * 200 }
                 }
-                ParallelAnimation {
-                    NumberAnimation { target: dot; property: "scale"; to: 0.85; duration: 700; easing.type: Easing.InOutSine }
-                    NumberAnimation { target: dot; property: "opacity"; to: 0.45; duration: 700; easing.type: Easing.InOutSine }
-                }
-                PauseAnimation { duration: (2 - dot.index) * 200 }
             }
         }
     }

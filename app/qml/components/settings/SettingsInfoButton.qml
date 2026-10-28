@@ -46,7 +46,7 @@ Button {
         padding: 24
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
         Overlay.modal: Rectangle { color: "#44000000" }
-        background: PopupBloomSurface { radius: 20; tintOpacity: 0.22; refractionEnabled: false }
+        background: PopupBloomSurface { radius: 20 }
         contentItem: ColumnLayout {
             spacing: 20
             RowLayout {

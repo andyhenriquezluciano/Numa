@@ -38,7 +38,7 @@ meson test -C build/desktop --print-errorlogs
 ```
 
 `scripts/package-windows-native.py` prepara la aplicación con sus bibliotecas y modelos.
-`scripts/package-release.py` reúne el APK y el portable de Windows y genera sus hashes.
+Publica únicamente el APK de Android y el setup de Windows. Los archivos de comprobación y los registros se conservan localmente.
 El formato del instalador está documentado en [BOOTSTRAPPER.md](BOOTSTRAPPER.md).
 
 ## Servicios

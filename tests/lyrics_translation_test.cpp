@@ -47,6 +47,14 @@ class LyricsTranslationTest : public QObject {
   Q_OBJECT
 
 private slots:
+  void googleBackoffRespectsServerRetryAfter() {
+    const qint64 now = QDateTime::fromString(QStringLiteral("2026-10-28T00:00:00Z"), Qt::ISODate).toMSecsSinceEpoch();
+    QCOMPARE(googleTranslationRetryDelay(302, {}, now), qint64(600'000));
+    QCOMPARE(googleTranslationRetryDelay(429, "120", now), qint64(120'000));
+    QCOMPARE(googleTranslationRetryDelay(503, "Wed, 28 Oct 2026 00:02:00 GMT", now), qint64(120'000));
+    QCOMPARE(googleTranslationRetryDelay(0, {}, now), qint64(30'000));
+  }
+
   void googleJoinsEverySentenceInTheVerse() {
     const QJsonArray segments{
         QJsonArray{QStringLiteral("¡Espera! "), QStringLiteral("Wait! ")},
@@ -95,6 +103,24 @@ private slots:
     const QStringList lines{QStringLiteral("Eu não sei o que fazer"), QStringLiteral("Meu coração é seu"),
                             QStringLiteral("Você é tudo pra mim")};
     QCOMPARE(planOf(lines).source, std::string("por"));
+  }
+
+  void repeatedVocalSyllablesCannotTurnAnEnglishSongIntoPortuguese() {
+    QStringList lines{QStringLiteral("Keep a mild groove on"), QStringLiteral("Get the cool shoeshine")};
+    for (int i = 0; i < 20; ++i) lines.append(QStringLiteral("Dey-do-da-bop"));
+    QVERIFY(lyric_language::detectLine("Dey-do-da-bop").empty());
+    QVERIFY(lyric_language::isVocalization("Dey-do-da-bop"));
+    QVERIFY(!lyric_language::isVocalization("Eu não sei o que fazer"));
+    QVERIFY(planOf(lines).source.empty());
+  }
+
+  void localModelsCanReachSpanishThroughEnglish() {
+    QCOMPARE(TranslationPacks::route(QStringLiteral("kor"), QStringLiteral("spanish"), QStringLiteral("standard")),
+             (QStringList{QStringLiteral("kor-eng"), QStringLiteral("eng-spa")}));
+    QCOMPARE(TranslationPacks::route(QStringLiteral("eng"), QStringLiteral("spanish"), QStringLiteral("high")),
+             (QStringList{QStringLiteral("eng-spa")}));
+    QCOMPARE(TranslationPacks::route(QStringLiteral("spa"), QStringLiteral("english"), QStringLiteral("standard")),
+             (QStringList{QStringLiteral("spa-eng")}));
   }
 
   void storeRoundTrips() {
@@ -155,6 +181,42 @@ private slots:
       QCOMPARE(QLatin1String(high->source), source);
     }
     QVERIFY(!TranslationPacks::resolve(QStringLiteral("por"), QStringLiteral("english"), QStringLiteral("standard")));
+  }
+
+  void modelsTranslateBetweenSpanishAndEnglish() {
+    const QString directory = qEnvironmentVariable("NUMA_TEST_PAIR_PACKS");
+    if (directory.isEmpty()) QSKIP("NUMA_TEST_PAIR_PACKS not set");
+    for (bool toEnglish : {true, false}) {
+      TranslationWorker worker(std::make_shared<std::atomic_int>(7));
+      QSignalSpy translated(&worker, &TranslationWorker::translated);
+      QSignalSpy finished(&worker, &TranslationWorker::finished);
+      const QString input = toEnglish ? QStringLiteral("Quiero bailar contigo esta noche.")
+                                      : QStringLiteral("I want to dance with you tonight.");
+      const QString pack = toEnglish ? QStringLiteral("spa-eng") : QStringLiteral("eng-spa");
+      worker.translateRoute(7, {QDir(directory).filePath(pack)}, {input}, {input});
+      QCOMPARE(finished.size(), 1);
+      QVERIFY2(finished.first().at(1).toString().isEmpty(), qPrintable(finished.first().at(1).toString()));
+      QCOMPARE(translated.size(), 1);
+      const QString result = translated.first().at(2).toString();
+      QVERIFY2(result.contains(toEnglish ? QStringLiteral("dance") : QStringLiteral("bailar"), Qt::CaseInsensitive), qPrintable(result));
+      QVERIFY(result != input);
+    }
+  }
+
+  void downloadsThePublicSpanishModel() {
+    if (!qEnvironmentVariableIsSet("NUMA_TEST_MODEL_DOWNLOAD")) QSKIP("NUMA_TEST_MODEL_DOWNLOAD not set");
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    qputenv("NUMA_TRANSLATION_DIR", directory.path().toUtf8());
+    QNetworkAccessManager network;
+    TranslationPacks packs(&network);
+    QSignalSpy ready(&packs, &TranslationPacks::ready);
+    QSignalSpy failed(&packs, &TranslationPacks::failed);
+    packs.ensure(QStringLiteral("spa-eng"));
+    QTRY_VERIFY_WITH_TIMEOUT(ready.size() + failed.size() > 0, 120000);
+    QVERIFY2(failed.isEmpty(), failed.isEmpty() ? "" : qPrintable(failed.first().at(1).toString()));
+    QCOMPARE(ready.size(), 1);
+    QVERIFY(packs.installed(QStringLiteral("spa-eng")));
   }
 
   // Needs a real pack and libLiteRt; set NUMA_TEST_KOR_PACK to a kor-eng folder to run.
