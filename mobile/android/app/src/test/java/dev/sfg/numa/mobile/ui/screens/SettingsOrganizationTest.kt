@@ -38,7 +38,14 @@ class SettingsOrganizationTest {
             "Duración de la transición", "Volumen exponencial", "Fuente de traducción")) {
             assertFalse(title, settingsHelp(title).isNullOrBlank())
         }
-        assertTrue(settingsHelp("Mejor mezcla")!!.contains("datos"))
-        assertTrue(settingsHelp("Tipo de transición")!!.contains("No cambia el orden"))
+        val previous = java.util.Locale.getDefault()
+        try {
+            java.util.Locale.setDefault(java.util.Locale.forLanguageTag("es"))
+            assertTrue(settingsHelp("Mejor mezcla")!!.contains("datos"))
+            assertTrue(settingsHelp("Tipo de transición")!!.contains("No cambia el orden"))
+            java.util.Locale.setDefault(java.util.Locale.ENGLISH)
+            assertTrue(settingsHelp("Best Mix")!!.contains("data"))
+            assertTrue(settingsHelp("Transition type")!!.contains("Does not change queue order"))
+        } finally { java.util.Locale.setDefault(previous) }
     }
 }
