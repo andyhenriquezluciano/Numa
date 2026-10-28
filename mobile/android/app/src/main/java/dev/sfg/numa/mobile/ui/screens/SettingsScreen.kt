@@ -197,7 +197,7 @@ fun SettingsScreen(
                         SettingsPage.Appearance -> AppearancePage(settings, onSettings, onHomeLayout)
                         SettingsPage.Connections -> if (detail == null) {
                             ConnectionsList(statuses) { connection = it }
-                            SectionLabel("Dispositivos")
+                            SectionLabel(uiText("Devices", "Dispositivos"))
                             SettingsPanel { ChromecastSettingsRow() }
                         } else {
                             ConnectionDetail(

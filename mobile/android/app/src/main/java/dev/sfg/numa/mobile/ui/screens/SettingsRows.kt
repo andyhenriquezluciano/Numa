@@ -79,7 +79,7 @@ import dev.sfg.numa.mobile.ui.glass.glassPane
 @Composable
 internal fun SectionLabel(value: String, index: Int = 0) {
     Text(
-        value.uppercase(),
+        settingsText(value).uppercase(),
         style = MaterialTheme.typography.labelMedium.copy(
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
@@ -135,7 +135,7 @@ internal fun RowIcon(icon: ImageVector, tint: Color = SettingsStyle.TileIcon, fi
 internal fun RowTitle(text: String, enabled: Boolean = true, color: Color = SettingsStyle.Title,
     help: String? = settingsHelp(text)) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(text, modifier = Modifier.weight(1f),
+        Text(settingsText(text), modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp, fontWeight = FontWeight.Medium),
             color = if (enabled) color else SettingsStyle.Caption)
         if (!help.isNullOrBlank()) SettingsInfoButton(text, help)
@@ -145,7 +145,7 @@ internal fun RowTitle(text: String, enabled: Boolean = true, color: Color = Sett
 @Composable
 internal fun RowSubtitle(text: String) {
     Text(
-        text,
+        settingsText(text),
         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
         color = SettingsStyle.Description,
         modifier = Modifier.padding(top = 3.dp),
@@ -259,7 +259,7 @@ internal fun SettingsPill(
     ) {
         Box(Modifier.padding(horizontal = 13.dp, vertical = 9.dp), contentAlignment = Alignment.Center) {
             Text(
-                label,
+                settingsText(label),
                 style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium),
                 color = if (destructive) CanopyColors.Danger else SettingsStyle.Title,
             )

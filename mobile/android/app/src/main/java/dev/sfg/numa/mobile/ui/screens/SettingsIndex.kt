@@ -44,7 +44,7 @@ internal enum class SettingsPage(val title: String, val blurb: String, val icon:
 @androidx.compose.runtime.Composable
 internal fun SettingsPage.displayTitle(): String = dev.sfg.numa.mobile.ui.text.uiText(when (this) {
     SettingsPage.Home -> "Settings"
-    SettingsPage.Accounts -> "Account and backup"
+    SettingsPage.Accounts -> "Accounts"
     SettingsPage.Lyrics -> "Lyrics and translation"
     SettingsPage.Audio -> "Playback"
     SettingsPage.Storage -> "Downloads"
@@ -63,15 +63,6 @@ internal fun SettingsPage.displayBlurb(): String = dev.sfg.numa.mobile.ui.text.u
     SettingsPage.Storage -> "Quality, artwork and offline storage."
 }, blurb)
 
-internal fun lyricSettingsText(value: String): String = dev.sfg.numa.mobile.ui.text.uiText(when (value) {
-    "Traducir letras" -> "Translate lyrics"
-    "Muestra las letras en español" -> "Show lyrics in Spanish"
-    "Calidad de traducción" -> "Translation quality"
-    "Modelos de traducción" -> "Translation models"
-    "Fuente de traducción" -> "Translation source"
-    "Local o Google Translate" -> "On-device or Google Translate"
-    else -> value
-}, value)
 
 /** One searchable setting; [keywords] catches words the title does not contain. */
 internal data class SettingsEntry(
@@ -123,7 +114,7 @@ internal fun searchSettings(query: String): List<SettingsEntry> {
     if (words.isEmpty()) return emptyList()
     return entries.filter { entry ->
         if (entry.title == "Last.fm" && dev.sfg.numa.connect.BuildConfig.NUMA_LASTFM_URL.isBlank()) return@filter false
-        val haystack = "${entry.title} ${entry.subtitle} ${lyricSettingsText(entry.title)} ${lyricSettingsText(entry.subtitle)} ${entry.keywords} ${entry.page.title}".searchKey()
+        val haystack = "${entry.title} ${entry.subtitle} ${settingsText(entry.title)} ${settingsText(entry.subtitle)} ${entry.keywords} ${entry.page.title}".searchKey()
         words.all { it in haystack }
     }
 }

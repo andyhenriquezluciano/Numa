@@ -71,49 +71,49 @@ internal fun AudioPage(
     onSettings: (NumaSettings) -> Unit,
     onAutoplayEnabled: ((Boolean) -> Unit)?,
 ) {
-    SectionLabel("Calidad")
+    SectionLabel(uiText("Quality", "Calidad"))
     SettingsPanel(index = 1) {
         QualityRow(settings.audioQuality, { onSettings(settings.copy(audioQuality = it)) })
         PanelDivider()
         QualityRow(
             settings.cellularAudioQuality,
             { onSettings(settings.copy(cellularAudioQuality = it)) },
-            title = "Calidad con datos móviles",
+            title = uiText("Mobile data quality", "Calidad con datos móviles"),
             icon = Icons.Rounded.SignalCellularAlt,
         )
     }
 
-    SectionLabel("Volumen", 2)
+    SectionLabel(uiText("Volume", "Volumen"), 2)
     SettingsPanel(index = 3) {
         EqualizerRow(settings, onSettings)
         PanelDivider()
         ToggleRow(
-            title = "Volumen exponencial",
-            subtitle = "Control más preciso al escuchar a volumen bajo",
+            title = uiText("Exponential volume", "Volumen exponencial"),
+            subtitle = uiText("Finer control at low volume", "Control más preciso al escuchar a volumen bajo"),
             icon = Icons.AutoMirrored.Rounded.VolumeUp,
             checked = settings.exponentialVolumeEnabled,
             onChecked = { onSettings(settings.copy(exponentialVolumeEnabled = it)) },
         )
         PanelDivider()
         ToggleRow(
-            title = "Normalización de volumen",
-            subtitle = "Equilibra el volumen entre canciones",
+            title = uiText("Volume normalization", "Normalización de volumen"),
+            subtitle = uiText("Balance volume between songs", "Equilibra el volumen entre canciones"),
             icon = Icons.AutoMirrored.Rounded.VolumeUp,
             checked = settings.volumeNormalizationEnabled,
             onChecked = { onSettings(settings.copy(volumeNormalizationEnabled = it)) },
         )
     }
 
-    SectionLabel("Transiciones", 4)
+    SectionLabel(uiText("Transitions", "Transiciones"), 4)
     SettingsPanel(index = 5) { CrossfadeRow(settings, onSettings) }
 
-    SectionLabel("Cola", 6)
+    SectionLabel(uiText("Queue", "Cola"), 6)
     SettingsPanel(index = 7) {
         PlaybackOrderRow(settings, onSettings)
         PanelDivider()
         ToggleRow(
-            title = "Reproducción automática",
-            subtitle = "Añade canciones similares al terminar la cola",
+            title = uiText("Autoplay", "Reproducción automática"),
+            subtitle = uiText("Add similar songs when the queue ends", "Añade canciones similares al terminar la cola"),
             icon = Icons.Rounded.Loop,
             checked = settings.autoplayEnabled,
             onChecked = { enabled ->
@@ -122,7 +122,7 @@ internal fun AudioPage(
         )
     }
 
-    SectionLabel("Partes sin música", 8)
+    SectionLabel(uiText("Non-music parts", "Partes sin música"), 8)
     SettingsPanel(index = 7) {
         NonMusicSkipRow(settings.nonMusicSkip) { onSettings(settings.copy(nonMusicSkip = it)) }
     }
@@ -138,43 +138,43 @@ internal fun AppearancePage(
     onSettings: (NumaSettings) -> Unit,
     onHomeLayout: () -> Unit,
 ) {
-    SectionLabel("Cristales y estilo", 1)
+    SectionLabel(uiText("Glass and style", "Cristales y estilo"), 1)
     SettingsPanel(index = 2) {
         ThemeStyleSection(settings, onSettings)
     }
 
-    SectionLabel("Inicio", 2)
+    SectionLabel(uiText("Home", "Inicio"), 2)
     SettingsPanel(index = 3) {
         ActionRow(
-            title = "Diseño de Inicio",
-            subtitle = "Reordena y oculta las secciones de Inicio",
+            title = uiText("Home layout", "Diseño de Inicio"),
+            subtitle = uiText("Reorder and hide Home sections", "Reordena y oculta las secciones de Inicio"),
             icon = Icons.Rounded.GridView,
             onClick = onHomeLayout,
         )
     }
 
-    SectionLabel("Navegación", 4)
+    SectionLabel(uiText("Navigation", "Navegación"), 4)
     SettingsPanel(index = 5) {
         ToggleRow(
-            title = "Pestaña de Ajustes",
-            subtitle = "Muestra Ajustes en la barra inferior",
+            title = uiText("Settings tab", "Pestaña de Ajustes"),
+            subtitle = uiText("Show Settings in the bottom bar", "Muestra Ajustes en la barra inferior"),
             icon = Icons.Rounded.Settings,
             checked = settings.showSettingsTab,
             onChecked = { onSettings(settings.copy(showSettingsTab = it)) },
         )
     }
 
-    SectionLabel("Barra del reproductor", 6)
+    SectionLabel(uiText("Player bar", "Barra del reproductor"), 6)
     SettingsPanel(index = 7) {
-        ToggleRow(title = "Mostrar tasa de bits del audio", subtitle = "Muestra la tasa de transmisión en el reproductor.",
+        ToggleRow(title = "Mostrar tasa de bits del audio", subtitle = uiText("Show the stream bitrate in the player.", "Muestra la tasa de transmisión en el reproductor."),
             icon = Icons.Rounded.Speed, checked = settings.showBitrate,
             onChecked = { onSettings(settings.copy(showBitrate = it)) })
     }
-    SectionLabel("Carátulas animadas", 10)
+    SectionLabel(uiText("Animated artwork", "Carátulas animadas"), 10)
     SettingsPanel(index = 11) {
         ToggleRow(
-            title = "Activar carátulas animadas",
-            subtitle = "Muestra portadas en movimiento cuando estén disponibles",
+            title = uiText("Enable animated artwork", "Activar carátulas animadas"),
+            subtitle = uiText("Show animated covers when available", "Muestra portadas en movimiento cuando estén disponibles"),
             icon = Icons.Rounded.Image,
             checked = settings.animatedArtwork,
             onChecked = { onSettings(settings.copy(animatedArtwork = it)) },
@@ -189,11 +189,11 @@ internal fun AppearancePage(
         ArtworkSourceOrder(settings, onSettings)
     }
 
-    SectionLabel("Fondo inmersivo", 12)
+    SectionLabel(uiText("Immersive background", "Fondo inmersivo"), 12)
     SettingsPanel(index = 9) {
         ToggleRow(
-            title = "Usar fondo de la carátula",
-            subtitle = "Anima el fondo con los colores de la carátula",
+            title = uiText("Use artwork background", "Usar fondo de la carátula"),
+            subtitle = uiText("Animate the background with artwork colors", "Anima el fondo con los colores de la carátula"),
             icon = Icons.Rounded.AutoAwesome,
             checked = settings.animatedBackground,
             onChecked = { onSettings(settings.copy(animatedBackground = it)) },
@@ -217,25 +217,25 @@ internal fun StoragePage(
     onInstallUpdate: (MobileUpdateMetadata) -> Unit,
     onShowNotes: () -> Unit,
 ) {
-    SectionLabel("Calidad")
+    SectionLabel(uiText("Quality", "Calidad"))
     SettingsPanel {
         Column(Modifier.padding(20.dp)) {
-            RowTitle("Calidad de descarga")
-            RowSubtitle("Calidad de las nuevas descargas.")
+            RowTitle(uiText("Download quality", "Calidad de descarga"))
+            RowSubtitle(uiText("Quality for new downloads.", "Calidad de las nuevas descargas."))
             SettingsDropdownField(
-                options = listOf(dev.sfg.numa.mobile.model.AudioQuality.DATA_SAVER to "Ahorro",
-                    dev.sfg.numa.mobile.model.AudioQuality.NORMAL to "Normal", dev.sfg.numa.mobile.model.AudioQuality.HIGH to "Alta"),
+                options = listOf(dev.sfg.numa.mobile.model.AudioQuality.DATA_SAVER to uiText("Data saver", "Ahorro"),
+                    dev.sfg.numa.mobile.model.AudioQuality.NORMAL to "Normal", dev.sfg.numa.mobile.model.AudioQuality.HIGH to uiText("High", "Alta")),
                 selected = settings.downloadQuality,
                 onSelect = { onSettings(settings.copy(downloadQuality = it)) },
             )
         }
         PanelDivider()
-        ToggleRow(title = "Descargar carátulas animadas",
-            subtitle = "Guarda las portadas en movimiento. Ocupa más espacio.",
+        ToggleRow(title = uiText("Download animated artwork", "Descargar carátulas animadas"),
+            subtitle = uiText("Save animated covers. Uses more storage.", "Guarda las portadas en movimiento. Ocupa más espacio."),
             icon = Icons.Rounded.Download, checked = settings.downloadAnimatedArtwork,
             onChecked = { onSettings(settings.copy(downloadAnimatedArtwork = it)) })
     }
-    SectionLabel("Caché")
+    SectionLabel(uiText("Cache", "Caché"))
     SettingsPanel(index = 1) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 18.dp)) {
             Text(
@@ -243,7 +243,7 @@ internal fun StoragePage(
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                 color = SettingsStyle.Title,
             )
-            RowSubtitle("Audio, carátulas y archivos temporales")
+            RowSubtitle(uiText("Audio, artwork and temporary files", "Audio, carátulas y archivos temporales"))
         }
         PanelDivider()
         CacheSizeRow(settings, onSettings)
@@ -251,7 +251,7 @@ internal fun StoragePage(
         ClearCacheRow(cacheSizeBytes = cacheSizeBytes, isClearing = isClearingCache, onClear = onClearCache)
     }
 
-    SectionLabel("Almacenamiento", 2)
+    SectionLabel(uiText("Storage", "Almacenamiento"), 2)
     SettingsPanel(index = 3) {
         SdCardDownloadsRow(settings, onSettings)
         PanelDivider()

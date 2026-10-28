@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.text.uiText
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -34,20 +36,20 @@ internal fun CrossfadeRow(settings: NumaSettings, onSettings: (NumaSettings) -> 
     val maxActive = LocalMaxActive.current
     val selected = settings.transitionPreference
     Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-        RowTitle("Tipo de transición")
+        RowTitle(uiText("Transition type", "Tipo de transición"))
         RowSubtitle(when (selected) {
-            TransitionPreference.OFF -> "Reproduce una canción después de otra"
-            TransitionPreference.CROSSFADE -> "Une el final de una canción con la siguiente"
-            TransitionPreference.ADAPTIVE -> if (maxActive) "Con audio Max se utiliza el fundido normal"
-                else "Adapta la transición al ritmo de la música"
+            TransitionPreference.OFF -> uiText("Play songs one after another", "Reproduce una canción después de otra")
+            TransitionPreference.CROSSFADE -> uiText("Blend the end of a song with the next", "Une el final de una canción con la siguiente")
+            TransitionPreference.ADAPTIVE -> if (maxActive) uiText("Max audio uses regular crossfade", "Con audio Max se utiliza el fundido normal")
+                else uiText("Adapt transitions to the rhythm of the music", "Adapta la transición al ritmo de la música")
         })
         SettingsDropdownField(options = TransitionPreference.entries.map { it to it.label }, selected = selected,
             isEnabled = { it != TransitionPreference.ADAPTIVE || !maxActive },
             onSelect = { onSettings(settings.withTransition(it)) })
         AnimatedVisibility(selected != TransitionPreference.OFF) {
             Column(Modifier.padding(top = 16.dp)) {
-                RowTitle("Duración de la transición")
-                RowSubtitle("${settings.crossfadeSeconds} segundos")
+                RowTitle(uiText("Transition duration", "Duración de la transición"))
+                RowSubtitle(uiText("${settings.crossfadeSeconds} seconds", "${settings.crossfadeSeconds} segundos"))
                 ThinGlassSlider(value = settings.crossfadeSeconds.toFloat(),
                     onValueChange = { onSettings(settings.copy(crossfadeSeconds = it.roundToInt())) },
                     valueRange = NumaSettings.MIN_CROSSFADE_SECONDS.toFloat()..NumaSettings.MAX_CROSSFADE_SECONDS.toFloat(),
@@ -65,13 +67,13 @@ internal fun CrossfadeRow(settings: NumaSettings, onSettings: (NumaSettings) -> 
 @Composable
 internal fun PlaybackOrderRow(settings: NumaSettings, onSettings: (NumaSettings) -> Unit) {
     Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-        RowTitle("Orden de reproducción")
-        RowSubtitle("Orden para las nuevas listas")
+        RowTitle(uiText("Playback order", "Orden de reproducción"))
+        RowSubtitle(uiText("Order for newly started playlists", "Orden para las nuevas listas"))
         SettingsDropdownField(options = PlaybackOrder.entries.map { it to it.label },
             selected = settings.playbackOrder, onSelect = { onSettings(settings.copy(playbackOrder = it)) })
         if (settings.playbackOrder == PlaybackOrder.BEST_MIX) {
             Row(Modifier.padding(top = 8.dp)) {
-                RowTitle("Mejor mezcla")
+                RowTitle(uiText("Best Mix", "Mejor mezcla"))
             }
         }
     }

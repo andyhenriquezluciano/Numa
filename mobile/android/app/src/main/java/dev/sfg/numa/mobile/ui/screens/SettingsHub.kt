@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.text.uiText
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -106,7 +108,7 @@ internal fun SettingsHub(
     }
 
     SettingsLanguageRow()
-    SectionLabel("Configuración", 1)
+    SectionLabel(uiText("Settings", "Configuración"), 1)
     SettingsPanel(index = 5) {
         ActionRow(title = SettingsPage.Accounts.displayTitle(), subtitle = SettingsPage.Accounts.displayBlurb(),
             icon = SettingsPage.Accounts.icon, onClick = { onOpen(SettingsPage.Accounts) })
@@ -116,28 +118,28 @@ internal fun SettingsHub(
         PanelDivider()
         ActionRow(
             title = SettingsPage.Audio.displayTitle(),
-            subtitle = "Calidad, volumen, transiciones y cola",
+            subtitle = uiText("Quality, volume, transitions and queue", "Calidad, volumen, transiciones y cola"),
             icon = SettingsPage.Audio.icon,
             onClick = { onOpen(SettingsPage.Audio) },
         )
         PanelDivider()
         ActionRow(
             title = SettingsPage.Storage.displayTitle(),
-            subtitle = "Carátulas y almacenamiento sin conexión",
+            subtitle = uiText("Artwork and offline storage", "Carátulas y almacenamiento sin conexión"),
             icon = SettingsPage.Storage.icon,
             onClick = { onOpen(SettingsPage.Storage) },
         )
         PanelDivider()
         ActionRow(
             title = SettingsPage.Appearance.displayTitle(),
-            subtitle = "Temas, bordes, carátulas y fondos",
+            subtitle = uiText("Themes, borders, artwork and backgrounds", "Temas, bordes, carátulas y fondos"),
             icon = SettingsPage.Appearance.icon,
             onClick = { onOpen(SettingsPage.Appearance) },
         )
         PanelDivider()
         ActionRow(
             title = SettingsPage.Connections.displayTitle(),
-            subtitle = "Discord, Last.fm, Spotify y Qobuz",
+            subtitle = uiText("Discord, Last.fm, Spotify and Qobuz", "Discord, Last.fm, Spotify y Qobuz"),
             icon = SettingsPage.Connections.icon,
             onClick = { onOpen(SettingsPage.Connections) },
         )
@@ -151,7 +153,7 @@ private fun SearchResults(query: String, onOpen: (SettingsPage) -> Unit) {
     Column(Modifier.padding(top = 16.dp)) {
         if (results.isEmpty()) {
             Text(
-                "No se encontraron ajustes para «${query.trim()}»",
+                uiText("No settings found for ‘${query.trim()}’", "No se encontraron ajustes para «${query.trim()}»"),
                 style = MaterialTheme.typography.bodyMedium,
                 color = SettingsStyle.Description,
                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 12.dp),
@@ -165,8 +167,8 @@ private fun SearchResults(query: String, onOpen: (SettingsPage) -> Unit) {
             destinations.forEachIndexed { index, entry ->
                 if (index > 0) PanelDivider()
                 ActionRow(
-                    title = lyricSettingsText(entry.title),
-                    subtitle = "${entry.page.displayTitle()} · ${lyricSettingsText(entry.subtitle)}",
+                    title = settingsText(entry.title),
+                    subtitle = "${entry.page.displayTitle()} · ${settingsText(entry.subtitle)}",
                     icon = entry.page.icon,
                     onClick = { onOpen(entry.page) },
                 )
@@ -186,7 +188,7 @@ private fun SettingsSearchField(query: String, onQuery: (String) -> Unit) {
         cursorBrush = SolidColor(SettingsStyle.SageSoft),
         modifier = Modifier
             .fillMaxWidth()
-            .semantics { contentDescription = "Buscar en ajustes" },
+            .semantics { contentDescription = uiText("Search settings", "Buscar en ajustes") },
         decorationBox = { field ->
             Row(
                 Modifier
@@ -202,7 +204,7 @@ private fun SettingsSearchField(query: String, onQuery: (String) -> Unit) {
                 Icon(Icons.Rounded.Search, contentDescription = null, tint = SettingsStyle.Description, modifier = Modifier.size(20.dp))
                 Box(Modifier.weight(1f)) {
                     if (query.isEmpty()) {
-                        Text("Buscar en ajustes", color = SettingsStyle.Description, fontSize = 15.sp)
+                        Text(uiText("Search settings", "Buscar en ajustes"), color = SettingsStyle.Description, fontSize = 15.sp)
                     }
                     field()
                 }
@@ -211,7 +213,7 @@ private fun SettingsSearchField(query: String, onQuery: (String) -> Unit) {
                         Modifier.size(48.dp).clickable(role = Role.Button) { onQuery("") },
                         contentAlignment = Alignment.Center,
                     ) {
-                        Icon(Icons.Rounded.Close, contentDescription = "Borrar búsqueda", tint = SettingsStyle.Description, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Rounded.Close, contentDescription = uiText("Clear search", "Borrar búsqueda"), tint = SettingsStyle.Description, modifier = Modifier.size(18.dp))
                     }
                 }
             }
@@ -294,21 +296,21 @@ internal fun AccountCard(
                 }
                 Column(Modifier.weight(1f)) {
                     when (auth) {
-                        AuthState.Restoring -> AccountText("Comprobando sesión…", "Un momento")
-                        AuthState.Authorizing -> AccountText("Conectando tu cuenta…", "Un momento")
-                        AuthState.SignedOut -> AccountText("Tu cuenta de YouTube Music", "Sincroniza tu biblioteca y recomendaciones")
+                        AuthState.Restoring -> AccountText(uiText("Checking session…", "Comprobando sesión…"), uiText("Just a moment", "Un momento"))
+                        AuthState.Authorizing -> AccountText(uiText("Connecting your account…", "Conectando tu cuenta…"), uiText("Just a moment", "Un momento"))
+                        AuthState.SignedOut -> AccountText(uiText("Your YouTube Music account", "Tu cuenta de YouTube Music"), uiText("Sync your library and recommendations", "Sincroniza tu biblioteca y recomendaciones"))
                         // displayName falls back to the literal "YouTube Music", so the subtitle must not repeat it.
-                        is AuthState.SignedIn -> AccountText(auth.displayName, "Sesión iniciada · YouTube Music")
-                        is AuthState.Error -> AccountText("No se pudo iniciar sesión", auth.message, CanopyColors.Danger)
+                        is AuthState.SignedIn -> AccountText(auth.displayName, uiText("Signed in · YouTube Music", "Sesión iniciada · YouTube Music"))
+                        is AuthState.Error -> AccountText(uiText("Couldn't sign in", "No se pudo iniciar sesión"), auth.message, CanopyColors.Danger)
                     }
                 }
             }
             when (auth) {
-                AuthState.SignedOut -> SettingsPill("Iniciar sesión", onSignIn, Modifier.fillMaxWidth())
-                is AuthState.Error -> SettingsPill("Reintentar", onSignIn, Modifier.fillMaxWidth())
+                AuthState.SignedOut -> SettingsPill(uiText("Sign in", "Iniciar sesión"), onSignIn, Modifier.fillMaxWidth())
+                is AuthState.Error -> SettingsPill(uiText("Retry", "Reintentar"), onSignIn, Modifier.fillMaxWidth())
                 is AuthState.SignedIn -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SettingsPill("Cambiar cuenta", onSwitchAccount, Modifier.weight(1f))
-                    SettingsPill("Cerrar sesión", onSignOut, Modifier.weight(1f), destructive = true)
+                    SettingsPill(uiText("Switch account", "Cambiar cuenta"), onSwitchAccount, Modifier.weight(1f))
+                    SettingsPill(uiText("Sign out", "Cerrar sesión"), onSignOut, Modifier.weight(1f), destructive = true)
                 }
                 else -> Unit
             }

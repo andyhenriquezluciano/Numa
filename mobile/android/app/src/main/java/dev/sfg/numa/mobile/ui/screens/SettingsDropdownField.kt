@@ -92,7 +92,7 @@ internal fun <T> SettingsDropdownField(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
-                text = currentLabel,
+                text = settingsText(currentLabel),
                 style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Medium),
                 color = SettingsStyle.Title,
                 modifier = Modifier.weight(1f).padding(vertical = 12.dp).padding(end = 12.dp),
@@ -122,7 +122,7 @@ internal fun <T> SettingsDropdownField(
                 GlassDropdownMenuItem(
                     text = {
                         Text(
-                            text = optLabel,
+                            text = settingsText(optLabel),
                             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                             color = if (isSelected) CanopyColors.Accent else SettingsStyle.Title,
                         )

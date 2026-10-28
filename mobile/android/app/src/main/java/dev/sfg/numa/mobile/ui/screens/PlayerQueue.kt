@@ -181,7 +181,7 @@ fun PlayerQueuePanel(
             dev.sfg.numa.mobile.model.LocalBestMixJob.current?.takeIf { it.key == dev.sfg.numa.mobile.model.BestMixJob.QUEUE_KEY }?.let {
                 Text(it.status, color = Color.White, style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
-                Text("Se analiza el audio disponible. Si falta conexión, se conserva la cola. Pulsa × para cancelar.",
+                Text(uiText("Analyzing available audio. Offline, the queue stays unchanged. Tap × to cancel.", "Se analiza el audio disponible. Si falta conexión, se conserva la cola. Pulsa × para cancelar."),
                     color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
             }

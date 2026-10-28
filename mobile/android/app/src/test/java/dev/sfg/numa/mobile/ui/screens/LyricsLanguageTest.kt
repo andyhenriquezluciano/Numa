@@ -42,4 +42,17 @@ class LyricsLanguageTest {
             assertEquals(listOf("Contenido de la canción"), ready.translations)
         } finally { Locale.setDefault(old) }
     }
+    @Test fun englishSettingsSearchAndHelpUseTheSameTranslatedTitles() {
+        val previous = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.ENGLISH)
+            assertTrue(searchSettings("playback order").any { it.page == SettingsPage.Audio })
+            assertTrue(settingsHelp("Playback order")!!.startsWith("Choose the order"))
+            assertEquals("Off", settingsText("Desactivada"))
+            Locale.setDefault(Locale.forLanguageTag("es"))
+            assertTrue(settingsHelp("Orden de reproducción")!!.startsWith("Elige el orden"))
+            assertEquals("Desactivada", settingsText("Desactivada"))
+        } finally { Locale.setDefault(previous) }
+    }
+
 }
