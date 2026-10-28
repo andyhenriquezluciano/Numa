@@ -36,6 +36,10 @@ class UiTextTest {
             assertEquals("Personalized mixes", catalogCaption("Mixes personalizados"))
             assertEquals("Listen together", catalogCaption("Escuchar juntos"))
             assertEquals("Liked music", playlistDisplayTitle("VLLM", "Música que me gusta"))
+            assertEquals("Automatically created playlist", playlistDisplayAuthor(
+                dev.sfg.numa.mobile.model.Playlist("FEmusic_liked_videos", "Música que me gusta", "Lista creada automáticamente por YouTube Music")))
+            assertEquals("My mix 5", playlistDisplayTitle("RD-mix", "Mi mix 5", "Auto playlist"))
+            assertEquals("Archive mix", playlistDisplayTitle("RD-archive", "Mix de archivo", "Auto playlist"))
             assertEquals("Mi lista personal", playlistDisplayTitle("VLPLpersonal", "Mi lista personal"))
             Locale.setDefault(Locale.forLanguageTag("es"))
             assertEquals("Música que me gusta", playlistDisplayTitle("VLLM", "Liked music"))

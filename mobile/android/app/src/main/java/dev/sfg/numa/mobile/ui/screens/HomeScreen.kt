@@ -440,9 +440,8 @@ internal fun catalogSubtitle(item: CatalogItem): String =
         is CatalogItem.Song -> item.track.artist
         is CatalogItem.Record -> item.album.artist
         is CatalogItem.Performer -> dev.sfg.numa.mobile.ui.text.catalogCaption(item.artist.subtitle).ifBlank { uiText("Artist", "Artista") }
-        is CatalogItem.Collection -> if (item.playlist.id.removePrefix("VL") in listOf("LM", "SE"))
-            dev.sfg.numa.mobile.ui.text.catalogCaption(item.playlist.author).ifBlank { uiText("Playlists", "Listas de reproducción") }
-            else item.playlist.author
+        is CatalogItem.Collection -> dev.sfg.numa.mobile.ui.text.playlistDisplayAuthor(item.playlist)
+            .ifBlank { uiText("Playlists", "Listas de reproducción") }
         is CatalogItem.Category -> ""
     }
 

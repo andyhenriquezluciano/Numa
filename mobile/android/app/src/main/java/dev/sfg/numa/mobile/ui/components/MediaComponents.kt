@@ -372,8 +372,7 @@ private fun catalogSubtitle(item: CatalogItem): String = when (item) {
     // usually all that is left; elsewhere it reads as "SZA • 2022".
     is CatalogItem.Record -> albumSubtitle(item.album)
     is CatalogItem.Performer -> dev.sfg.numa.mobile.ui.text.catalogCaption(item.artist.subtitle).ifBlank { uiText("Artist", "Artista") }
-    is CatalogItem.Collection -> if (item.playlist.id.removePrefix("VL") in listOf("LM", "SE"))
-        dev.sfg.numa.mobile.ui.text.catalogCaption(item.playlist.author) else item.playlist.author
+    is CatalogItem.Collection -> dev.sfg.numa.mobile.ui.text.playlistDisplayAuthor(item.playlist)
     is CatalogItem.Category -> ""
 }
 

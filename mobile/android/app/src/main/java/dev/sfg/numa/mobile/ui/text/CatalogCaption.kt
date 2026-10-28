@@ -23,11 +23,19 @@ fun catalogCaption(value: String): String = serviceCaptions.firstOrNull {
     else -> value
 }
 
-fun playlistDisplayTitle(id: String, original: String): String = when (id.removePrefix("VL")) {
+fun playlistDisplayTitle(id: String, original: String, author: String = ""): String = when (id.removePrefix("VL")) {
     "LM", "FEmusic_liked_videos" -> uiText("Liked music", "Música que me gusta")
     "SE" -> uiText("Episodes for later", "Episodios para más tarde")
-    else -> original
+    else -> if (id.removePrefix("VL").startsWith("RD") || author == "YouTube Music" ||
+        author == "Auto playlist" || author.startsWith("Lista creada automáticamente")) {
+        val mix = Regex("""(?:Mi mix|My mix) (\d+)""", RegexOption.IGNORE_CASE).matchEntire(original)
+        if (mix != null) uiText("My mix ${mix.groupValues[1]}", "Mi mix ${mix.groupValues[1]}") else catalogCaption(original)
+    } else original
 }
+
+fun playlistDisplayAuthor(playlist: dev.sfg.numa.mobile.model.Playlist): String =
+    if (playlist.id.removePrefix("VL") in setOf("LM", "FEmusic_liked_videos", "SE")) catalogCaption(playlist.author)
+    else playlist.author
 
 fun navigationTitle(route: String): String = when (route) {
     dev.sfg.numa.mobile.ui.navigation.Routes.HOME -> uiText("Home", "Inicio")

@@ -155,7 +155,7 @@ sealed interface CatalogItem {
 
     data class Collection(val playlist: Playlist) : CatalogItem {
         override val stableId = playlist.id
-        override val title: String get() = dev.sfg.numa.mobile.ui.text.playlistDisplayTitle(playlist.id, playlist.title)
+        override val title: String get() = dev.sfg.numa.mobile.ui.text.playlistDisplayTitle(playlist.id, playlist.title, playlist.author)
         override val artworkUrl = playlist.artworkUrl
     }
 
