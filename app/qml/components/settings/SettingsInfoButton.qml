@@ -19,6 +19,7 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import ".."
 
 Button {
@@ -34,17 +35,60 @@ Button {
     contentItem: LucideIcon { name: "info"; color: NumaAppearance.mutedColor }
     background: Rectangle { radius: 12; color: root.hovered ? "#20ffffff" : "transparent" }
     GlassToolTip { control: root; text: root.Accessible.name }
-    Dialog {
+    Popup {
         id: information
+        objectName: "settingsInformationPopup"
         parent: Overlay.overlay
         anchors.centerIn: parent
-        width: Math.min(430, parent ? parent.width - 40 : 430)
+        width: Math.min(460, parent ? parent.width - 40 : 460)
         modal: true
-        padding: 22
-        title: root.heading
-        standardButtons: Dialog.Ok
-        background: PopupBloomSurface { radius: 16 }
-        header: Label { text: root.heading; padding: 22; font.pixelSize: 18; color: NumaAppearance.textColor; wrapMode: Text.WordWrap }
-        contentItem: Label { text: root.message; color: NumaAppearance.textColor; wrapMode: Text.WordWrap; font.pixelSize: 14 }
+        focus: true
+        padding: 24
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        Overlay.modal: Rectangle { color: "#44000000" }
+        background: PopupBloomSurface { radius: 20; tintOpacity: 0.22; refractionEnabled: false }
+        contentItem: ColumnLayout {
+            spacing: 20
+            RowLayout {
+                spacing: 12
+                Rectangle {
+                    Layout.preferredWidth: 36
+                    Layout.preferredHeight: 36
+                    radius: 10
+                    color: "#12ffffff"
+                    LucideIcon {
+                        anchors.centerIn: parent
+                        width: 20
+                        height: 20
+                        name: "info"
+                        color: NumaAppearance.accentColor
+                    }
+                }
+                Label {
+                    Layout.fillWidth: true
+                    text: root.heading
+                    font.family: "Inter"
+                    font.pixelSize: 18
+                    font.weight: Font.DemiBold
+                    color: NumaAppearance.textColor
+                    wrapMode: Text.WordWrap
+                }
+            }
+            Label {
+                Layout.fillWidth: true
+                text: root.message
+                color: NumaAppearance.textColor
+                wrapMode: Text.WordWrap
+                font.family: "Inter"
+                font.pixelSize: 14
+                lineHeight: 1.3
+            }
+            SettingsButton {
+                Layout.alignment: Qt.AlignRight
+                Layout.minimumWidth: 104
+                text: qsTr("Close")
+                onClicked: information.close()
+            }
+        }
     }
 }

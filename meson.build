@@ -457,6 +457,7 @@ if get_option('tests')
     ['discord_artwork', 'tests/discord_artwork_test.cpp'],
     ['lastfm', 'tests/lastfm_test.cpp'],
     ['playback_persistence', 'tests/playback_persistence_test.cpp'],
+    ['ui_language', 'tests/ui_language_test.cpp'],
     ['songlink', 'tests/songlink_test.cpp'],
     ['animated_artwork', 'tests/animated_artwork_test.cpp'],
     ['artwork_video_cache', 'tests/artwork_video_cache_test.cpp'],

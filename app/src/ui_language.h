@@ -36,6 +36,6 @@ private:
   QSettings m_settings;
   SpanishTranslator m_spanish;
   QQmlEngine *m_engine{nullptr};
-  QString m_language{QStringLiteral("system")};
+  QString m_language{QStringLiteral("es")};
   bool m_installed{false};
 };

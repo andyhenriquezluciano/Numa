@@ -30,7 +30,7 @@ RowLayout {
     // Nav entries; key doubles as the section id used by the loader switch.
     readonly property var sections: [
         { key: "general", label: qsTr("General"), icon: "sliders-horizontal", blurb: qsTr("Startup and window behavior.") },
-        { key: "accounts", label: qsTr("Accounts"), icon: "user", blurb: qsTr("Your accounts, library, and synchronization.") },
+        { key: "accounts", label: qsTr("Accounts"), icon: "circle-user-round", blurb: qsTr("Your accounts, library, and synchronization.") },
         { key: "lyrics", label: qsTr("Lyrics and translation"), icon: "languages", blurb: qsTr("Translation languages and offline models.") },
         { key: "playback", label: qsTr("Playback"), icon: "audio-lines", blurb: qsTr("Quality, audio engine, and transitions between songs.") },
         { key: "downloads", label: qsTr("Downloads"), icon: "download", blurb: qsTr("Offline listening and storage.") },
@@ -71,7 +71,7 @@ RowLayout {
         }
 
         Label {
-            text: qsTr("Interface language")
+            text: qsTr("Language")
             color: NumaAppearance.mutedColor
             font.pixelSize: 12
             Layout.leftMargin: 12
@@ -79,10 +79,10 @@ RowLayout {
         SettingsSelect {
             Layout.fillWidth: true
             Layout.bottomMargin: 18
-            model: [qsTr("System"), "English", "Español"]
-            currentIndex: ["system", "en", "es"].indexOf(NumaLanguage.language)
-            onActivated: index => NumaLanguage.language = ["system", "en", "es"][index]
-            Accessible.name: qsTr("Interface language")
+            model: ["English", "Español"]
+            currentIndex: NumaLanguage.language === "en" ? 0 : 1
+            onActivated: index => NumaLanguage.language = ["en", "es"][index]
+            Accessible.name: qsTr("Language")
         }
         Item {
             Layout.fillWidth: true

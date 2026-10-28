@@ -34,9 +34,9 @@ SettingsRow {
     iconName: "shuffle"
     title: qsTr("Crossfade style")
     enabled: crossfadeEnabled
-    description: !adaptiveAvailable ? qsTr("Adaptive mix is unavailable at MAX quality.")
+    description: !adaptiveAvailable ? qsTr("Adaptive mix is unavailable for the current playback source.")
                  : adaptiveMode === "adaptive" ? qsTr("Adjust transitions to each pair of songs.") : qsTr("Use a fixed transition duration.")
-    helpText: qsTr("Standard uses the crossfade duration you choose. Adaptive mix analyzes beats and phrases on this computer to shape the transition. It is unavailable at MAX streaming quality and turns off the Audio Engine.")
+    helpText: qsTr("Standard uses the crossfade duration you choose. Adaptive mix analyzes beats and phrases on this computer to adjust each transition. Enabling it turns off the Audio Engine.")
 
     SettingsSegmented {
         id: picker

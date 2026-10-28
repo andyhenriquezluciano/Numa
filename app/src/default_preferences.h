@@ -5,7 +5,7 @@
 
 inline QVariantMap defaultPreferences() {
   return {
-      {QStringLiteral("ui/language"), QStringLiteral("system")},
+      {QStringLiteral("ui/language"), QStringLiteral("es")},
       {QStringLiteral("appearance/layoutStyle"), QStringLiteral("glade")},
       {QStringLiteral("appearance/performanceMode"), false},
       {QStringLiteral("appearance/showBitrate"), false},

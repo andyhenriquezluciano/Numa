@@ -28,6 +28,9 @@ Requiere MSVC 2022, Windows SDK, Qt 6.11.2 para MSVC x64 con WebEngine y WebView
 Meson 1.12 o posterior, CMake, Ninja, Rust y Node.js.
 Ejecuta desde una consola de desarrollo de MSVC con Qt en `PATH`:
 
+Si ya tienes `ffmpeg.exe` y `ffprobe.exe`, define `NUMA_FFMPEG_DIR` con su carpeta
+para reutilizarlos durante la compilación y evitar descargar una distribución antigua.
+
 ```sh
 meson setup build/desktop --buildtype=release
 meson compile -C build/desktop

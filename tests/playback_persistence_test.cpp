@@ -53,7 +53,7 @@ private slots:
         QVERIFY(directory.isValid());
         QSettings settings(directory.filePath("new-user.ini"), QSettings::IniFormat);
         QVERIFY(initializeDefaultPreferences(settings));
-        QCOMPARE(settings.value("ui/language").toString(), QStringLiteral("system"));
+        QCOMPARE(settings.value("ui/language").toString(), QStringLiteral("es"));
         QCOMPARE(settings.value("appearance/layoutStyle").toString(), QStringLiteral("glade"));
         QVERIFY(!settings.value("appearance/showBitrate").toBool());
         QCOMPARE(settings.value("musicVideo/maxHeight").toInt(), 1440);

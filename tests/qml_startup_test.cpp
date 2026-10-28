@@ -182,6 +182,11 @@ int main(int argc, char *argv[]) {
       CloudSyncSetting { x: 330; y: 330; width: 300 }
       RestoreDefaultPlaylistsButton { objectName: "restoreDefaults"; x: 50; y: 180; width: 230 }
       SettingsInfoButton { objectName: "testInfo"; x: 280; y: 120; heading: "Crossfade"; message: "Blends consecutive songs." }
+      SettingsSegmented {
+        objectName: "singleChoice"; x: 330; y: 120
+        currentValue: "apple_music"
+        model: [{value: "apple_music", label: "Apple Music"}]
+      }
     }
   )", QUrl());
   std::unique_ptr<QObject> controlsObject(controls.create());
@@ -254,6 +259,22 @@ int main(int argc, char *argv[]) {
   QMetaObject::invokeMethod(saveArtwork, "clicked");
   if (crop->property("visible").toBool() || !sync->property("savedCrop").toRectF().isValid()) return 1;
   QFile::remove(testImage);
+  auto *singleChoice = controlsObject->findChild<QObject *>("singleChoice");
+  auto *singlePicker = singleChoice ? singleChoice->findChild<QObject *>("settingsChoicePicker") : nullptr;
+  if (!singlePicker || singlePicker->property("visible").toBool()
+      || singleChoice->property("displayText").toString() != "Apple Music") {
+    output << "A single available choice must display as text, without a dropdown.\n"; return 1;
+  }
+  auto *infoButton = controlsObject->findChild<QObject *>("testInfo");
+  auto *information = controlsObject->findChild<QObject *>("settingsInformationPopup");
+  if (!infoButton || !information) return 1;
+  QMetaObject::invokeMethod(infoButton, "clicked");
+  for (int i = 0; i < 25; ++i) { application.processEvents(); QThread::msleep(10); }
+  if (!information->property("visible").toBool() || information->property("height").toDouble() < 150) {
+    output << "Settings help must show the title, explanation and close button in one card.\n"; return 1;
+  }
+  if (!captureDir.isEmpty() && !window->grabWindow().save(captureDir + "/settings-information.png")) return 1;
+  QMetaObject::invokeMethod(information, "close");
   window->close();
   output << "Numa QML startup check passed.\n";
   return 0;

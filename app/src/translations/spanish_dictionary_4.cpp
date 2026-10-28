@@ -353,6 +353,8 @@ void loadSpanishTranslations4(QHash<QString, QString> &map) {
     {QStringLiteral("Restore default playlists"), QStringLiteral("Restaurar listas predeterminadas")},
     {QStringLiteral("Show Liked Music and Episodes for Later again."), QStringLiteral("Volver a mostrar Me gusta y Episodios para más tarde.")},
     {QStringLiteral("The artwork could not be saved. Try again."), QStringLiteral("No se pudo guardar la carátula. Inténtalo de nuevo.")},
+    {QStringLiteral("Adaptive mix is unavailable for the current playback source."), QStringLiteral("La mezcla adaptativa no está disponible para la fuente de reproducción actual.")},
+    {QStringLiteral("Standard uses the crossfade duration you choose. Adaptive mix analyzes beats and phrases on this computer to adjust each transition. Enabling it turns off the Audio Engine."), QStringLiteral("Estándar usa la duración de fundido que elijas. La mezcla adaptativa analiza el ritmo y las frases en este equipo para ajustar cada transición. Al activarla, se desactiva el motor de audio.")},
     {QStringLiteral("Sync now"), QStringLiteral("Sincronizar ahora")},
     {QStringLiteral("Syncing…"), QStringLiteral("Sincronizando…")},
     {QStringLiteral("Your NÜMA account saves favorites, artists, albums, playlists, artwork and listening metrics. Audio files stay on each device."), QStringLiteral("Tu cuenta NÜMA sincroniza favoritos, artistas, álbumes, listas, carátulas y métricas. Los archivos de audio permanecen en cada dispositivo.")},

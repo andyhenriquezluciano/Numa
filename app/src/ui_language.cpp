@@ -6,7 +6,6 @@
 
 #include <QCoreApplication>
 #include <QHash>
-#include <QLocale>
 #include <QQmlEngine>
 
 namespace {
@@ -37,19 +36,19 @@ QString SpanishTranslator::translate(const char *, const char *sourceText,
 }
 
 UiLanguage::UiLanguage(QObject *parent) : QObject(parent) {
-  const QString saved = m_settings.value(QStringLiteral("ui/language"), QStringLiteral("system")).toString();
+  const QString saved = m_settings.value(QStringLiteral("ui/language"), QStringLiteral("es")).toString();
   if (saved == QStringLiteral("en") || saved == QStringLiteral("es")) m_language = saved;
+  if (saved != m_language) m_settings.setValue(QStringLiteral("ui/language"), m_language);
   apply();
 }
 
 QString UiLanguage::effectiveLanguage() const {
-  if (m_language != QStringLiteral("system")) return m_language;
-  return QLocale::system().language() == QLocale::Spanish ? QStringLiteral("es") : QStringLiteral("en");
+  return m_language;
 }
 
 void UiLanguage::setLanguage(const QString &language) {
   const QString value = language == QStringLiteral("es") || language == QStringLiteral("en")
-      ? language : QStringLiteral("system");
+      ? language : QStringLiteral("es");
   if (m_language == value) return;
   m_language = value;
   m_settings.setValue(QStringLiteral("ui/language"), value);

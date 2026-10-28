@@ -33,7 +33,9 @@ Item {
     implicitHeight: select.implicitHeight
     SettingsSelect {
         id: select
+        objectName: "settingsChoicePicker"
         anchors.fill: parent
+        visible: root.model.length > 1
         model: root.model
         currentIndex: {
             for (let i = 0; i < root.model.length; ++i) if (root.model[i].value === root.currentValue) return i
@@ -61,5 +63,16 @@ Item {
             }
             background: Rectangle { radius: 7; color: option.highlighted ? "#20ffffff" : "transparent" }
         }
+    }
+    Label {
+        anchors.fill: parent
+        visible: root.model.length === 1
+        text: root.model.length === 1 ? root.model[0].label : ""
+        color: NumaAppearance.mutedColor
+        font.family: "Inter"
+        font.pixelSize: 13
+        horizontalAlignment: Text.AlignRight
+        verticalAlignment: Text.AlignVCenter
+        Accessible.role: Accessible.StaticText
     }
 }

@@ -3,6 +3,7 @@
 """Stage the worker, ORT's Dawn runtime, FFmpeg and model files beside numa."""
 import argparse
 import hashlib
+import os
 from pathlib import Path
 import shutil
 import urllib.request
@@ -16,6 +17,8 @@ p.add_argument("--profile", type=Path, required=True)
 p.add_argument("--destination", type=Path, required=True)
 p.add_argument("--models", type=Path, required=True)
 p.add_argument("--cache", type=Path, required=True)
+p.add_argument("--ffmpeg-dir", type=Path, default=os.environ.get("NUMA_FFMPEG_DIR"),
+               help="Directory containing existing ffmpeg.exe and ffprobe.exe")
 a = p.parse_args()
 a.destination.mkdir(parents=True, exist_ok=True)
 a.cache.mkdir(parents=True, exist_ok=True)
@@ -46,8 +49,11 @@ FFMPEG = {
 }
 FFMPEG["windows-x86_64-gnu"] = FFMPEG["windows-x86_64-msvc"]
 if a.platform in FFMPEG:
-    installed_ffmpeg = Path.home() / "AppData/Local/Programs/Numa/components/ffmpeg/8.0.2-4/ffmpeg.exe"
+    ffmpeg_dir = a.ffmpeg_dir or Path.home() / "AppData/Local/Programs/Numa/components/ffmpeg/8.0.2-4"
+    installed_ffmpeg = ffmpeg_dir / "ffmpeg.exe"
     installed_probe = installed_ffmpeg.with_name("ffprobe.exe")
+    if a.ffmpeg_dir and not (installed_ffmpeg.is_file() and installed_probe.is_file()):
+        raise SystemExit("--ffmpeg-dir must contain ffmpeg.exe and ffprobe.exe")
     if installed_ffmpeg.exists() and installed_probe.exists():
         for tool in (installed_ffmpeg, installed_probe):
             shutil.copy2(tool, a.destination / tool.name)
