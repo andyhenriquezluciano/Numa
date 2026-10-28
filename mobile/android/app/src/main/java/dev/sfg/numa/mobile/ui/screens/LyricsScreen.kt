@@ -96,9 +96,10 @@ internal fun LyricLines(
             buildLyricDisplayItems(lines)
         }
     }
+    val highlightStarts = remember(lines) { lines.map(::lyricHighlightStartMs) }
 
     // Frame-clock reads stay in drawing. Only an item change invalidates the list composition.
-    val activeDisplayIndex by remember(displayItems, synced) {
+    val activeDisplayIndex by remember(displayItems, synced, highlightStarts) {
         derivedStateOf {
             if (!synced) return@derivedStateOf -1
             val pos = smoothPosition.value
@@ -110,7 +111,7 @@ internal fun LyricLines(
             } else {
                 displayItems.indexOfLast { item ->
                     item is LyricDisplayItem.Line &&
-                    lyricHighlightStartMs(item.line)?.toFloat()?.let { it <= pos } == true
+                    highlightStarts[item.originalIndex]?.toFloat()?.let { it <= pos } == true
                 }
             }
         }
