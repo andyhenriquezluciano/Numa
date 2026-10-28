@@ -18,7 +18,7 @@ class HomeQuickGridTest {
             val others = (1..6).map { CatalogItem.Collection(Playlist("PL$it", "Lista $it", artworkUrl = "$it.png")) }
             val feed = LoadState.Content(listOf(CatalogSection("home", "Home", listOf(CatalogItem.Collection(remote)) + others)))
             val items = quickGridItems(LibrarySnapshot(savedPlaylists = listOf(saved)), feed, {}, {}, {})
-            assertEquals("$savedId / $feedId", listOf(saved.title) + (1..5).map { "Lista $it" }, items.map { it.title })
+            assertEquals("$savedId / $feedId", listOf(dev.sfg.numa.mobile.ui.text.uiText("Liked music", "Música que me gusta")) + (1..5).map { "Lista $it" }, items.map { it.title })
             assertEquals("custom.png", items.first().artworkUrl)
         }
     }
@@ -52,7 +52,8 @@ class HomeQuickGridTest {
         val home = LoadState.Content(listOf(CatalogSection("library", "Library",
             listOf(CatalogItem.Collection(liked), CatalogItem.Collection(episodes), CatalogItem.Collection(other)))))
         val items = quickGridItems(library, home, {}, {}, {})
-        assertEquals(listOf("Liked Music", "Episodes", "Otra lista"), items.map { it.title })
+        assertEquals(listOf(dev.sfg.numa.mobile.ui.text.uiText("Liked music", "Música que me gusta"),
+            dev.sfg.numa.mobile.ui.text.uiText("Episodes for later", "Episodios para más tarde"), "Otra lista"), items.map { it.title })
     }
 
     @Test fun gridDoesNotDropDistinctPlaylistsWithTheSameTitle() {
