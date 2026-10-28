@@ -318,8 +318,9 @@ class LyricTranslator(
                     withContext(Dispatchers.IO) { store.store(revision, text, value) }
                     pending[text]?.forEach { results[it] = shown(text, value) }
                     completed++
-                    if (viewers.value?.songId == songId || playbackLyrics.value?.songId == songId) {
-                        mutableState.update { it.copy(status = LyricTranslationState.Status.TRANSLATING,
+                    if (dev.sfg.numa.mobile.settings.NumaLanguage.language.value == target &&
+                        (viewers.value?.songId == songId || playbackLyrics.value?.songId == songId)) {
+                        mutableState.update { if (it.targetLanguage != target) it else it.copy(status = LyricTranslationState.Status.TRANSLATING,
                             progress = completed.toFloat() / total, translations = results.toList()) }
                     }
                 }, requireWifi = requireWifi, target = target)
