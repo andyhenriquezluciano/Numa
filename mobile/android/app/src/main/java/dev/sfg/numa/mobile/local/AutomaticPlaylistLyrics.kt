@@ -90,8 +90,8 @@ class AutomaticPlaylistLyrics(
 }
 
 internal fun automaticLyricsSummary(added: Int, missing: Int, existing: Int, errors: Int): String = buildString {
-    append(uiText("$added lyrics added.", "Se añadieron $added letras."))
-    if (missing > 0) append(uiText(" No lyrics found for $missing songs.", " No se encontraron letras para $missing canciones."))
-    if (existing > 0) append(uiText(" $existing already had lyrics.", " $existing ya tenían letra."))
-    if (errors > 0) append(uiText(" $errors could not be checked.", " $errors no se pudieron consultar."))
+    append(if (added == 1) uiText("1 lyric added.", "Se añadió 1 letra.") else uiText("$added lyrics added.", "Se añadieron $added letras."))
+    if (missing > 0) append(if (missing == 1) uiText(" No lyrics found for 1 song.", " No se encontró letra para 1 canción.") else uiText(" No lyrics found for $missing songs.", " No se encontraron letras para $missing canciones."))
+    if (existing > 0) append(if (existing == 1) uiText(" 1 already had lyrics.", " 1 ya tenía letra.") else uiText(" $existing already had lyrics.", " $existing ya tenían letra."))
+    if (errors > 0) append(if (errors == 1) uiText(" 1 could not be checked.", " 1 no se pudo consultar.") else uiText(" $errors could not be checked.", " $errors no se pudieron consultar."))
 }
