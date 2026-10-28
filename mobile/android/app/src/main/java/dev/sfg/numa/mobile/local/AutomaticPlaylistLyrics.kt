@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import java.util.Locale
+import dev.sfg.numa.mobile.ui.text.uiText
 import java.util.concurrent.atomic.AtomicInteger
 
 internal const val AUTOMATIC_LYRICS_VERSION = 3
@@ -50,7 +51,7 @@ class AutomaticPlaylistLyrics(
         val snapshot = local.library.value
         val songs = snapshot.playlists.firstOrNull { it.id == playlistId }?.trackIds
             .orEmpty().distinct().mapNotNull(snapshot.songsById::get)
-        mutableProgress.value = "Buscando letras: 0/${songs.size}"
+        mutableProgress.value = uiText("Finding lyrics: 0/${songs.size}", "Buscando letras: 0/${songs.size}")
         scope.launch(Dispatchers.IO) {
             val added = AtomicInteger()
             val missing = AtomicInteger()
@@ -73,7 +74,7 @@ class AutomaticPlaylistLyrics(
                                 }
                             } catch (e: CancellationException) { throw e }
                             catch (_: Exception) { errors.incrementAndGet() }
-                            mutableProgress.value = "Buscando letras: ${completed.incrementAndGet()}/${songs.size}"
+                            mutableProgress.value = uiText("Finding lyrics", "Buscando letras") + ": ${completed.incrementAndGet()}/${songs.size}"
                         }
                     } }.awaitAll()
                 }
@@ -89,8 +90,8 @@ class AutomaticPlaylistLyrics(
 }
 
 internal fun automaticLyricsSummary(added: Int, missing: Int, existing: Int, errors: Int): String = buildString {
-    append("Se añadieron $added letras.")
-    if (missing > 0) append(" No se encontraron letras para $missing canciones.")
-    if (existing > 0) append(" $existing ya tenían letra.")
-    if (errors > 0) append(" $errors no se pudieron consultar.")
+    append(uiText("$added lyrics added.", "Se añadieron $added letras."))
+    if (missing > 0) append(uiText(" No lyrics found for $missing songs.", " No se encontraron letras para $missing canciones."))
+    if (existing > 0) append(uiText(" $existing already had lyrics.", " $existing ya tenían letra."))
+    if (errors > 0) append(uiText(" $errors could not be checked.", " $errors no se pudieron consultar."))
 }

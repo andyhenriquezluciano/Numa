@@ -176,7 +176,7 @@ fun LyricsNotice(
                 )
             }
             Text(
-                message,
+                lyricNoticeMessage(message),
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White.copy(alpha = 0.70f),
                 textAlign = TextAlign.Center,

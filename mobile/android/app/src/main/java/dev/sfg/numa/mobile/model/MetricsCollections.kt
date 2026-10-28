@@ -3,7 +3,7 @@ package dev.sfg.numa.mobile.model
 import java.util.Locale
 
 data class MetricsCollection(val key: String, val name: String, val artworkUrl: String,
-    val browseId: String, val songCount: Int, val listens: Int, val artist: Boolean)
+    val browseId: String, val songCount: Int, val listens: Int, val artist: Boolean, val performer: String = "")
 
 fun ListeningReport.collections(library: LibrarySnapshot, artists: Boolean): List<MetricsCollection> {
     fun normalized(value: String) = value.trim().lowercase(Locale.ROOT)
@@ -29,7 +29,7 @@ fun ListeningReport.collections(library: LibrarySnapshot, artists: Boolean): Lis
                 }
                 val id = track.albumId.ifBlank { saved?.id.orEmpty() }
                 listOf(MetricsCollection("album:" + id.ifBlank { "${normalized(track.artist)}:${normalized(track.album)}" },
-                    track.album, saved?.artworkUrl?.takeIf { it.isNotBlank() } ?: track.artworkUrl, id, 0, 0, false))
+                    track.album, saved?.artworkUrl?.takeIf { it.isNotBlank() } ?: track.artworkUrl, id, 0, 0, false, track.artist))
             }
         }
         for (row in rows) {

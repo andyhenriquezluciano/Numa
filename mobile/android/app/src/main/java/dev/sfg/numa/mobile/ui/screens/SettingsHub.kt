@@ -108,10 +108,10 @@ internal fun SettingsHub(
     SettingsLanguageRow()
     SectionLabel("Configuración", 1)
     SettingsPanel(index = 5) {
-        ActionRow(title = SettingsPage.Accounts.displayTitle(), subtitle = SettingsPage.Accounts.blurb,
+        ActionRow(title = SettingsPage.Accounts.displayTitle(), subtitle = SettingsPage.Accounts.displayBlurb(),
             icon = SettingsPage.Accounts.icon, onClick = { onOpen(SettingsPage.Accounts) })
         PanelDivider()
-        ActionRow(title = SettingsPage.Lyrics.displayTitle(), subtitle = SettingsPage.Lyrics.blurb,
+        ActionRow(title = SettingsPage.Lyrics.displayTitle(), subtitle = SettingsPage.Lyrics.displayBlurb(),
             icon = SettingsPage.Lyrics.icon, onClick = { onOpen(SettingsPage.Lyrics) })
         PanelDivider()
         ActionRow(
@@ -165,8 +165,8 @@ private fun SearchResults(query: String, onOpen: (SettingsPage) -> Unit) {
             destinations.forEachIndexed { index, entry ->
                 if (index > 0) PanelDivider()
                 ActionRow(
-                    title = entry.title,
-                    subtitle = "${entry.page.title} · ${entry.subtitle}",
+                    title = lyricSettingsText(entry.title),
+                    subtitle = "${entry.page.displayTitle()} · ${lyricSettingsText(entry.subtitle)}",
                     icon = entry.page.icon,
                     onClick = { onOpen(entry.page) },
                 )

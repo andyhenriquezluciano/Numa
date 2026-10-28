@@ -18,6 +18,18 @@ object NumaLanguage {
         if (Build.VERSION.SDK_INT >= 33) {
             activity.getSystemService(LocaleManager::class.java).applicationLocales = LocaleList.forLanguageTags(tag)
         } else activity.recreate()
+        refreshWidgets(activity)
+    }
+
+    private fun refreshWidgets(context: Context) {
+        val manager = android.appwidget.AppWidgetManager.getInstance(context)
+        for (provider in listOf(dev.sfg.numa.mobile.widget.NumaPlayerWidgetProvider::class.java,
+            dev.sfg.numa.mobile.widget.NumaRecentWidgetProvider::class.java)) {
+            val component = android.content.ComponentName(context, provider)
+            val ids = manager.getAppWidgetIds(component)
+            if (ids.isNotEmpty()) context.sendBroadcast(android.content.Intent(android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE)
+                .setComponent(component).putExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_IDS, ids))
+        }
     }
 
     fun wrap(context: Context): Context {

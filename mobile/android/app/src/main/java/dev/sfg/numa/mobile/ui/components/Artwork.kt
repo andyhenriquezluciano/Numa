@@ -81,7 +81,9 @@ fun RemoteArtwork(
     alignment: Alignment = Alignment.Center,
 ) {
     val context = LocalContext.current
-    val source = remember(url) { highResolutionArtworkUrl(url) }
+    val candidates = remember(url) { dev.sfg.numa.mobile.artwork.artworkCandidates(url) }
+    var attempt by remember(url) { mutableStateOf(0) }
+    val source = candidates.getOrNull(attempt).orEmpty()
     Box(modifier.background(NumaColors.Bark), contentAlignment = Alignment.Center) {
         NumaMark(Modifier.fillMaxSize(0.48f))
         if (source.isNotBlank()) {
@@ -90,6 +92,7 @@ fun RemoteArtwork(
                 contentDescription = description,
                 contentScale = contentScale,
                 alignment = alignment,
+                onError = { attempt += 1 },
                 modifier = Modifier.fillMaxSize(),
             )
         }

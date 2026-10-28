@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="app_name">NÜMA</string>
+  <string name="play">Play</string>
+  <string name="pause">Pause</string>
+  <string name="previous">Previous</string>
+  <string name="next">Next</string>
+  <string name="recent">Recent</string>
+  <string name="widget_now_playing">NÜMA  ·  NOW PLAYING</string>
+  <string name="widget_ready">NÜMA  ·  READY</string>
+  <string name="widget_nothing_playing">Nothing is playing</string>
+  <string name="widget_open_numa">Tap to open NÜMA</string>
+  <string name="widget_jump_back_in">Continue listening</string>
+  <string name="widget_latest_rotation">Your recent songs</string>
+  <string name="widget_recent_empty">Play something in NÜMA to see it here.</string>
+  <string name="widget_play_track">Play %1$s by %2$s</string>
+  <string name="widget_player_description">Playback controls with colors from the artwork.</string>
+  <string name="widget_recent_description">Quickly play your four most recent songs.</string>
+  <string name="widget_lyrics_finding">Finding lyrics…</string>
+  <string name="widget_lyrics_idle">Lyrics appear when you play a song.</string>
+  <string name="widget_lyrics_unavailable">No lyrics are available for this song.</string>
+  <string name="widget_lyrics_tap_to_view">Tap to view lyrics in NÜMA</string>
+  <string name="widget_lyrics_label">LYRICS</string>
+  <string name="widget_player_lyrics_description">Mini player above the current song lyrics.</string>
+</resources>

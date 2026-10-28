@@ -9,8 +9,8 @@ Los archivos vigentes están en [Releases](https://github.com/andyhenriquezlucia
 
 | Plataforma | Archivo | Requisitos |
 | --- | --- | --- |
-| Android 2.1.8 | Numa-Android-2.1.8.apk | Android 12 o posterior, ARM64 |
-| Windows 2.0.3 | Numa-Windows-2.0.3-x64.zip | Windows x64 |
+| Android 2.2 | [Numa-Android-2.2.apk](https://github.com/andyhenriquezluciano/Numa/releases/download/v2.2/Numa-Android-2.2.apk) | Android 12 o posterior, ARM64 |
+| Windows 2.0.3 | [Numa-Windows-2.0.3-x64.zip](https://github.com/andyhenriquezluciano/Numa/releases/download/v2.1.8/Numa-Windows-2.0.3-x64.zip) | Windows x64 |
 
 En Android, instala la actualización sin desinstalar para conservar tus datos.
 En Windows, extrae la carpeta completa y abre `Numa/numa.exe`.

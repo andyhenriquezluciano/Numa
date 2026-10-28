@@ -89,8 +89,8 @@ android {
         applicationId = 'dev.sfg.numa.mobile'
         minSdk = numaMinSdk
         targetSdk = 36
-        versionCode = 20049
-        versionName = '2.1.8'
+        versionCode = 20050
+        versionName = '2.2'
         buildConfigField 'String', 'CODENAME', '"Ensues Worryingly"'
         // Only the build that is actually published may offer updates. Every other
         // build has its own applicationId, so the published APK is neither an

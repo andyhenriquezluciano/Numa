@@ -116,25 +116,16 @@ class UpdateDialogParserTest {
 
     @Test
     fun parsesActualMobileReleaseNotes() {
-        val notes = dev.sfg.numa.mobile.MobileChangelog.CURRENT_RELEASE_NOTES
-        val sections = parseReleaseNoteSections(notes)
-
-        assertEquals(4, sections.size)
-        assertEquals("Added", sections[0].title)
-        assertEquals(ReleaseNoteCategory.NEW, sections[0].category)
-        assertEquals(2, sections[0].items.size)
-
-        assertEquals("Changed", sections[1].title)
-        assertEquals(ReleaseNoteCategory.CHANGED, sections[1].category)
-        assertEquals(4, sections[1].items.size)
-
-        assertEquals("Fixed", sections[2].title)
-        assertEquals(ReleaseNoteCategory.FIXED, sections[2].category)
-        assertEquals(5, sections[2].items.size)
-
-        assertEquals("Maintenance", sections[3].title)
-        assertEquals(ReleaseNoteCategory.CHANGED, sections[3].category)
-        assertEquals(2, sections[3].items.size)
+        val previous = java.util.Locale.getDefault()
+        try {
+            for (language in listOf("en", "es")) {
+                java.util.Locale.setDefault(java.util.Locale.forLanguageTag(language))
+                val sections = parseReleaseNoteSections(dev.sfg.numa.mobile.MobileChangelog.CURRENT_RELEASE_NOTES)
+                assertEquals(1, sections.size)
+                assertEquals(if (language == "en") "Fixed" else "Corregido", sections[0].title)
+                assertEquals(3, sections[0].items.size)
+            }
+        } finally { java.util.Locale.setDefault(previous) }
     }
 
     @Test

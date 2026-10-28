@@ -170,7 +170,7 @@ fun SettingsScreen(
                 ) {
             SettingsHeader(
                 title = detail?.title ?: current.displayTitle(),
-                blurb = if (detail != null) "" else current.blurb,
+                blurb = if (detail != null) "" else current.displayBlurb(),
                 showBack = false,
                 chip = detail?.let { statuses[it] },
                 onBack = goBack,

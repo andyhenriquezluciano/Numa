@@ -23,6 +23,13 @@ internal object LockScreenPermission {
     }
 }
 
+internal fun changeLockScreenPreference(enabled: Boolean, update: (Boolean) -> Unit,
+    dismiss: () -> Unit, openSettings: () -> Unit) {
+    update(enabled)
+    if (!enabled) dismiss()
+    openSettings()
+}
+
 internal fun openLockScreenPermissionSettings(packageName: String, launch: (String, String?) -> Boolean): Boolean {
     val targets = listOf(
         Settings.ACTION_MANAGE_OVERLAY_PERMISSION to packageName,

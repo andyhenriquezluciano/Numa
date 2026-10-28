@@ -48,10 +48,10 @@ internal fun LazyListScope.listeningMetrics(
                         selectedContainerColor = dev.sfg.numa.mobile.ui.theme.LocalAccent.current.copy(alpha = 0.18f),
                         selectedLabelColor = dev.sfg.numa.mobile.ui.theme.LocalAccent.current),
                     label = { Text(when (value) {
-                        MetricsPeriod.WEEK -> "7 días"
-                        MetricsPeriod.MONTH -> "30 días"
-                        MetricsPeriod.YEAR -> "365 días"
-                        MetricsPeriod.ALL -> "Todo"
+                        MetricsPeriod.WEEK -> uiText("7 days", "7 días")
+                        MetricsPeriod.MONTH -> uiText("30 days", "30 días")
+                        MetricsPeriod.YEAR -> uiText("365 days", "365 días")
+                        MetricsPeriod.ALL -> uiText("All time", "Todo")
                     }) }, modifier = Modifier.padding(end = 8.dp))
             }
         }
@@ -75,12 +75,12 @@ internal fun LazyListScope.listeningMetrics(
     if (query.isBlank()) {
         val artists = report.collections(library, artists = true)
         val albums = report.collections(library, artists = false)
-        item { LibraryLabel("Artistas más escuchados") }
+        item { LibraryLabel(uiText("Most listened artists", "Artistas más escuchados")) }
         itemsIndexed(if ("artists" in expandedSections) artists else artists.take(5), key = { _, row -> row.key }) { index, row ->
             MetricsCollectionRow(row, index + 1, onOpen)
         }
         metricsMore("artists", artists.size, "artists" in expandedSections, onToggleSection)
-        item { LibraryLabel("Álbumes más escuchados") }
+        item { LibraryLabel(uiText("Most listened albums", "Álbumes más escuchados")) }
         itemsIndexed(if ("albums" in expandedSections) albums else albums.take(5), key = { _, row -> row.key }) { index, row ->
             MetricsCollectionRow(row, index + 1, onOpen)
         }

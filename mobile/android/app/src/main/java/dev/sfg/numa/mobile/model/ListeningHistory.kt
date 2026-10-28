@@ -32,8 +32,7 @@ fun LibrarySnapshot.listeningReport(period: MetricsPeriod, today: LocalDate = Lo
     val days = listeningDays.filter { runCatching { LocalDate.parse(it.date) in start..today }.getOrDefault(false) }
     val counts = if (period == MetricsPeriod.ALL) playCounts else days.groupBy { it.trackId }
         .mapValues { (_, rows) -> rows.sumOf { it.listens.toLong() }.coerceAtMost(Int.MAX_VALUE.toLong()).toInt() }
-    val tracks = (playedTracks + recentlyPlayed + likedTracks + savedAlbums.flatMap { it.tracks } + savedPlaylists.flatMap { it.tracks })
-        .distinctBy(Track::id).filter { (counts[it.id] ?: 0) > 0 }
+    val tracks = metricTracks().filter { (counts[it.id] ?: 0) > 0 }
         .sortedWith(compareByDescending<Track> { counts[it.id] ?: 0 }.thenBy { it.title }.thenBy { it.id })
     fun grouped(key: (Track) -> String) = tracks.filter { key(it).isNotBlank() }.groupBy(key)
         .map { (name, rows) -> name to rows.sumOf { (counts[it.id] ?: 0).toLong() }.coerceAtMost(Int.MAX_VALUE.toLong()).toInt() }

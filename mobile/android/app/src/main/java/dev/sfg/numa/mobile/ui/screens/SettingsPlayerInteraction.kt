@@ -5,6 +5,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.Icons
@@ -22,9 +23,17 @@ internal fun PlayerInteractionSettings(settings: NumaSettings, onSettings: (Numa
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var permission by remember(context) { mutableStateOf(LockScreenPermission.granted(context)) }
+    val currentSettings by rememberUpdatedState(settings)
+    val updateSettings by rememberUpdatedState(onSettings)
     DisposableEffect(lifecycleOwner, context) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) permission = LockScreenPermission.granted(context)
+            if (event == Lifecycle.Event.ON_RESUME) {
+                permission = LockScreenPermission.granted(context)
+                if (!permission && currentSettings.lockScreenPlayer) {
+                    updateSettings(currentSettings.copy(lockScreenPlayer = false))
+                    dev.sfg.numa.mobile.lockscreen.LockScreenActivity.dismiss(context)
+                }
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -36,7 +45,7 @@ internal fun PlayerInteractionSettings(settings: NumaSettings, onSettings: (Numa
                     "Abre los ajustes de Android y permite que NÜMA aparezca encima."), android.widget.Toast.LENGTH_LONG).show()
         }
     }
-    SectionLabel("Controles y bloqueo", 8)
+    SectionLabel(uiText("Controls and lock screen", "Controles y bloqueo"), 8)
     SettingsPanel(index = 7) {
         ToggleRow(
             title = uiText("NÜMA lock-screen player", "Reproductor de NÜMA al bloquear"),
@@ -44,24 +53,28 @@ internal fun PlayerInteractionSettings(settings: NumaSettings, onSettings: (Numa
             icon = Icons.Rounded.Image,
             checked = settings.lockScreenPlayer && permission,
             onChecked = { enabled ->
-                onSettings(settings.copy(lockScreenPlayer = enabled))
                 permission = LockScreenPermission.granted(context)
-                if (enabled && !permission) requestPermission()
+                dev.sfg.numa.mobile.lockscreen.changeLockScreenPreference(enabled,
+                    update = { onSettings(settings.copy(lockScreenPlayer = it)) },
+                    dismiss = { dev.sfg.numa.mobile.lockscreen.LockScreenActivity.dismiss(context) },
+                    openSettings = ::requestPermission)
             },
         )
-        if (settings.lockScreenPlayer && !permission) {
+        if (settings.lockScreenPlayer && !permission || !settings.lockScreenPlayer && permission) {
             ActionRow(
-                title = uiText("Enable Android permission", "Activar permiso en Android"),
-                subtitle = uiText("Select NÜMA and allow it to appear on top of other apps.",
-                    "Selecciona NÜMA y permite aparecer encima de otras aplicaciones."),
+                title = uiText("Manage Android permission", "Administrar permiso de Android"),
+                subtitle = if (settings.lockScreenPlayer) uiText("Select NÜMA and allow it to appear on top of other apps.",
+                    "Selecciona NÜMA y permite aparecer encima de otras aplicaciones.")
+                    else uiText("The player is off. Revoke its permission in Android settings.",
+                        "El reproductor está apagado. Retira su permiso en los ajustes de Android."),
                 icon = Icons.Rounded.Image,
                 onClick = ::requestPermission,
             )
         }
         PanelDivider()
         ToggleRow(
-            title = "Gestos del reproductor",
-            subtitle = "Desliza para cambiar de canción; toca para dar Me gusta",
+            title = uiText("Player gestures", "Gestos del reproductor"),
+            subtitle = uiText("Swipe to change songs; tap to like", "Desliza para cambiar de canción; toca para dar Me gusta"),
             icon = Icons.Rounded.TouchApp,
             checked = settings.playerGesturesEnabled,
             onChecked = { onSettings(settings.copy(playerGesturesEnabled = it)) },

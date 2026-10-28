@@ -1,5 +1,7 @@
 package dev.sfg.numa.mobile.lockscreen
 
+import kotlinx.coroutines.flow.collect
+
 import android.app.KeyguardManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -29,6 +31,9 @@ class LockScreenActivity : FragmentActivity() {
     private var interactive by mutableStateOf(false)
     private val displayReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == ACTION_DISMISS || intent.action == Intent.ACTION_USER_PRESENT) {
+                finishAndRemoveTask(); return
+            }
             interactive = intent.action == Intent.ACTION_SCREEN_ON
         }
     }
@@ -42,16 +47,23 @@ class LockScreenActivity : FragmentActivity() {
         setShowWhenLocked(true)
         enableEdgeToEdge()
         interactive = getSystemService(PowerManager::class.java).isInteractive
-        val filter = IntentFilter(Intent.ACTION_SCREEN_ON).apply { addAction(Intent.ACTION_SCREEN_OFF) }
+        val filter = IntentFilter(Intent.ACTION_SCREEN_ON).apply {
+            addAction(Intent.ACTION_SCREEN_OFF); addAction(Intent.ACTION_USER_PRESENT); addAction(ACTION_DISMISS)
+        }
         ContextCompat.registerReceiver(this, displayReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
         lifecycleScope.launch {
             val graph = NumaGraph.from(this@LockScreenActivity)
             val enabled = graph.settings.lockScreenEnabled()
             val locked = getSystemService(KeyguardManager::class.java).isKeyguardLocked
-            if (!LockScreenPolicy.shouldShow(enabled, locked,
+            if (!LockScreenPermission.granted(this@LockScreenActivity) || !LockScreenPolicy.shouldShow(enabled, locked,
                     intent.getBooleanExtra("fromScreenOff", false), intent.getBooleanExtra("preview", false))) {
-                openApp()
+                finishAndRemoveTask()
                 return@launch
+            }
+            lifecycleScope.launch {
+                graph.settings.settings.collect {
+                    if (!it.lockScreenPlayer) finishAndRemoveTask()
+                }
             }
             val playback = LocalPlaybackController(this@LockScreenActivity, lifecycleScope)
             controller = playback
@@ -64,6 +76,18 @@ class LockScreenActivity : FragmentActivity() {
                         onClose = { finish() }, onOpenApp = ::unlockAndOpen)
                 }
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!LockScreenPermission.granted(this)) finishAndRemoveTask()
+    }
+
+    companion object {
+        private const val ACTION_DISMISS = "dev.sfg.numa.mobile.DISMISS_LOCK_SCREEN"
+        fun dismiss(context: Context) {
+            context.sendBroadcast(Intent(ACTION_DISMISS).setPackage(context.packageName))
         }
     }
 

@@ -57,6 +57,8 @@
       
     <activity
       android:name="dev.sfg.numa.mobile.lockscreen.LockScreenActivity"
+      android:launchMode="singleTask"
+      android:taskAffinity="${applicationId}.lockscreen"
       android:exported="false"
       android:excludeFromRecents="true"
       android:showWhenLocked="true"

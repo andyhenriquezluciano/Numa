@@ -1,5 +1,7 @@
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.text.uiText
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Arrangement
@@ -21,15 +23,15 @@ internal fun TranslationSourceSheet(
     GlassBottomSheet(onDismiss, rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.padding(start = 24.dp, end = 24.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            RowTitle("Fuente de traducción")
-            RowSubtitle("Elige dónde se traducen las letras al español.")
+            RowTitle(uiText("Translation source", "Fuente de traducción"))
+            RowSubtitle(uiText("Choose where lyrics are translated into Spanish.", "Elige dónde se traducen las letras al español."))
             listOf(LyricTranslationProvider.LOCAL, LyricTranslationProvider.GOOGLE).forEach { choice ->
                 ActionRow(
                     title = choice.label,
                     subtitle = if (choice == LyricTranslationProvider.LOCAL)
-                        "En tu teléfono. Descarga el modelo la primera vez."
-                    else "Traducción en línea. Las letras se envían a Google.",
-                    value = if (choice == selected) "Seleccionado" else null,
+                        uiText("On your phone. Download the model once.", "En tu teléfono. Descarga el modelo la primera vez.")
+                    else uiText("Online translation. Lyrics are sent to Google.", "Traducción en línea. Las letras se envían a Google."),
+                    value = if (choice == selected) uiText("Selected", "Seleccionado") else null,
                     onClick = { onSelect(choice) },
                 )
             }

@@ -23,6 +23,16 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ArtworkUrlTest {
+    @org.junit.Test fun unavailableLargeImagesKeepTheirOriginalAndYouTubeFallbacks() {
+        val original = "https://i.ytimg.com/vi_webp/J8NKwTYkDH8/maxresdefault.webp"
+        val candidates = artworkCandidates(original)
+        org.junit.Assert.assertEquals(original, candidates.first())
+        org.junit.Assert.assertTrue(candidates.contains("https://i.ytimg.com/vi/J8NKwTYkDH8/hqdefault.jpg"))
+        val signed = "https://images.example.com/art.jpg?signature=keep-me"
+        org.junit.Assert.assertEquals(listOf(signed), artworkCandidates(signed))
+        org.junit.Assert.assertEquals(listOf("content://covers/17"), artworkCandidates("content://covers/17"))
+    }
+
     @Test
     fun expandsGoogleThumbnailWithoutDroppingItsCropOptions() {
         assertEquals(

@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.text.uiText
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -52,23 +54,23 @@ internal fun LyricTranslationSection(
     val installed by translator.installed.collectAsStateWithLifecycle()
     val translationState by translator.state.collectAsStateWithLifecycle()
     val provider = settings.lyricTranslationProvider
-    SectionLabel("Letras", labelIndex)
+    SectionLabel(uiText("Lyrics", "Letras"), labelIndex)
     SettingsPanel(index = labelIndex + 1) {
         ToggleRow(
-            title = "Traducir letras al español",
+            title = uiText("Translate lyrics into Spanish", "Traducir letras al español"),
             subtitle = if (provider == LyricTranslationProvider.LOCAL)
-                if (settings.translateLyrics && translationState.message.isNotBlank()) translationState.message
-                else "Traduce sin conexión con modelos descargados por Wi-Fi."
-            else "Traduce en línea y envía las letras a Google.",
+                if (settings.translateLyrics && translationState.message.isNotBlank()) translationStatusMessage(translationState)
+                else uiText("Translate offline with models downloaded over Wi-Fi.", "Traduce sin conexión con modelos descargados por Wi-Fi.")
+            else uiText("Translate online by sending lyrics to Google.", "Traduce en línea y envía las letras a Google."),
             icon = Icons.Rounded.Translate,
             checked = settings.translateLyrics,
             onChecked = { onSettings(settings.copy(translateLyrics = it)) },
         )
         PanelDivider()
         Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-            RowTitle("Fuente de traducción")
-            RowSubtitle(if (provider == LyricTranslationProvider.LOCAL) "Traducción en el teléfono."
-                else "Google Translate · conexión a Internet.")
+            RowTitle(uiText("Translation source", "Fuente de traducción"))
+            RowSubtitle(if (provider == LyricTranslationProvider.LOCAL) uiText("Translation on your phone.", "Traducción en el teléfono.")
+                else uiText("Google Translate · Internet connection.", "Google Translate · conexión a Internet."))
             SettingsDropdownField(
                 options = listOf(LyricTranslationProvider.GOOGLE, LyricTranslationProvider.LOCAL).map { it to it.label },
                 selected = provider,
@@ -81,18 +83,18 @@ internal fun LyricTranslationSection(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     RowIcon(Icons.Rounded.Tune)
                     Column {
-                        RowTitle("Calidad de traducción")
+                        RowTitle(uiText("Translation quality", "Calidad de traducción"))
                         RowSubtitle(
                             when (settings.lyricTranslationQuality) {
-                                LyricTranslationQuality.STANDARD -> "Modelo local descargable"
-                                LyricTranslationQuality.HIGH -> "Modelo local de mayor calidad"
+                                LyricTranslationQuality.STANDARD -> uiText("Downloadable on-device model", "Modelo local descargable")
+                                LyricTranslationQuality.HIGH -> uiText("Higher-quality on-device model", "Modelo local de mayor calidad")
                             },
                         )
                     }
                 }
                 Spacer(Modifier.height(14.dp))
                 SettingsDropdownField(
-                    options = listOf(LyricTranslationQuality.STANDARD to "Estándar", LyricTranslationQuality.HIGH to "Alta"),
+                    options = listOf(LyricTranslationQuality.STANDARD to uiText("Standard", "Estándar"), LyricTranslationQuality.HIGH to uiText("High", "Alta")),
                     selected = settings.lyricTranslationQuality,
                     onSelect = { onSettings(settings.copy(lyricTranslationQuality = it)) },
                 )
@@ -100,10 +102,10 @@ internal fun LyricTranslationSection(
             installed.forEach { pack ->
                 PanelDivider()
                 SettingsRow(
-                    title = pack.name + if (pack.quality == "high") " (Alta)" else "",
+                    title = lyricLanguageName(pack.source) + " → " + lyricLanguageName("spa") + if (pack.quality == "high") uiText(" (High)", " (Alta)") else "",
                     subtitle = "%.0f MB · %s".format(pack.bytes / 1e6, pack.credit),
                 ) {
-                    SettingsPill(label = "Eliminar", destructive = true, onClick = { translator.remove(pack) })
+                    SettingsPill(label = uiText("Remove", "Eliminar"), destructive = true, onClick = { translator.remove(pack) })
                 }
             }
         }

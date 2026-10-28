@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.text.uiText
+
 
 
 import dev.sfg.numa.mobile.ui.glass.glassPane
@@ -120,13 +122,13 @@ internal fun LyricTranslateChip(modifier: Modifier = Modifier) {
     val tint = Color.White.copy(alpha = if (enabled) 0.95f else 0.6f)
     val shape = RoundedCornerShape(12.dp)
     val label = when {
-        loading && state.status == Status.DOWNLOADING -> "Preparando traducción…"
-        loading -> if (state.progress > 0) "Traduciendo ${(state.progress * 100).toInt()} %" else "Traduciendo…"
-        enabled && state.status == Status.FAILED -> state.message.ifBlank { "No se pudo traducir" } + " · Reintentar"
-        enabled && state.status == Status.UNSUPPORTED -> "Traducción no disponible"
-        enabled && state.status == Status.WAITING -> "Conéctate para preparar el traductor"
+        loading && state.status == Status.DOWNLOADING -> uiText("Preparing translation…", "Preparando traducción…")
+        loading -> if (state.progress > 0) uiText("Translating ${(state.progress * 100).toInt()} %", "Traduciendo ${(state.progress * 100).toInt()} %") else uiText("Translating…", "Traduciendo…")
+        enabled && state.status == Status.FAILED -> translationStatusMessage(state).ifBlank { uiText("Translation failed", "No se pudo traducir") } + uiText(" · Retry", " · Reintentar")
+        enabled && state.status == Status.UNSUPPORTED -> uiText("Translation unavailable", "Traducción no disponible")
+        enabled && state.status == Status.WAITING -> uiText("Connect to prepare the translator", "Conéctate para preparar el traductor")
         enabled && state.status == Status.READY -> if (settings.lyricTranslationProvider == dev.sfg.numa.mobile.model.LyricTranslationProvider.LOCAL)
-            "Lista sin conexión" else "Traducción lista"
+            uiText("Ready offline", "Lista sin conexión") else uiText("Translation ready", "Traducción lista")
         else -> null
     }
     Box(
@@ -134,7 +136,7 @@ internal fun LyricTranslateChip(modifier: Modifier = Modifier) {
             .size(48.dp)
             .clip(RoundedCornerShape(24.dp))
             .semantics {
-                stateDescription = state.message.ifBlank { label ?: if (enabled) "Traducción activada" else "Traducción desactivada" }
+                stateDescription = translationStatusMessage(state).ifBlank { label ?: if (enabled) uiText("Translation on", "Traducción activada") else uiText("Translation off", "Traducción desactivada") }
                 liveRegion = LiveRegionMode.Polite
             }
             .clickable(role = androidx.compose.ui.semantics.Role.Button) {
@@ -153,7 +155,7 @@ internal fun LyricTranslateChip(modifier: Modifier = Modifier) {
             )
         } else {
             Icon(Icons.Rounded.Translate,
-                contentDescription = if (enabled) "Desactivar traducción" else "Traducir letras al español",
+                contentDescription = if (enabled) uiText("Turn off translation", "Desactivar traducción") else uiText("Translate lyrics into Spanish", "Traducir letras al español"),
                 tint = tint, modifier = Modifier.size(18.dp))
         }
         }

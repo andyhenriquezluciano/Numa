@@ -5,6 +5,15 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LockScreenPermissionTest {
+    @Test fun repeatedEnableAndDisableAlwaysOpenSettingsAndDisableClosesFirst() {
+        val events = mutableListOf<String>()
+        repeat(2) {
+            changeLockScreenPreference(true, { events += "enabled:$it" }, { events += "close" }, { events += "settings" })
+            changeLockScreenPreference(false, { events += "enabled:$it" }, { events += "close" }, { events += "settings" })
+        }
+        assertEquals(List(2) { listOf("enabled:true", "settings", "enabled:false", "close", "settings") }.flatten(), events)
+    }
+
     @Test fun appPermissionPageIsPreferredAndStopsFallbacks() {
         val opened = mutableListOf<Pair<String, String?>>()
         assertTrue(openLockScreenPermissionSettings("dev.sfg.numa.mobile") { action, target ->

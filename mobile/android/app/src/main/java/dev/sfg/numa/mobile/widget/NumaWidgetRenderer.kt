@@ -46,7 +46,10 @@ import okhttp3.OkHttpClient
 internal object NumaWidgetRenderer {
     private var artworkUrl = ""
     private var cachedArtwork: Bitmap? = null
-    suspend fun updateAll(
+    suspend fun updateAll(context: Context, state: NumaWidgetState, client: OkHttpClient) =
+        updateLocalized(dev.sfg.numa.mobile.settings.NumaLanguage.wrap(context), state, client)
+
+    private suspend fun updateLocalized(
         context: Context,
         state: NumaWidgetState,
         client: OkHttpClient,

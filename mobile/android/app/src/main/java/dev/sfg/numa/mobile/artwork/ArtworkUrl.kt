@@ -24,6 +24,22 @@ private val squareSize = Regex("=s\\d+([^?]*)$")
 private val templateWidthHeight = Regex("\\{w\\}x\\{h\\}")
 private val dimensionSuffix = Regex("\\d+x\\d+([a-z]{2}\\.)")
 
+internal fun artworkCandidates(url: String, pixels: Int = 540): List<String> = buildList {
+    if (url.isBlank()) return@buildList
+    add(highResolutionArtworkUrl(url, pixels))
+    add(url)
+    val youtube = Regex("^https://(?:i\\.ytimg\\.com|img\\.youtube\\.com)/(?:vi|vi_webp)/([A-Za-z0-9_-]{11})/").find(url)
+    youtube?.groupValues?.get(1)?.let { id ->
+        add("https://i.ytimg.com/vi/$id/hqdefault.jpg")
+        add("https://i.ytimg.com/vi/$id/mqdefault.jpg")
+    }
+}.distinct()
+
+internal fun trackArtworkUrl(track: dev.sfg.numa.mobile.model.Track): String = track.artworkUrl.ifBlank {
+    if (!track.isLocal && !track.isQobuz && Regex("[A-Za-z0-9_-]{11}").matches(track.id))
+        "https://i.ytimg.com/vi/${track.id}/hqdefault.jpg" else ""
+}
+
 /** Requests a display-sized source instead of the tiny thumbnail embedded in list renderers. */
 internal fun highResolutionArtworkUrl(url: String, pixels: Int = 540): String = when {
     url.isBlank() -> ""
