@@ -71,6 +71,17 @@ internal fun PlayerInteractionSettings(settings: NumaSettings, onSettings: (Numa
                 onClick = ::requestPermission,
             )
         }
+        if (settings.lockScreenPlayer && permission) {
+            ActionRow(
+                title = uiText("Preview lock-screen player", "Probar reproductor de bloqueo"),
+                subtitle = uiText("Check artwork and controls before locking.", "Comprueba la carátula y los controles antes de bloquear."),
+                icon = Icons.Rounded.Image,
+                onClick = {
+                    context.startActivity(android.content.Intent(context, dev.sfg.numa.mobile.lockscreen.LockScreenActivity::class.java)
+                        .putExtra("preview", true).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+                },
+            )
+        }
         PanelDivider()
         ToggleRow(
             title = uiText("Player gestures", "Gestos del reproductor"),

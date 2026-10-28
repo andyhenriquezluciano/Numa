@@ -31,14 +31,14 @@ object MobileChangelog {
             """
             ### Fixed
             - **Artwork**: Recover missing covers from library metadata and retry alternative image sources.
-            - **Lyrics**: Lyrics follow the selected English or Spanish app language, with separate caches. Navigation, default playlists, catalog headings, settings and widgets use that language. System language detection was removed.
-            - **Lock-screen player**: Open Android permission settings on every activation or deactivation. Close the player immediately when disabled.
+            - **Lyrics**: Lyrics follow the selected language. When Google web translation is unavailable, Google’s on-device translator is used; models download over Wi-Fi. Failures are shown instead of staying silent.
+            - **Lock-screen player**: Reads live playback directly, even without widgets. Includes a preview in Settings.
             """.trimIndent(),
             """
             ### Corregido
             - **Carátulas**: Recuperación desde la biblioteca y reintento con otras fuentes de imagen.
-            - **Letras**: Traducción al inglés o español según el idioma elegido, con cachés separadas. Navegación, listas predeterminadas, encabezados, ajustes y widgets en ese idioma. Eliminada la detección del idioma del sistema.
-            - **Reproductor al bloquear**: Ajustes de permiso de Android en cada activación o desactivación y cierre inmediato al desactivarlo.
+            - **Letras**: Letras en el idioma elegido. Si Google en línea no está disponible, usa el traductor de Google en el dispositivo; los modelos se descargan por Wi-Fi. Los fallos se muestran.
+            - **Reproductor al bloquear**: Consulta la reproducción directamente, incluso sin widgets. Incluye una vista previa en Ajustes.
             """.trimIndent(),
         )
 }

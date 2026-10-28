@@ -9,14 +9,13 @@ import android.content.Intent
 import android.content.IntentFilter
 import androidx.core.content.ContextCompat
 import dev.sfg.numa.mobile.NumaGraph
-import dev.sfg.numa.mobile.widget.NumaWidgetStateStore
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 /** Playback service owns screen monitoring while music is playing. */
 object LockScreenWatcher {
-    fun attach(context: Context): () -> Unit {
+    fun attach(context: Context, isPlaying: () -> Boolean): () -> Unit {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
         var pending: Job? = null
         scope.launch {
@@ -35,8 +34,9 @@ object LockScreenWatcher {
                 pending = scope.launch {
                     if (!screenOff) delay(150)
                     val enabled = NumaGraph.from(context).settings.lockScreenEnabled()
-                    val playing = NumaWidgetStateStore(context).load().isPlaying
+                    val playing = isPlaying()
                     val locked = screenOff || context.getSystemService(KeyguardManager::class.java).isKeyguardLocked
+                    android.util.Log.i("NumaLockScreen", "screenOff=$screenOff enabled=$enabled playing=$playing locked=$locked")
                     if (!LockScreenPolicy.autoOpen(enabled, playing, locked, LockScreenPermission.granted(context))) return@launch
                     runCatching {
                         context.startActivity(Intent(context, LockScreenActivity::class.java)

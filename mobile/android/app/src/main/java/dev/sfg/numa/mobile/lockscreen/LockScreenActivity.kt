@@ -44,6 +44,7 @@ class LockScreenActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        android.util.Log.i("NumaLockScreen", "Lock-screen player created")
         setShowWhenLocked(true)
         enableEdgeToEdge()
         interactive = getSystemService(PowerManager::class.java).isInteractive

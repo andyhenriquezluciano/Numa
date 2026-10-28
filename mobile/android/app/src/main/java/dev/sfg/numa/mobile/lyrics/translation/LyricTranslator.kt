@@ -213,7 +213,7 @@ class LyricTranslator(
             return
         }
         if (config.provider != LyricTranslationProvider.LOCAL) {
-            if (!isOnlineProvider()) {
+            if (!isOnlineProvider() && config.provider != LyricTranslationProvider.GOOGLE) {
                 mutableState.value = LyricTranslationState(
                     status = LyricTranslationState.Status.FAILED,
                     message = "Esta fuente necesita conexión.",
@@ -221,7 +221,7 @@ class LyricTranslator(
                 )
                 return
             }
-            runRemote(lines, config)
+            runRemote(lines, config, songId, foreground)
             return
         }
         runLocal(lines, songId, foreground, config.target)
@@ -251,27 +251,28 @@ class LyricTranslator(
         }
     }
 
-    private suspend fun runLocal(lines: List<LyricLine>, songId: String, foreground: Boolean, target: String) {
+    private suspend fun runLocal(lines: List<LyricLine>, songId: String, foreground: Boolean, target: String, googleFallback: Boolean = false) {
         val empty = LyricTranslationState(
             status = LyricTranslationState.Status.TRANSLATING,
-            message = if (target == "en") "Translating into English" else "Traduciendo al español",
+            message = if (googleFallback) "Using Google on-device translation" else if (target == "en") "Translating into English" else "Traduciendo al español",
             targetLanguage = target,
             lines = lines,
             translations = List(lines.size) { null },
         )
         mutableState.value = empty
         try {
-            val (sourceName, complete, translations) = resolveLocal(lines, songId, conditions.value.allowModelDownload(foreground),
-                onDownload = { mutableState.value = empty.copy(status = LyricTranslationState.Status.DOWNLOADING, message = "Preparando el modelo del idioma…") },
-                onReady = { mutableState.value = empty }, requireWifi = !foreground, target = target)
+            val (sourceName, complete, translations) = resolveLocal(lines, songId, if (googleFallback) conditions.value.online && !conditions.value.metered else conditions.value.allowModelDownload(foreground),
+                onDownload = { mutableState.value = empty.copy(status = LyricTranslationState.Status.DOWNLOADING, message = if (googleFallback) "Preparing Google on-device translation…" else "Preparando el modelo del idioma…") },
+                onReady = { mutableState.value = empty }, requireWifi = googleFallback || !foreground, target = target)
             mutableState.value = empty.copy(
                 status = if (complete) LyricTranslationState.Status.READY else LyricTranslationState.Status.FAILED,
-                message = if (complete) "Traducido de $sourceName" else "Conéctate para descargar el modelo de traducción.",
+                message = if (complete && googleFallback) "Translated on this device with Google" else if (complete) "Traducido de $sourceName" else "Conéctate para descargar el modelo de traducción.",
                 sourceName = sourceName,
                 translations = translations,
             )
         } catch (_: TranslationModelPending) {
-            mutableState.value = empty.copy(status = LyricTranslationState.Status.WAITING, message = conditions.value.waitingMessage)
+            mutableState.value = empty.copy(status = LyricTranslationState.Status.WAITING,
+                message = if (googleFallback) "Connect to Wi-Fi to prepare Google on-device translation." else conditions.value.waitingMessage)
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Throwable) {
@@ -299,6 +300,7 @@ class LyricTranslator(
         val plan = JSONObject(TranslationNative.plan(texts.map { it.encodeToByteArray() }.toTypedArray()).decodeToString())
         val source = plan.optString("source").ifBlank { "eng" }
         val sourceName = plan.optString("name").ifBlank { if (source == "eng") "inglés" else source }
+        android.util.Log.i("NumaTranslation", "On-device source=$source target=$target lines=${texts.size}")
         if (source == if (target == "en") "eng" else "spa") return@withLock Triple(sourceName, true, List(lines.size) { null })
 
         val pending = LinkedHashMap<String, MutableList<Int>>()
@@ -328,10 +330,11 @@ class LyricTranslator(
                 pending.remove(text)?.forEach { results[it] = shown(text, value) }
             }
         }
+        android.util.Log.i("NumaTranslation", "On-device complete=${pending.isEmpty()} translated=${results.count { it != null }}")
         return@withLock Triple(sourceName, pending.isEmpty(), results.toList())
     }
 
-    private suspend fun runRemote(lines: List<LyricLine>, config: Config) {
+    private suspend fun runRemote(lines: List<LyricLine>, config: Config, songId: String, foreground: Boolean) {
         val texts = lines.map(::lineText)
         val base = LyricTranslationState(LyricTranslationState.Status.IDLE, lines = lines, targetLanguage = config.target,
             translations = List(lines.size) { null })
@@ -358,8 +361,9 @@ class LyricTranslator(
             }
             mutableState.value = base.copy(status = LyricTranslationState.Status.TRANSLATING,
                 message = "Translating with ${config.provider.label}", translations = results.toList())
-            // Twenty-four lines fit comfortably in a response without losing chorus alignment.
-            pending.keys.toList().chunked(RemoteLyricTranslation.BATCH_SIZE).forEach { batch ->
+            if (config.provider == LyricTranslationProvider.GOOGLE && !isOnlineProvider()) throw GoogleTranslationUnavailable()
+            // Cloud models use batches; Google publishes each completed line immediately.
+            pending.keys.toList().chunked(if (config.provider == LyricTranslationProvider.GOOGLE) 1 else RemoteLyricTranslation.BATCH_SIZE).forEach { batch ->
                 val output = remote.translate(config.provider, config.model, config.endpoint, key, batch, config.target)
                 withContext(Dispatchers.IO) {
                     batch.zip(output).forEach { (text, translated) -> store.store(revision, text, translated) }
@@ -374,7 +378,10 @@ class LyricTranslator(
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Throwable) {
-            mutableState.value = base.copy(status = LyricTranslationState.Status.FAILED,
+            if (config.provider == LyricTranslationProvider.GOOGLE && error is java.io.IOException) {
+                android.util.Log.i("NumaTranslation", "Google web unavailable; using Google on-device translation")
+                runLocal(lines, songId, foreground, config.target, googleFallback = true)
+            } else mutableState.value = base.copy(status = LyricTranslationState.Status.FAILED,
                 message = error.message ?: "Translation failed", translations = results.toList())
         }
     }

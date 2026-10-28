@@ -118,6 +118,11 @@ internal fun LyricTranslateChip(modifier: Modifier = Modifier) {
     val settings by graph.settings.settings.collectAsStateWithLifecycle()
     val enabled = settings.translateLyrics
     val state by graph.lyricTranslation.state.collectAsStateWithLifecycle()
+    androidx.compose.runtime.LaunchedEffect(enabled, state.status, state.message) {
+        if (enabled && state.lines != null && state.status in setOf(Status.FAILED, Status.WAITING)) {
+            graph.postWarning(translationStatusMessage(state))
+        }
+    }
     val loading = enabled && state.status in setOf(Status.TRANSLATING, Status.DOWNLOADING)
     val tint = Color.White.copy(alpha = if (enabled) 0.95f else 0.6f)
     val shape = RoundedCornerShape(12.dp)

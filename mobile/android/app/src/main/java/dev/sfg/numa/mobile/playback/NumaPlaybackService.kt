@@ -107,7 +107,7 @@ class NumaPlaybackService : MediaLibraryService() {
 
     override fun onCreate() {
         super.onCreate()
-        stopLockScreenWatcher = dev.sfg.numa.mobile.lockscreen.LockScreenWatcher.attach(this)
+        stopLockScreenWatcher = dev.sfg.numa.mobile.lockscreen.LockScreenWatcher.attach(this) { authoritativePlayer()?.isPlaying == true }
         stateStore = PlaybackStateStore(this)
         val graph = NumaGraph.from(this)
         val browseTree = NumaMediaLibrary(graph)

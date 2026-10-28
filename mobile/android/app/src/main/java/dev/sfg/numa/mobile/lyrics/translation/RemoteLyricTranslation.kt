@@ -28,10 +28,12 @@ internal class RemoteLyricTranslation(http: OkHttpClient) {
     private val client = http.newBuilder().followRedirects(false).followSslRedirects(false)
         .callTimeout(65, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS).build()
 
+    private val google by lazy { GoogleLyricTranslation(client) }
+
     suspend fun translate(
         provider: LyricTranslationProvider, model: String, baseUrl: String, key: String, texts: List<String>, target: String = "es",
     ): List<String> {
-        if (provider == LyricTranslationProvider.GOOGLE) return GoogleLyricTranslation(client).translate(texts, target)
+        if (provider == LyricTranslationProvider.GOOGLE) return google.translate(texts, target)
         require(model.isNotBlank()) { "Enter a translation model in Settings." }
         if (provider != LyricTranslationProvider.CUSTOM && key.isBlank()) error("Add an API key in Settings.")
         val endpoint = endpoint(provider, baseUrl, key)

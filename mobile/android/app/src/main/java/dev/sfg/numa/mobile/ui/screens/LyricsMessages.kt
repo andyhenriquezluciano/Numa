@@ -6,6 +6,11 @@ import java.util.Locale
 
 // Resolve at display time: translation jobs can outlive an interface-language change.
 private val lyricMessages = listOf(
+    "Connect to Wi-Fi to prepare Google on-device translation." to "Conéctate a Wi-Fi para preparar el traductor de Google en el dispositivo.",
+    "Using Google on-device translation" to "Usando el traductor de Google en el dispositivo",
+    "Preparing Google on-device translation…" to "Preparando el traductor de Google en el dispositivo…",
+    "Translated on this device with Google" to "Traducido en este dispositivo con Google",
+    "Google web translation is unavailable. Use the Google on-device translator." to "Google en línea no está disponible. Usa el traductor de Google en el dispositivo.",
     "Translating into English" to "Traduciendo al inglés",
     "This source needs an Internet connection." to "Esta fuente necesita conexión.",
     "Preparing the on-device translator…" to "Preparando el traductor local…",

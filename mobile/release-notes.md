@@ -1,5 +1,10 @@
 # NÜMA 2.2 para Android
 
+- Bloqueo conectado directamente al reproductor, sin depender de tener widgets.
+- Respaldo con el traductor de Google en el dispositivo cuando el servicio web está bloqueado.
+- Errores de traducción visibles y espera antes de repetir solicitudes limitadas.
+- Vista previa del reproductor de bloqueo desde Ajustes.
+
 - Recuperación de carátulas y metadatos antiguos en las métricas.
 - Letras traducidas al inglés o español según el idioma elegido, con cachés independientes.
 - Navegación, listas predeterminadas, encabezados de Inicio y ajustes localizados.

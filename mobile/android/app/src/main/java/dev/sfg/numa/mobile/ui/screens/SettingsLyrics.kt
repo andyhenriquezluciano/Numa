@@ -61,7 +61,7 @@ internal fun LyricTranslationSection(
             subtitle = if (provider == LyricTranslationProvider.LOCAL)
                 if (settings.translateLyrics && translationState.message.isNotBlank()) translationStatusMessage(translationState)
                 else uiText("Translate offline with models downloaded over Wi-Fi.", "Traduce sin conexión con modelos descargados por Wi-Fi.")
-            else uiText("Translate online by sending lyrics to Google.", "Traduce en línea y envía las letras a Google."),
+            else uiText("Google online, with on-device translation if the service is unavailable.", "Google en línea, con traducción en el dispositivo si el servicio no está disponible."),
             icon = Icons.Rounded.Translate,
             checked = settings.translateLyrics,
             onChecked = { onSettings(settings.copy(translateLyrics = it)) },
@@ -70,7 +70,7 @@ internal fun LyricTranslationSection(
         Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
             RowTitle(uiText("Translation source", "Fuente de traducción"))
             RowSubtitle(if (provider == LyricTranslationProvider.LOCAL) uiText("Translation on your phone.", "Traducción en el teléfono.")
-                else uiText("Google Translate · Internet connection.", "Google Translate · conexión a Internet."))
+                else uiText("Google online and on-device translation.", "Google en línea y en el dispositivo."))
             SettingsDropdownField(
                 options = listOf(LyricTranslationProvider.GOOGLE, LyricTranslationProvider.LOCAL).map { it to it.label },
                 selected = provider,
