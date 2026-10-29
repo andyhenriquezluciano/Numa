@@ -49,6 +49,8 @@ Item {
     readonly property alias artistLoader: artistLoader
     readonly property alias playlistLoader: playlistLoader
     readonly property alias playerDock: playerDock
+    readonly property string playbackArtwork: (NumaPlayback.track || {}).thumbnail || ""
+    readonly property string collectionArtwork: scene.detailThumbnail()
     readonly property color collectionDeep: {
         if (scene.shell.currentPage === "artist")
             return scene.paletteColor((NumaArtist.palette || {}).deep, [15, 21, 18]);
@@ -79,8 +81,13 @@ Item {
     function detailThumbnail() {
         if (scene.shell.currentPage === "album")
             return (NumaAlbum.detail || {}).thumbnail || "";
-        if (scene.shell.currentPage === "playlist")
-            return (NumaPlaylist.detail || {}).thumbnail || "";
+        if (scene.shell.currentPage === "playlist") {
+            const detail = NumaPlaylist.detail || {};
+            const fallback = detail.thumbnail || "";
+            const id = detail.playlistId || detail.browseId || detail.id || "";
+            return typeof NumaSync !== "undefined" && NumaSync.revision >= 0
+                ? NumaSync.artworkFor(id, fallback) : fallback;
+        }
         return "";
     }
 
@@ -108,11 +115,13 @@ Item {
         id: immersive
 
         anchors.fill: parent
-        source: NumaAppearance.immersiveBackground && !NumaAppearance.performanceMode ? (NumaPlayback.track.thumbnail || scene.detailThumbnail()) : ""
+        source: NumaAppearance.immersiveBackground && !NumaAppearance.performanceMode ? (scene.playbackArtwork || scene.collectionArtwork) : ""
         visible: NumaAppearance.immersiveBackground && !NumaAppearance.performanceMode
         // The video ambient fully covers it on artist pages; no need to warp underneath.
         throttled: NumaWindowState.backgroundIdle
-        running: scene.visible && !NumaAppearance.performanceMode && scene.shell.visible && visible && !videoAmbient.covering && NumaPlayback.playing && scene.Window.window !== null && scene.Window.window.visibility !== Window.Minimized && scene.Window.window.visibility !== Window.Hidden
+        running: scene.visible && !NumaAppearance.performanceMode && scene.shell.visible && visible && !videoAmbient.covering
+                 && (NumaPlayback.playing || (!scene.playbackArtwork && scene.collectionArtwork.length > 0))
+                 && scene.Window.window !== null && scene.Window.window.visibility !== Window.Minimized && scene.Window.window.visibility !== Window.Hidden
         speed: NumaAppearance.performanceMode ? 0 : NumaAppearance.speed
         intensity: NumaAppearance.intensity
         saturation: NumaAppearance.saturation
