@@ -74,7 +74,6 @@ NÜMA no proporciona suscripciones ni elimina los requisitos de los proveedores.
 <img src="docs/media/desktop-animated-covers.gif" width="100%" alt="Demostración real de una carátula animada en el reproductor de NÜMA">
 
 Las carátulas animadas y los fondos acompañan la reproducción cuando el contenido está disponible.
-Esta demostración utiliza una grabación real de la aplicación, convertida a GIF sin sonido.
 
 ### Vídeo en Windows
 
