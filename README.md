@@ -143,7 +143,6 @@ del contenido.
 ### Pantalla de bloqueo en Android
 
 Controles de reproducción, letras y carátulas animadas sin salir de la pantalla de bloqueo.
-Grabaciones reales convertidas a GIF sin sonido.
 
 <table>
   <tr>
