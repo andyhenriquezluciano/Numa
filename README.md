@@ -48,16 +48,16 @@ NÜMA no proporciona suscripciones ni elimina los requisitos de los proveedores.
 
 ### Inicio y biblioteca
 
-<img src="docs/media/desktop-home.jpg" width="100%" alt="Inicio de NÜMA para Windows: recomendaciones, biblioteca y reproductor">
+<img src="docs/media/desktop-home.png" width="100%" alt="Inicio de NÜMA para Windows: recomendaciones, biblioteca y reproductor">
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/media/desktop-library.jpg" alt="Biblioteca de NÜMA con canciones, listas y archivos locales"></td>
+    <td width="50%"><img src="docs/media/desktop-library.png" alt="Biblioteca de NÜMA con canciones, listas y archivos locales"></td>
     <td width="50%"><img src="docs/media/desktop-playlist.png" alt="Lista Música que te gusta con controles de reproducción y descarga"></td>
   </tr>
   <tr>
-    <td align="center">Tu biblioteca y tus listas</td>
-    <td align="center">Toda tu música, organizada</td>
+    <td align="center">Biblioteca</td>
+    <td align="center">Tus listas</td>
   </tr>
   <tr>
     <td><img src="docs/media/desktop-lyrics.png" alt="Reproductor a pantalla completa con letras en su idioma original"></td>
@@ -71,7 +71,7 @@ NÜMA no proporciona suscripciones ni elimina los requisitos de los proveedores.
 
 ### Carátulas animadas en Windows
 
-<img src="docs/media/animated-covers.gif" width="100%" alt="Demostración real de una carátula animada en el reproductor de NÜMA">
+<img src="docs/media/desktop-animated-covers.gif" width="100%" alt="Demostración real de una carátula animada en el reproductor de NÜMA">
 
 Las carátulas animadas y los fondos acompañan la reproducción cuando el contenido está disponible.
 Esta demostración utiliza una grabación real de la aplicación, convertida a GIF sin sonido.
@@ -82,6 +82,16 @@ Vídeos musicales en la interfaz de escritorio, con controles y selección de ca
 según la disponibilidad del contenido.
 
 <img src="docs/media/desktop-video.png" width="100%" alt="Modo vídeo de NÜMA en Windows">
+
+### Reproductor compacto
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/media/desktop-compact.png" alt="Modo compacto con la cola de reproducción"></td>
+    <td width="33%"><img src="docs/media/desktop-compact-expanded.png" alt="Vista amplia del reproductor compacto"></td>
+    <td width="33%"><img src="docs/media/desktop-compact-lyrics.png" alt="Reproductor compacto con letras sincronizadas"></td>
+  </tr>
+</table>
 
 ## Android
 
