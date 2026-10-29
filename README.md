@@ -110,7 +110,7 @@ según la disponibilidad del contenido.
 
 Biblioteca, listas con carátulas automáticas y letras sincronizadas con traducción.
 
-<img src="docs/media/android-home.jpg" width="100%" alt="Inicio de NÜMA en Android">
+<img src="docs/media/android-home.jpg" width="65%" alt="Inicio de NÜMA en Android">
 
 Inicio de NÜMA en Android.
 
@@ -122,6 +122,16 @@ Inicio de NÜMA en Android.
     <td width="25%"><img src="docs/media/android-translation.png" alt="Letras traducidas en Android"></td>
   </tr>
   <tr><td align="center">Biblioteca</td><td align="center">Tus listas</td><td align="center">Letras sincronizadas</td><td align="center">Letras traducidas</td></tr>
+</table>
+
+### Carátulas animadas en Android
+
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/media/android-cover-normal.gif" width="300" alt="Carátula animada en tamaño normal"></td>
+    <td width="50%" align="center"><img src="docs/media/android-cover-full.gif" width="300" alt="Carátula animada completa"></td>
+  </tr>
+  <tr><td align="center">Tamaño normal</td><td align="center">Completa</td></tr>
 </table>
 
 ### Vídeo en Android
@@ -142,16 +152,6 @@ Grabaciones reales convertidas a GIF sin sonido.
     <td width="50%" align="center"><img src="docs/media/android-lockscreen-full.gif" width="300" alt="Pantalla de bloqueo con carátula animada completa"></td>
   </tr>
   <tr><td align="center">Tamaño normal</td><td align="center">Carátula completa</td></tr>
-</table>
-
-### Carátulas animadas en Android
-
-<table>
-  <tr>
-    <td width="50%" align="center"><img src="docs/media/android-cover-normal.gif" width="300" alt="Carátula animada en tamaño normal"></td>
-    <td width="50%" align="center"><img src="docs/media/android-cover-full.gif" width="300" alt="Carátula animada completa"></td>
-  </tr>
-  <tr><td align="center">Tamaño normal</td><td align="center">Completa</td></tr>
 </table>
 
 ## Sincronización entre PC y Android
