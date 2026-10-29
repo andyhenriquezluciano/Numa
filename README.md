@@ -22,6 +22,14 @@ letras sincronizadas, escucha sin conexión y Salas Compartidas.
 La disponibilidad depende del contenido, la plataforma, la conexión y los servicios vinculados.
 NÜMA no proporciona suscripciones ni elimina los requisitos de los proveedores.
 
+<div align="center">
+
+[Funciones](#funciones) · [Capturas](#windows) · [Android](#android) · [Sincronización](#sincronización-entre-pc-y-android) · [Descargas](#descargar)
+
+[![Android](https://img.shields.io/badge/Android-12%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#android) [![Windows](https://img.shields.io/badge/Windows-x64-0078D4?style=flat-square&logo=windows&logoColor=white)](#windows) [![Kotlin](https://img.shields.io/badge/Kotlin-Android-7F52FF?style=flat-square&logo=kotlin&logoColor=white)](#android) [![Qt](https://img.shields.io/badge/Qt%2FQML-Windows-41CD52?style=flat-square&logo=qt&logoColor=white)](#windows) [![C%2B%2B](https://img.shields.io/badge/C%2B%2B-Desktop-00599C?style=flat-square&logo=cplusplus&logoColor=white)](#windows) [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?style=flat-square&logo=cloudflare&logoColor=white)](#sincronización-entre-pc-y-android)
+
+</div>
+
 ## Funciones
 
 | Apartado | Qué puedes hacer |
