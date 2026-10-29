@@ -22,7 +22,12 @@ letras sincronizadas, escucha sin conexión y Salas Compartidas.
 [Funciones](#funciones) · [Capturas](#windows) · [Android](#android) · [Sincronización](#sincronización-entre-pc-y-android) · [Descargas](#descargar)
 
 <p align="center">
-[![Android](https://img.shields.io/badge/Android-12%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#android) [![Windows](https://img.shields.io/badge/Windows-x64-0078D4?style=flat-square&logo=windows&logoColor=white)](#windows) [![Kotlin](https://img.shields.io/badge/Kotlin-Android-7F52FF?style=flat-square&logo=kotlin&logoColor=white)](#android) [![Qt](https://img.shields.io/badge/Qt%2FQML-Windows-41CD52?style=flat-square&logo=qt&logoColor=white)](#windows) [![C%2B%2B](https://img.shields.io/badge/C%2B%2B-Desktop-00599C?style=flat-square&logo=cplusplus&logoColor=white)](#windows) [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?style=flat-square&logo=cloudflare&logoColor=white)](#sincronización-entre-pc-y-android)
+  <a href="#android"><img src="https://img.shields.io/badge/Android-12%2B-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 12+"></a>
+  <a href="#windows"><img src="https://img.shields.io/badge/Windows-x64-0078D4?style=flat-square&amp;logo=windows&amp;logoColor=white" alt="Windows x64"></a>
+  <a href="#android"><img src="https://img.shields.io/badge/Kotlin-Android-7F52FF?style=flat-square&amp;logo=kotlin&amp;logoColor=white" alt="Kotlin Android"></a>
+  <a href="#windows"><img src="https://img.shields.io/badge/Qt%2FQML-Windows-41CD52?style=flat-square&amp;logo=qt&amp;logoColor=white" alt="Qt/QML Windows"></a>
+  <a href="#windows"><img src="https://img.shields.io/badge/C%2B%2B-Desktop-00599C?style=flat-square&amp;logo=cplusplus&amp;logoColor=white" alt="C++ Desktop"></a>
+  <a href="#sincronización-entre-pc-y-android"><img src="https://img.shields.io/badge/Cloudflare-Workers-F38020?style=flat-square&amp;logo=cloudflare&amp;logoColor=white" alt="Cloudflare Workers"></a>
 </p>
 
 </div>
