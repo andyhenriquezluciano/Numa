@@ -22,6 +22,16 @@ letras sincronizadas, escucha sin conexión y Salas Compartidas.
 La disponibilidad depende del contenido, la plataforma, la conexión y los servicios vinculados.
 NÜMA no proporciona suscripciones ni elimina los requisitos de los proveedores.
 
+<div align="center">
+
+**Plataforma cívica integral de monitoreo, gestión y reporte geolocalizado de incidencias comunitarias en la República Dominicana.**
+
+[Características](#funciones) · [Capturas](#windows) · [Arquitectura](#sincronización-entre-pc-y-android) · [Stack tecnológico](#stack-tecnológico) · [Instalación](#instalación) · [Seguridad](#seguridad)
+
+[![Flutter](https://img.shields.io/badge/Flutter-3.x-027DFD?style=flat-square&logo=flutter&logoColor=white)](#android) [![.NET](https://img.shields.io/badge/.NET-10-512BD4?style=flat-square&logo=dotnet&logoColor=white)](#windows) [![React](https://img.shields.io/badge/React-19-20232A?style=flat-square&logo=react&logoColor=61DAFB)](#funciones) [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](#funciones) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql&logoColor=white)](#sincronización-entre-pc-y-android) [![PostGIS](https://img.shields.io/badge/PostGIS-Spatial-2F855A?style=flat-square&logo=postgresql&logoColor=white)](#sincronización-entre-pc-y-android) [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)](#instalación)
+
+</div>
+
 ## Funciones
 
 | Apartado | Qué puedes hacer |
@@ -185,9 +195,13 @@ Descarga el APK e instálalo sobre la versión que ya tienes para conservar tus 
 
 Descarga el setup y sigue los pasos del instalador. Puedes actualizar sin desinstalar NÜMA.
 
-## Para tocar el código
+## Stack tecnológico
 
-Los requisitos y comandos de compilación están en [Desarrollo](docs/DEVELOPMENT.md). Para reportar un problema, indica tu versión, sistema operativo y los pasos para reproducirlo en [Issues](https://github.com/andyhenriquezluciano/Numa/issues).
+NÃœMA utiliza Flutter en Android, Qt/QML y C++ en Windows, con servicios de cuenta y sincronización protegidos.
+
+## Seguridad
+
+Las sesiones y credenciales se mantienen en los dispositivos y la sincronización usa conexiones protegidas.
 
 ## Licencia
 
