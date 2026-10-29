@@ -110,7 +110,7 @@ según la disponibilidad del contenido.
 
 Biblioteca, listas con carátulas automáticas y letras sincronizadas con traducción.
 
-<img src="docs/media/android-home.jpg" width="65%" alt="Inicio de NÜMA en Android">
+<img src="docs/media/android-home.jpg" width="40%" alt="Inicio de NÜMA en Android">
 
 Inicio de NÜMA en Android.
 
