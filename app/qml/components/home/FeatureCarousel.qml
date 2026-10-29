@@ -228,7 +228,7 @@ Item {
                 anchors.fill: parent
                 radius: root.radius
                 color: cardHover.hovered ? "#14ffffff" : "transparent"
-                border.color: card.activeFocus ? "#96caa4" : "transparent"
+                border.color: card.activeFocus ? "#c4a7e7" : "transparent"
 
                 Behavior on color {
                     ColorAnimation { duration: Motion.fast }

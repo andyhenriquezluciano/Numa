@@ -115,12 +115,12 @@ Item {
         id: immersive
 
         anchors.fill: parent
-        source: NumaAppearance.immersiveBackground && !NumaAppearance.performanceMode ? (scene.playbackArtwork || scene.collectionArtwork) : ""
+        source: NumaAppearance.immersiveBackground && !NumaAppearance.performanceMode ? (scene.collectionArtwork || scene.playbackArtwork) : ""
         visible: NumaAppearance.immersiveBackground && !NumaAppearance.performanceMode
         // The video ambient fully covers it on artist pages; no need to warp underneath.
         throttled: NumaWindowState.backgroundIdle
         running: scene.visible && !NumaAppearance.performanceMode && scene.shell.visible && visible && !videoAmbient.covering
-                 && (NumaPlayback.playing || (!scene.playbackArtwork && scene.collectionArtwork.length > 0))
+                 && (NumaPlayback.playing || scene.collectionArtwork.length > 0)
                  && scene.Window.window !== null && scene.Window.window.visibility !== Window.Minimized && scene.Window.window.visibility !== Window.Hidden
         speed: NumaAppearance.performanceMode ? 0 : NumaAppearance.speed
         intensity: NumaAppearance.intensity

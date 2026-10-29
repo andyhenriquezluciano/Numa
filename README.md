@@ -151,7 +151,7 @@ Los instalables están en **[la última versión](https://github.com/andyhenriqu
 | Plataforma | Descarga | Requisitos |
 | --- | --- | --- |
 | **Android 2.2** | [Numa-Android-2.2.apk](https://github.com/andyhenriquezluciano/Numa/releases/download/v2.2/Numa-Android-2.2.apk) | Android 12 o posterior, ARM64 |
-| **Windows 2.0.5** | [Numa-Setup-2.0.5.exe](https://github.com/andyhenriquezluciano/Numa/releases/download/v2.2/Numa-Setup-2.0.5.exe) | Windows x64 |
+| **Windows 2.1** | [Numa-Setup-2.1.0.exe](https://github.com/andyhenriquezluciano/Numa/releases/download/v2.2/Numa-Setup-2.1.0.exe) | Windows x64 |
 
 ## Instalación
 

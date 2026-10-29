@@ -67,7 +67,7 @@ ColumnLayout {
                 width: slider.visualPosition * parent.width
                 height: parent.height
                 radius: 2
-                color: root.enabled ? "#9ac3a8" : "#69756b"
+                color: root.enabled ? "#c4a7e7" : "#69756b"
             }
         }
         handle: Rectangle {
@@ -76,7 +76,7 @@ ColumnLayout {
             width: 16
             height: 16
             radius: 8
-            color: root.enabled ? "#c4e0cb" : "#69756b"
+            color: root.enabled ? "#e5d8f7" : "#69756b"
             border.width: slider.activeFocus ? 2 : 0
             border.color: "white"
         }

@@ -98,10 +98,10 @@ RowLayout {
                 gradient: NumaAppearance.rosePine ? null : selectionGradient
                 Gradient {
                     id: selectionGradient
-                    GradientStop { position: 0.0; color: NumaAppearance.rosePine ? "#33ebbcba" : "#338cc4a0" }
-                    GradientStop { position: 1.0; color: NumaAppearance.rosePine ? "#1aebbcba" : "#1a8cc4a0" }
+                    GradientStop { position: 0.0; color: NumaAppearance.rosePine ? "#33ebbcba" : "#33c4a7e7" }
+                    GradientStop { position: 1.0; color: NumaAppearance.rosePine ? "#1aebbcba" : "#1ac4a7e7" }
                 }
-                border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#38a0d6b4"
+                border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#38c4a7e7"
                 border.width: NumaAppearance.controlBorderWidth
                 y: root.currentIndex * (height + navColumn.spacing)
                 Behavior on y { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
@@ -210,7 +210,7 @@ RowLayout {
                 background: Rectangle {
                     radius: width / 2
                     color: closeButton.down ? "#30ffffff" : closeButton.hovered ? "#20ffffff" : "#10ffffff"
-                    border.color: closeButton.visualFocus ? "#a6d4bf" : "transparent"
+                    border.color: closeButton.visualFocus ? "#d8c2f2" : "transparent"
                 }
             }
         }

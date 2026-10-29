@@ -32,7 +32,7 @@ GridView {
     property int albumWidth: 184
     property real playerInset: 0
     property string artistTitle: ""
-    property color accentSoftColor: "#96caa4"
+    property color accentSoftColor: "#c4a7e7"
     readonly property string presentation: kind === "videos" ? "video" : "album"
     readonly property int cardWidth: presentation === "video" ? 258 : albumWidth
 

@@ -26,13 +26,25 @@ Button {
     id: root
 
     readonly property bool shown: NumaNetwork.offline || NumaNetwork.retrying
+    property real spinAngle: 0
 
     visible: shown
     width: shown ? 38 : 0
     height: 38
     hoverEnabled: true
+    enabled: !NumaNetwork.checking
     Accessible.name: NumaNetwork.checking ? qsTr("Checking connection…") : qsTr("Offline. Click to check connection.")
-    onClicked: NumaNetwork.retry()
+    onClicked: if (!NumaNetwork.checking) NumaNetwork.retry()
+
+    NumberAnimation on spinAngle {
+        running: NumaNetwork.checking
+        loops: Animation.Infinite
+        from: 0
+        to: 360
+        duration: 1000
+    }
+
+    GlassToolTip { control: root; text: root.Accessible.name }
 
     background: Rectangle {
         radius: height / 2
@@ -45,19 +57,13 @@ Button {
     contentItem: Item {
         LucideIcon {
             id: icon
+            objectName: "offlineConnectionIcon"
             anchors.centerIn: parent
             width: 18
             height: 18
             name: NumaNetwork.checking ? "refresh-cw" : "wifi-off"
-            color: root.hovered ? "#ffffff" : "#ffcf8a"
-
-            NumberAnimation on rotation {
-                running: NumaNetwork.checking
-                loops: Animation.Infinite
-                from: 0
-                to: 360
-                duration: 1000
-            }
+            color: root.hovered ? "#ffffff" : NumaAppearance.accentColor
+            rotation: NumaNetwork.checking ? root.spinAngle : 0
         }
     }
 }

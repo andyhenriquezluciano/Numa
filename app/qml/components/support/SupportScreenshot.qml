@@ -36,7 +36,7 @@ Rectangle {
     implicitHeight: content.implicitHeight + 24
     radius: 12
     color: "#141815"
-    border.color: root.attached ? "#556f9a80" : "#2a302b"
+    border.color: root.attached ? "#55a28bc2" : "#2a302b"
 
     RowLayout {
         id: content

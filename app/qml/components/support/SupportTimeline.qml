@@ -101,7 +101,7 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     text: qsTr("#%1 · %2").arg(root.field("number")).arg(root.stateText())
-                    color: root.field("state") === "closed" ? "#c4e0cb" : "#a4aaa1"
+                    color: root.field("state") === "closed" ? "#e5d8f7" : "#a4aaa1"
                     font.family: "Inter"
                     font.pixelSize: 12
                 }
@@ -172,7 +172,7 @@ Item {
                             width: 15
                             height: 15
                             name: root.icon(row.modelData.kind)
-                            color: "#c4e0cb"
+                            color: "#e5d8f7"
                         }
 
                         Image {
@@ -204,13 +204,13 @@ Item {
                                 implicitWidth: badge.implicitWidth + 12
                                 implicitHeight: 18
                                 radius: 9
-                                color: "#2244604f"
-                                border.color: "#556f9a80"
+                                color: "#22514060"
+                                border.color: "#55a28bc2"
                                 Text {
                                     id: badge
                                     anchors.centerIn: parent
                                     text: qsTr("Maintainer")
-                                    color: "#c4e0cb"
+                                    color: "#e5d8f7"
                                     font.family: "Inter"
                                     font.pixelSize: 10
                                 }

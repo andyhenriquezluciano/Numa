@@ -67,7 +67,7 @@ ColumnLayout {
         Layout.preferredHeight: 40
         radius: 10
         color: search.activeFocus ? "#1affffff" : "#10ffffff"
-        border.color: search.activeFocus ? "#8cc5a5" : "#1cffffff"
+        border.color: search.activeFocus ? "#c4a7e7" : "#1cffffff"
         Behavior on color { ColorAnimation { duration: 140 } }
         Behavior on border.color { ColorAnimation { duration: 140 } }
 
@@ -142,10 +142,10 @@ ColumnLayout {
                 anchors.bottomMargin: 1
                 radius: 10
                 gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#338cc4a0" }
-                    GradientStop { position: 1.0; color: "#1a8cc4a0" }
+                    GradientStop { position: 0.0; color: "#33c4a7e7" }
+                    GradientStop { position: 1.0; color: "#1ac4a7e7" }
                 }
-                border.color: "#38a0d6b4"
+                border.color: "#38c4a7e7"
             }
         }
         ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
@@ -215,7 +215,7 @@ ColumnLayout {
             background: Rectangle {
                 radius: 10
                 color: row.current ? "transparent" : row.down ? "#22ffffff" : row.hovered ? "#14ffffff" : "transparent"
-                border.color: row.visualFocus ? "#a6d4bf" : "transparent"
+                border.color: row.visualFocus ? "#d8c2f2" : "transparent"
                 Behavior on color { ColorAnimation { duration: 120 } }
             }
         }

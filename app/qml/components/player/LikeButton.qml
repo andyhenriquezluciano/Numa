@@ -27,7 +27,7 @@ Button {
     id: root
 
     property color iconColor: "#d8dcd6"
-    property color likedColor: "#8cc5a5"
+    property color likedColor: "#c4a7e7"
     property int iconSize: 17
     readonly property bool liked: NumaLibrary.currentLiked
 

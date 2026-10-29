@@ -8,6 +8,8 @@
 #include <QPluginLoader>
 #include <QDir>
 #include <QThread>
+#include <QTemporaryDir>
+#include <QElapsedTimer>
 #include <QColor>
 #include <QQuickStyle>
 #include <QFile>
@@ -159,7 +161,88 @@ int main(int argc, char *argv[]) {
   std::unique_ptr<QObject> sync(mockSync.create());
   if (!sync) return 1;
   engine.rootContext()->setContextProperty("NumaSync", sync.get());
-  engine.rootContext()->setContextProperty("NumaNetwork", QVariantMap{{"offline", true}});
+  QQmlComponent networkMock(&engine);
+  networkMock.setData(R"(
+    import QtQuick
+    QtObject {
+      property bool offline: true
+      property bool retrying: false
+      property bool checking: false
+      property int retries: 0
+      function retry() { retries++; checking = true }
+    }
+  )", QUrl());
+  std::unique_ptr<QObject> network(networkMock.create());
+  if (!network) return 1;
+  engine.rootContext()->setContextProperty("NumaNetwork", network.get());
+  QQmlComponent offlineButtonComponent(&engine);
+  offlineButtonComponent.setData("import QtQuick\nimport Numa\nOfflineStatusButton {}", QUrl());
+  std::unique_ptr<QObject> offlineButton(offlineButtonComponent.create());
+  if (!offlineButton) return 1;
+  auto *offlineIcon = offlineButton->findChild<QObject *>("offlineConnectionIcon");
+  if (!offlineIcon || !offlineButton->property("visible").toBool()) return 1;
+  QMetaObject::invokeMethod(offlineButton.get(), "clicked");
+  if (!network->property("checking").toBool() || offlineButton->property("enabled").toBool()) return 1;
+  for (int i = 0; i < 20; ++i) { application.processEvents(); QThread::msleep(10); }
+  network->setProperty("checking", false);
+  if (offlineIcon->property("rotation").toDouble() != 0
+      || offlineIcon->property("name").toString() != "wifi-off"
+      || offlineIcon->property("color").value<QColor>() != QColor("#c4a7e7")
+      || !offlineButton->property("enabled").toBool()) {
+    output << "The offline icon must return upright with a purple accent after checking the connection.\n";
+    return 1;
+  }
+  network->setProperty("offline", false);
+  if (offlineButton->property("visible").toBool()) return 1;
+  network->setProperty("checking", true);
+  if (offlineButton->property("visible").toBool()) return 1;
+  network->setProperty("checking", false);
+  network->setProperty("offline", true);
+  QTemporaryDir artworkDirectory;
+  if (!artworkDirectory.isValid()) return 1;
+  QImage firstCover(64, 64, QImage::Format_RGB32);
+  firstCover.fill(Qt::red);
+  QImage nextCover(64, 64, QImage::Format_RGB32);
+  nextCover.fill(Qt::blue);
+  const auto firstCoverPath = artworkDirectory.filePath("first.png");
+  const auto nextCoverPath = artworkDirectory.filePath("next.png");
+  if (!firstCover.save(firstCoverPath) || !nextCover.save(nextCoverPath)) return 1;
+  const auto firstCoverUrl = QUrl::fromLocalFile(firstCoverPath);
+  const auto nextCoverUrl = QUrl::fromLocalFile(nextCoverPath);
+  QQmlComponent artworkComponent(&engine);
+  artworkComponent.setData("import QtQuick\nimport Numa\nRoundedArtwork { width: 64; height: 64 }", QUrl());
+  std::unique_ptr<QObject> artwork(artworkComponent.create());
+  if (!artwork) return 1;
+  QObject *artworkImage = nullptr;
+  for (auto *child : artwork->children())
+    if (child->metaObject()->indexOfProperty("retainWhileLoading") >= 0) artworkImage = child;
+  if (!artworkImage) return 1;
+  const auto waitForCover = [&](const QUrl &expected) {
+    QElapsedTimer timeout;
+    timeout.start();
+    while (timeout.elapsed() < 3000) {
+      application.processEvents();
+      if (artworkImage->property("source").toUrl() == expected
+          && artworkImage->property("status").toInt() == 1) return true;
+      QThread::msleep(5);
+    }
+    return false;
+  };
+  artwork->setProperty("source", firstCoverUrl);
+  if (!waitForCover(firstCoverUrl)) return 1;
+  QMetaObject::invokeMethod(artwork.get(), "reload");
+  if (!waitForCover(firstCoverUrl)) return 1;
+  artwork->setProperty("source", nextCoverUrl);
+  if (!waitForCover(nextCoverUrl)) {
+    output << "Retrying a cover must preserve updates when the playing song changes.\n";
+    return 1;
+  }
+  QMetaObject::invokeMethod(artwork.get(), "reload");
+  artwork->setProperty("source", firstCoverUrl);
+  if (!waitForCover(firstCoverUrl)) {
+    output << "A pending cover retry must load the current song instead of an older one.\n";
+    return 1;
+  }
   QQmlComponent mockAccount(&engine);
   mockAccount.setData("import QtQuick\nQtObject { property bool isSignedIn: false }", QUrl());
   std::unique_ptr<QObject> account(mockAccount.create());

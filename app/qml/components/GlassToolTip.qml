@@ -9,7 +9,7 @@ ToolTip {
     id: tip
 
     required property Item control
-    property color accentColor: "#7fbe90"
+    property color accentColor: "#b79bed"
 
     visible: Boolean(control && (control["hovered"] || control["containsMouse"]))
              && text.length > 0

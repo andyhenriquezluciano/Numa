@@ -29,8 +29,8 @@ Flow {
 
     // The playlist detail map from NumaPlaylist.
     property var playlist: ({})
-    property color accentColor: "#7fbe90"
-    property color accentSoftColor: "#96caa4"
+    property color accentColor: "#b79bed"
+    property color accentSoftColor: "#c4a7e7"
 
     readonly property string playlistId: playlist.id || ""
 

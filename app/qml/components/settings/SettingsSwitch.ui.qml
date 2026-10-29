@@ -30,7 +30,7 @@ Switch {
         y: control.topPadding + control.availableHeight / 2 - height / 2
         radius: 12
         // Translucent when off so the glass shows through.
-        color: control.checked ? (NumaAppearance.rosePine ? NumaAppearance.accentColor : "#5f9a76") : "#2cffffff"
+        color: control.checked ? (NumaAppearance.rosePine ? NumaAppearance.accentColor : "#9470bd") : "#2cffffff"
         border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : control.visualFocus ? NumaAppearance.accentColor : "transparent"
         border.width: NumaAppearance.rosePine ? 0 : 2
         Behavior on color { ColorAnimation { duration: 180 } }

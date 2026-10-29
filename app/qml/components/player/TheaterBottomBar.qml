@@ -134,7 +134,7 @@ Item {
                     x: parent.width * modelData.startTime / scrubber.to
                     width: Math.max(2, parent.width * (modelData.endTime - modelData.startTime) / scrubber.to)
                     height: parent.height
-                    color: modelData.category === "music_offtopic" ? "#ff9f43" : "#00d1a0"
+                    color: modelData.category === "music_offtopic" ? "#ff9f43" : "#c4a7e7"
                     opacity: 0.85
                 }
             }

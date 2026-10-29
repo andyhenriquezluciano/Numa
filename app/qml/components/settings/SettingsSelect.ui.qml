@@ -64,7 +64,7 @@ ComboBox {
             radius: 10
             softGlow: true
             showBorder: true
-            border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : select.visualFocus || select.popup.visible ? "#a6d4bf" : (select.hovered ? "#45ffffff" : "#30ffffff")
+            border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : select.visualFocus || select.popup.visible ? "#d8c2f2" : (select.hovered ? "#45ffffff" : "#30ffffff")
             fillColor: "transparent"
         }
     }

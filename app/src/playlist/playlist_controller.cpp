@@ -136,8 +136,8 @@ PlaylistController::PlaylistController(YouTubeCatalog *catalog,
 QVariantMap PlaylistController::defaultPalette() {
   return {
       {QStringLiteral("seam"), rgb(38, 48, 43)},
-      {QStringLiteral("accent"), rgb(127, 190, 144)},
-      {QStringLiteral("accentSoft"), rgb(150, 202, 164)},
+      {QStringLiteral("accent"), rgb(183, 155, 237)},
+      {QStringLiteral("accentSoft"), rgb(196, 167, 231)},
       {QStringLiteral("deep"), rgb(15, 21, 18)},
       {QStringLiteral("ink"), rgb(8, 12, 10)},
       {QStringLiteral("surface"), rgb(24, 31, 27)},

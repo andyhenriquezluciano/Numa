@@ -136,7 +136,7 @@ Item {
                     background: Rectangle {
                         radius: 10
                         color: "#1b201c"
-                        border.color: titleField.activeFocus ? "#8cc5a5" : "#3a413b"
+                        border.color: titleField.activeFocus ? "#c4a7e7" : "#3a413b"
                     }
                 }
 
@@ -146,7 +146,7 @@ Item {
                     background: Rectangle {
                         radius: 10
                         color: "#1b201c"
-                        border.color: bodyField.activeFocus ? "#8cc5a5" : "#3a413b"
+                        border.color: bodyField.activeFocus ? "#c4a7e7" : "#3a413b"
                     }
 
                     TextArea {

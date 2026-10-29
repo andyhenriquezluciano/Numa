@@ -39,7 +39,7 @@ Button {
         Rectangle {
             anchors.fill: parent
             radius: control.height / 2
-            color: control.highlighted ? (NumaAppearance.rosePine ? "#403d52" : "#44604f") : control.down ? "#2cffffff" : control.hovered ? "#1cffffff" : "#0fffffff"
+            color: control.highlighted ? (NumaAppearance.rosePine ? "#403d52" : "#514060") : control.down ? "#2cffffff" : control.hovered ? "#1cffffff" : "#0fffffff"
             Behavior on color { ColorAnimation { duration: 120 } }
         }
         RoundedSurfaceFrame {
@@ -48,7 +48,7 @@ Button {
             softGlow: true
             showBorder: true
             border.width: NumaAppearance.controlBorderWidth
-            border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : control.activeFocus ? NumaAppearance.accentColor : control.highlighted ? "#6f9a80" : (control.hovered ? "#45ffffff" : "#30ffffff")
+            border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : control.activeFocus ? NumaAppearance.accentColor : control.highlighted ? "#a28bc2" : (control.hovered ? "#45ffffff" : "#30ffffff")
             fillColor: "transparent"
         }
     }

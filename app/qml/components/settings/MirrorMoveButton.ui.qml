@@ -30,7 +30,7 @@ Rectangle {
     implicitWidth: 28
     implicitHeight: 28
     radius: 14
-    color: area.pressed ? "#3a5f48" : area.containsMouse && canMove ? "#24ffffff" : "#12ffffff"
+    color: area.pressed ? "#503a70" : area.containsMouse && canMove ? "#24ffffff" : "#12ffffff"
     border.width: NumaAppearance.controlBorderWidth
     border.color: NumaAppearance.borderColor
     opacity: canMove ? 1.0 : 0.35

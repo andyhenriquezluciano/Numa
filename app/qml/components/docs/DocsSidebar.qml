@@ -124,7 +124,7 @@ ColumnLayout {
         Layout.preferredHeight: 40
         radius: 10
         color: search.activeFocus ? "#1affffff" : "#10ffffff"
-        border.color: search.activeFocus ? "#8cc5a5" : "#1cffffff"
+        border.color: search.activeFocus ? "#c4a7e7" : "#1cffffff"
         Behavior on color { ColorAnimation { duration: 140 } }
         Behavior on border.color { ColorAnimation { duration: 140 } }
 
@@ -206,7 +206,7 @@ ColumnLayout {
             width: parent.width * 0.3
             height: parent.height
             radius: 1
-            color: "#8cc5a5"
+            color: "#c4a7e7"
             NumberAnimation on x {
                 running: root.asking
                 from: -sweep.width
@@ -242,10 +242,10 @@ ColumnLayout {
                 anchors.bottomMargin: 1
                 radius: 10
                 gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#338cc4a0" }
-                    GradientStop { position: 1.0; color: "#1a8cc4a0" }
+                    GradientStop { position: 0.0; color: "#33c4a7e7" }
+                    GradientStop { position: 1.0; color: "#1ac4a7e7" }
                 }
-                border.color: "#38a0d6b4"
+                border.color: "#38c4a7e7"
             }
         }
         ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
@@ -306,7 +306,7 @@ ColumnLayout {
                         Layout.preferredWidth: 17
                         Layout.preferredHeight: 17
                         name: row.isGroup ? "" : row.entry.icon
-                        color: item.current ? "#c4e0cb" : "#a4aaa1"
+                        color: item.current ? "#e5d8f7" : "#a4aaa1"
                         scale: item.current ? 1.1 : 1.0
                         Behavior on color { ColorAnimation { duration: 140 } }
                         Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
@@ -339,7 +339,7 @@ ColumnLayout {
                     radius: 10
                     // Hover tint only; the highlight pill sits underneath.
                     color: item.current ? "transparent" : item.down ? "#22ffffff" : item.hovered ? "#14ffffff" : "transparent"
-                    border.color: item.visualFocus ? "#a6d4bf" : "transparent"
+                    border.color: item.visualFocus ? "#d8c2f2" : "transparent"
                     Behavior on color { ColorAnimation { duration: 120 } }
                 }
             }

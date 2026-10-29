@@ -41,11 +41,11 @@ Button {
             Layout.preferredWidth: 15
             Layout.preferredHeight: 15
             name: control.done ? "check" : control.iconName
-            color: control.done ? "#c4e0cb" : "#a4aaa1"
+            color: control.done ? "#e5d8f7" : "#a4aaa1"
         }
         Text {
             text: control.text
-            color: control.done ? "#c4e0cb" : "#c9ccc4"
+            color: control.done ? "#e5d8f7" : "#c9ccc4"
             font: control.font
             verticalAlignment: Text.AlignVCenter
         }
@@ -54,7 +54,7 @@ Button {
         radius: 10
         color: control.down ? "#22ffffff" : control.hovered ? "#14ffffff" : "transparent"
         border.width: 1
-        border.color: control.visualFocus ? "#a6d4bf" : "transparent"
+        border.color: control.visualFocus ? "#d8c2f2" : "transparent"
         Behavior on color { ColorAnimation { duration: 120 } }
     }
 }

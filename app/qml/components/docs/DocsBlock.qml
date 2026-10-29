@@ -78,7 +78,7 @@ ColumnLayout {
                     Layout.topMargin: 1
                     text: step.index + 1
                     horizontalAlignment: Text.AlignHCenter
-                    color: "#8cc5a5"
+                    color: "#c4a7e7"
                     font.family: "Inter"
                     font.pixelSize: 14
                     font.weight: Font.DemiBold
@@ -120,7 +120,7 @@ ColumnLayout {
                     Layout.preferredWidth: 6
                     Layout.preferredHeight: 6
                     radius: 3
-                    color: "#a8cdb6"
+                    color: "#c4a7e7"
                 }
                 Text {
                     Layout.fillWidth: true
@@ -150,7 +150,7 @@ ColumnLayout {
             anchors.margins: 12
             text: root.kind === "code" ? root.block.text : ""
             wrapMode: Text.WrapAnywhere
-            color: "#c4e0cb"
+            color: "#e5d8f7"
             font.family: "monospace"
             font.pixelSize: 13
         }

@@ -35,9 +35,10 @@ Item {
     readonly property bool hasImage: image.status === Image.Ready && image.opacity > 0
 
     onSourceChanged: {
-        if (image.status === Image.Ready) {
-            image.opacity = 1;
-            root.shownSource = root.source;
+        retryTimer.stop();
+        if (root.source.toString() !== root.shownSource.toString()) {
+            fadeIn.stop();
+            image.opacity = 0;
         }
     }
 
@@ -54,11 +55,10 @@ Item {
 
     function reload() {
         if (root.source.toString().length > 0) {
-            const src = root.sizedSource(root.source);
             image.source = "";
             Qt.callLater(() => {
                 if (root && image)
-                    image.source = src;
+                    image.source = Qt.binding(() => root.sizedSource(root.source));
             });
         }
     }
@@ -116,6 +116,7 @@ Item {
                 if (!NumaNetwork.offline)
                     retryTimer.start();
             } else if (root.source.toString() !== root.shownSource.toString()) {
+                fadeIn.stop();
                 opacity = 0;
             }
         }

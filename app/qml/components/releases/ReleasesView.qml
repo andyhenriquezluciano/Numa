@@ -57,7 +57,7 @@ Item {
             return { icon: "sliders-horizontal", tone: "#9ab8d8" };
         if (/soon|plan|upcoming|next/.test(name))
             return { icon: "clock", tone: "#a4aaa1" };
-        return { icon: "sparkles", tone: "#8cc5a5" };
+        return { icon: "sparkles", tone: "#c4a7e7" };
     }
 
     // Lists from C++ arrive as sequence wrappers, so Array.isArray is false for them.

@@ -42,7 +42,7 @@ ItemDelegate {
             Layout.preferredWidth: 17
             Layout.preferredHeight: 17
             name: navItem.entry.icon
-            color: NumaAppearance.rosePine ? (navItem.current ? NumaAppearance.borderColor : NumaAppearance.mutedColor) : navItem.current ? "#c4e0cb" : "#a4aaa1"
+            color: NumaAppearance.rosePine ? (navItem.current ? NumaAppearance.borderColor : NumaAppearance.mutedColor) : navItem.current ? "#e5d8f7" : "#a4aaa1"
             scale: navItem.current ? 1.1 : 1.0
             Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
         }
@@ -63,7 +63,7 @@ ItemDelegate {
     background: Rectangle {
         radius: 10
         color: navItem.current ? "transparent" : navItem.down ? "#22ffffff" : navItem.hovered ? "#14ffffff" : "transparent"
-        border.color: navItem.visualFocus ? "#a6d4bf" : "transparent"
+        border.color: navItem.visualFocus ? "#d8c2f2" : "transparent"
         Behavior on color { ColorAnimation { duration: 120 } }
     }
 }

@@ -165,7 +165,7 @@ ColumnLayout {
             id: progressThumb
             width: parent.width * 0.35
             height: 2
-            color: "#8ce1aa"
+            color: "#d1b3f5"
             NumberAnimation on x {
                 running: progressBar.visible
                 loops: Animation.Infinite

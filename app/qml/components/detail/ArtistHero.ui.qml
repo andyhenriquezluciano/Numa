@@ -51,8 +51,8 @@ Item {
     property var credits: []
 
     property var cloudMedia: ({})
-    property color accentColor: "#7fbe90"
-    property color accentSoftColor: "#96caa4"
+    property color accentColor: "#b79bed"
+    property color accentSoftColor: "#c4a7e7"
     property color accentInkColor: "#09100b"
     property color inkColor: "#080c0a"
 

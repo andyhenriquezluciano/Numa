@@ -64,7 +64,7 @@ Item {
                 width: 18
                 height: 18
                 name: root.iconName
-                color: NumaAppearance.rosePine ? NumaAppearance.accentColor : "#a8cdb6"
+                color: NumaAppearance.rosePine ? NumaAppearance.accentColor : "#c4a7e7"
             }
         }
 

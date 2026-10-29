@@ -37,8 +37,8 @@ Item {
     readonly property var downloadInfo: NumaDownloads.revision >= 0 ? NumaDownloads.collectionState(tracks) : ({})
     readonly property string downloadState: downloadInfo.total > 0 && downloadInfo.downloaded >= downloadInfo.total ? "done"
         : downloadInfo.pending > 0 ? "busy" : downloadInfo.downloaded > 0 ? "partial" : "none"
-    readonly property color accentColor: rgb(artworkPalette.accent, [127, 190, 144])
-    readonly property color accentSoftColor: rgb(artworkPalette.accentSoft, [150, 202, 164])
+    readonly property color accentColor: rgb(artworkPalette.accent, [183, 155, 237])
+    readonly property color accentSoftColor: rgb(artworkPalette.accentSoft, [196, 167, 231])
     readonly property color deepColor: rgb(artworkPalette.deep, [15, 21, 18])
     readonly property color inkColor: rgb(artworkPalette.ink, [8, 12, 10])
     readonly property color onAccentColor: rgb(artworkPalette.onAccent, [9, 16, 11])

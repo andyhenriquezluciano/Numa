@@ -113,7 +113,7 @@ Menu {
         onTriggered: newPlaylistDialog.createObject(Overlay.overlay, {track: root.track}).open()
     }
     MenuSeparator {
-        contentItem: Rectangle { implicitHeight: 1; color: "#455348" }
+        contentItem: Rectangle { implicitHeight: 1; color: "#504553" }
     }
     Entry {
         text: root.status

@@ -89,8 +89,8 @@ ArtistViewForm {
     // Runs only while the hero is on screen and the window is shown.
     heroVideoPlaying: visible && !expandedSection && scroll.contentY < hero.height
                       && Window.visibility !== Window.Minimized && Window.visibility !== Window.Hidden
-    accentColor: rgb(artistPalette.accent, [127, 190, 144])
-    accentSoftColor: rgb(artistPalette.accentSoft, [150, 202, 164])
+    accentColor: rgb(artistPalette.accent, [183, 155, 237])
+    accentSoftColor: rgb(artistPalette.accentSoft, [196, 167, 231])
     deepColor: rgb(artistPalette.deep, [15, 21, 18])
     inkColor: rgb(artistPalette.ink, [8, 12, 10])
     accentInkColor: rgb(artistPalette.onAccent, [9, 16, 11])

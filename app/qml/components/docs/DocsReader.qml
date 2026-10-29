@@ -160,7 +160,7 @@ ColumnLayout {
             background: Rectangle {
                 radius: width / 2
                 color: closeButton.down ? "#30ffffff" : closeButton.hovered ? "#20ffffff" : "#10ffffff"
-                border.color: closeButton.visualFocus ? "#a6d4bf" : "transparent"
+                border.color: closeButton.visualFocus ? "#d8c2f2" : "transparent"
             }
         }
     }
@@ -284,7 +284,7 @@ ColumnLayout {
                                             Layout.preferredWidth: 17
                                             Layout.preferredHeight: 17
                                             name: link.modelData.icon
-                                            color: "#a8cdb6"
+                                            color: "#c4a7e7"
                                         }
                                         Text {
                                             Layout.fillWidth: true
@@ -308,7 +308,7 @@ ColumnLayout {
                                             // Inset hover tint keeps the panel's rounded corners clean.
                                             radius: 14
                                             color: link.down ? "#22ffffff" : link.hovered ? "#12ffffff" : "transparent"
-                                            border.color: link.visualFocus ? "#a6d4bf" : "transparent"
+                                            border.color: link.visualFocus ? "#d8c2f2" : "transparent"
                                             Behavior on color { ColorAnimation { duration: 120 } }
                                         }
                                         Rectangle {
@@ -364,7 +364,7 @@ ColumnLayout {
                                         Layout.preferredWidth: 18
                                         Layout.preferredHeight: 18
                                         name: nav.isNext ? "chevron-right" : "chevron-left"
-                                        color: "#a8cdb6"
+                                        color: "#c4a7e7"
                                     }
                                     ColumnLayout {
                                         Layout.fillWidth: true
@@ -395,7 +395,7 @@ ColumnLayout {
                                         anchors.margins: 1
                                         radius: 14
                                         color: nav.down ? "#22ffffff" : nav.hovered ? "#12ffffff" : "transparent"
-                                        border.color: nav.visualFocus ? "#a6d4bf" : "transparent"
+                                        border.color: nav.visualFocus ? "#d8c2f2" : "transparent"
                                         Behavior on color { ColorAnimation { duration: 120 } }
                                     }
                                     Rectangle {

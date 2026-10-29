@@ -23,7 +23,7 @@ import QtQuick.Controls
 
 Menu {
     id: root
-    property color accentColor: "#7fbe90"
+    property color accentColor: "#b79bed"
     Component.onCompleted: configurePopup(root)
     width: 210
     padding: 5

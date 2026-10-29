@@ -63,7 +63,7 @@ ComboBox {
             radius: control.height / 2
             softGlow: true
             showBorder: true
-            border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : control.visualFocus ? "#a6d4bf" : (control.hovered ? "#45ffffff" : "#30ffffff")
+            border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : control.visualFocus ? "#d8c2f2" : (control.hovered ? "#45ffffff" : "#30ffffff")
             fillColor: "transparent"
         }
     }

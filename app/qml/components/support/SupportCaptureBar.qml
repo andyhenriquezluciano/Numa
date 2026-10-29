@@ -36,7 +36,7 @@ Rectangle {
     implicitHeight: 52
     radius: height / 2
     color: "#e6141815"
-    border.color: "#556f9a80"
+    border.color: "#55a28bc2"
     // No fade-out: the capture happens right after this flips.
     visible: root.active
 
@@ -50,7 +50,7 @@ Rectangle {
             Layout.preferredWidth: 18
             Layout.preferredHeight: 18
             name: "camera"
-            color: "#c4e0cb"
+            color: "#e5d8f7"
         }
 
         Text {
@@ -79,7 +79,7 @@ Rectangle {
             }
             background: Rectangle {
                 radius: height / 2
-                color: captureButton.down ? "#9ccfb1" : captureButton.hovered ? "#b5e0c6" : "#a6d4bf"
+                color: captureButton.down ? "#c4a7e7" : captureButton.hovered ? "#e0caf7" : "#d8c2f2"
             }
         }
 

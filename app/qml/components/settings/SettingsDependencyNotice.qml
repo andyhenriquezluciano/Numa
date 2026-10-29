@@ -7,7 +7,7 @@ Rectangle {
 
     property string title: qsTr("Why is this unavailable?")
     property string message
-    property color accentColor: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#a8cdb6"
+    property color accentColor: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#c4a7e7"
 
     Layout.fillWidth: true
     implicitHeight: content.implicitHeight + 24

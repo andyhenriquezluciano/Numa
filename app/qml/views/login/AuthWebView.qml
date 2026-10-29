@@ -410,7 +410,7 @@ Item {
                 anchors.left: parent.left
                 width: parent.width * (webView.loadProgress / 100.0)
                 height: 2
-                color: "#67d98b"
+                color: "#c4a7e7"
                 visible: webView.loading
             }
         }

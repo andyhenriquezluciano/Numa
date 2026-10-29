@@ -90,7 +90,7 @@ Item {
                     Layout.preferredWidth: 16
                     Layout.preferredHeight: 16
                     name: "plus"
-                    color: "#c4e0cb"
+                    color: "#e5d8f7"
                 }
                 Text {
                     Layout.fillWidth: true
@@ -102,8 +102,8 @@ Item {
             }
             background: Rectangle {
                 radius: 12
-                color: root.composing ? "#2244604f" : newButton.hovered ? "#14ffffff" : "transparent"
-                border.color: root.composing ? "#556f9a80" : newButton.visualFocus ? "#a6d4bf" : "#1cffffff"
+                color: root.composing ? "#22514060" : newButton.hovered ? "#14ffffff" : "transparent"
+                border.color: root.composing ? "#55a28bc2" : newButton.visualFocus ? "#d8c2f2" : "#1cffffff"
                 Behavior on color { ColorAnimation { duration: 120 } }
             }
         }
@@ -162,13 +162,13 @@ Item {
                         Layout.preferredHeight: 8
                         radius: 4
                         visible: row.modelData.unread > 0
-                        color: "#8cc5a5"
+                        color: "#c4a7e7"
                     }
                 }
                 background: Rectangle {
                     radius: 12
                     color: row.current ? "#1cffffff" : row.hovered ? "#10ffffff" : "transparent"
-                    border.color: row.visualFocus ? "#a6d4bf" : "transparent"
+                    border.color: row.visualFocus ? "#d8c2f2" : "transparent"
                     Behavior on color { ColorAnimation { duration: 120 } }
                 }
             }

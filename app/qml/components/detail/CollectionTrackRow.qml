@@ -40,8 +40,8 @@ ItemDelegate {
     property string removablePlaylistId: ""
     property string removablePlaylistTitle: ""
     property bool likedPlaylist: false
-    property color accentColor: "#7fbe90"
-    property color accentSoftColor: "#96caa4"
+    property color accentColor: "#b79bed"
+    property color accentSoftColor: "#c4a7e7"
     readonly property color rowAccent: NumaAppearance.rosePine ? NumaAppearance.borderColor : root.accentColor
     readonly property color rowAccentSoft: NumaAppearance.rosePine ? NumaAppearance.borderColor : root.accentSoftColor
 

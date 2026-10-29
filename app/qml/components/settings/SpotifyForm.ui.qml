@@ -126,7 +126,7 @@ ColumnLayout {
             background: Rectangle {
                 radius: 10
                 color: "#1b201c"
-                border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : cookieField.activeFocus ? "#8cc5a5" : "#3a413b"
+                border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : cookieField.activeFocus ? "#c4a7e7" : "#3a413b"
                 border.width: NumaAppearance.controlBorderWidth
             }
         }

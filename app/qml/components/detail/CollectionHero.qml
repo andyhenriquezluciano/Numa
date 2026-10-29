@@ -57,8 +57,8 @@ Item {
     property bool shareVisible: true
     property bool deleteVisible: false
 
-    property color accentColor: "#7fbe90"
-    property color accentSoftColor: "#96caa4"
+    property color accentColor: "#b79bed"
+    property color accentSoftColor: "#c4a7e7"
     property color accentInkColor: "#09100b"
     property color inkColor: "#080c0a"
 
@@ -297,7 +297,7 @@ Item {
                 id: downloadButton
                 visible: root.downloadable
                 glyph: root.downloadState === "done" ? "circle-arrow-down" : "download"
-                glyphColor: root.downloadState === "done" ? root.accentSoftColor : "#eef0ec"
+                glyphColor: root.downloadState === "done" ? NumaAppearance.accentColor : "#eef0ec"
                 enabled: root.downloadEnabled
                 opacity: !enabled ? 0.4 : root.downloadState === "busy" ? 0.7 : 1
                 Accessible.name: ToolTip.text
