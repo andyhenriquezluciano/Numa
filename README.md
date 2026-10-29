@@ -17,11 +17,6 @@ letras sincronizadas, escucha sin conexión y Salas Compartidas.
 **[Windows](#windows)** · **[Android](#android)** · **[Sincronización](#sincronización-entre-pc-y-android)** ·
 **[Reportar un problema](https://github.com/andyhenriquezluciano/Numa/issues/new/choose)**
 
-</div>
-
-La disponibilidad depende del contenido, la plataforma, la conexión y los servicios vinculados.
-NÜMA no proporciona suscripciones ni elimina los requisitos de los proveedores.
-
 <div align="center">
 
 [Funciones](#funciones) · [Capturas](#windows) · [Android](#android) · [Sincronización](#sincronización-entre-pc-y-android) · [Descargas](#descargar)
