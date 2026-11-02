@@ -55,7 +55,7 @@ AnimatedArtworkService::AnimatedArtworkService(AppearanceSettings *settings,
 void AnimatedArtworkService::resolveTrackArtwork(
     const QString &title, const QString &artist, const QString &album,
     quint64 requestId, std::function<void(quint64, const QString &)> callback) {
-  if (!m_settings || !m_settings->animatedArtworkEnabled() || m_settings->performanceMode() ||
+  if (!m_settings || !m_settings->animatedArtworkEnabled() ||
       title.trimmed().isEmpty() || artist.trimmed().isEmpty()) {
     if (callback) {
       callback(requestId, QString());
@@ -106,7 +106,7 @@ void AnimatedArtworkService::resolveTrackArtwork(
 void AnimatedArtworkService::resolveAlbumArtwork(
     const QString &title, const QString &artist, quint64 requestId,
     std::function<void(quint64, const QString &)> callback) {
-  if (!m_settings || !m_settings->animatedArtworkEnabled() || m_settings->performanceMode() ||
+  if (!m_settings || !m_settings->animatedArtworkEnabled() ||
       title.trimmed().isEmpty()) {
     if (callback) {
       callback(requestId, QString());

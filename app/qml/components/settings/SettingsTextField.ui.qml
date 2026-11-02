@@ -37,7 +37,7 @@ TextField {
 
     background: Rectangle {
         radius: 10
-        color: "#1b201c"
+        color: NumaAppearance.rosePine ? NumaAppearance.surfaceColor : "#1b201c"
         border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : field.activeFocus ? "#c4a7e7" : "#3a413b"
         border.width: NumaAppearance.controlBorderWidth
     }

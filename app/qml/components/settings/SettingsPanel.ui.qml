@@ -59,11 +59,11 @@ RowLayout {
 
         Text {
             text: qsTr("Settings")
-            color: NumaAppearance.mutedColor
+            color: NumaAppearance.textColor
             font.family: "Inter"
-            font.pixelSize: 12
-            font.weight: Font.DemiBold
-            font.letterSpacing: 0.6
+            font.pixelSize: 13
+            font.weight: Font.ExtraBold
+            font.letterSpacing: 0
             font.capitalization: Font.AllUppercase
             Layout.leftMargin: 12
             Layout.topMargin: 6
@@ -72,13 +72,16 @@ RowLayout {
 
         Label {
             text: qsTr("Language")
-            color: NumaAppearance.mutedColor
-            font.pixelSize: 12
+            color: NumaAppearance.textColor
+            font.family: "Inter"
+            font.weight: Font.ExtraBold
+            font.pixelSize: 13
             Layout.leftMargin: 12
         }
         SettingsSelect {
             Layout.fillWidth: true
             Layout.bottomMargin: 18
+            tintedBackground: true
             model: ["English", "Español"]
             currentIndex: NumaLanguage.language === "en" ? 0 : 1
             onActivated: index => NumaLanguage.language = ["en", "es"][index]
@@ -137,12 +140,6 @@ RowLayout {
             Layout.fillHeight: true
         }
 
-    }
-
-    Rectangle {
-        Layout.fillHeight: true
-        Layout.preferredWidth: 1
-        color: "#1cffffff"
     }
 
     ColumnLayout {

@@ -112,7 +112,7 @@ fun LibraryScreen(
             LibraryFilter.PLAYLISTS -> collections(
                 uiText("Your playlists", "Tus listas"),
                 filterCatalogItems((localSnapshot.playlists.map { it.toPlaylist(localSnapshot) } + library.savedPlaylists)
-                    .distinctBy { it.id }.sortedBy { dev.sfg.numa.mobile.model.playlistDisplayRank(it.id) }
+                    .distinctBy { dev.sfg.numa.mobile.library.libraryPlaylistId(it.id) }.sortedBy { dev.sfg.numa.mobile.model.playlistDisplayRank(it.id) }
                     .map { CatalogItem.Collection(it) }, searchQuery),
                 Icons.Rounded.LibraryMusic,
                 if (searching) uiText("No matching playlists", "No hay listas que coincidan") else uiText("No saved playlists", "No hay listas guardadas"),

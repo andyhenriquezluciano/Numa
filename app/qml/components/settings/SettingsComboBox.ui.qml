@@ -24,6 +24,8 @@ import ".."
 
 ComboBox {
     id: control
+    property int hoveredOption: -1
+    property bool tintedBackground: false
     implicitHeight: 36
     leftPadding: 16
     rightPadding: 38
@@ -54,13 +56,13 @@ ComboBox {
         opacity: control.enabled ? 1 : 0.5
         Rectangle {
             anchors.fill: parent
-            radius: control.height / 2
-            color: NumaAppearance.rosePine ? (control.hovered ? NumaAppearance.highlightColor : NumaAppearance.baseColor) : control.hovered ? "#1cffffff" : "#10ffffff"
+            radius: 10
+            color: NumaAppearance.rosePine ? NumaAppearance.surfaceColor : control.hovered ? "#1cffffff" : "#10ffffff"
             Behavior on color { ColorAnimation { duration: 120 } }
         }
         RoundedSurfaceFrame {
             anchors.fill: parent
-            radius: control.height / 2
+            radius: 10
             softGlow: true
             showBorder: true
             border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : control.visualFocus ? "#d8c2f2" : (control.hovered ? "#45ffffff" : "#30ffffff")
@@ -70,24 +72,41 @@ ComboBox {
 
     delegate: ItemDelegate {
         id: option
+        hoverEnabled: true
+        onHoveredChanged: {
+            if (hovered) control.hoveredOption = index;
+            else if (control.hoveredOption === index) control.hoveredOption = -1;
+        }
+        rightPadding: 32
+        Rectangle {
+            anchors.right: parent.right
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+            width: 8
+            height: 8
+            radius: 4
+            visible: control.currentIndex === option.index
+            color: NumaAppearance.accentColor
+        }
         required property var modelData
         required property int index
         width: control.popup.width - 12
         height: 36
         leftPadding: 12
-        rightPadding: 12
         highlighted: control.highlightedIndex === index
 
         contentItem: Text {
             text: option.modelData[control.textRole] ?? option.modelData
-            font: control.font
+            font.family: control.font.family
+            font.pixelSize: control.font.pixelSize
+            font.weight: control.currentIndex === option.index ? Font.DemiBold : Font.Normal
             color: NumaAppearance.textColor
             elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
         }
         background: Rectangle {
             radius: 10
-            color: NumaAppearance.rosePine ? (control.currentIndex === option.index ? NumaAppearance.highlightColor : option.highlighted || option.hovered ? NumaAppearance.overlayColor : "transparent") : option.highlighted || option.hovered ? "#1cffffff" : "transparent"
+            color: (control.hoveredOption >= 0 ? control.hoveredOption === option.index : option.highlighted) ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#20ffffff") : "transparent"
         }
     }
 
@@ -104,6 +123,6 @@ ComboBox {
             currentIndex: control.highlightedIndex
             ScrollIndicator.vertical: ScrollIndicator {}
         }
-        background: PopupBloomSurface { radius: 14; performanceColor: NumaAppearance.overlayColor }
+        background: PopupBloomSurface { radius: 14; performanceColor: NumaAppearance.surfaceColor }
     }
 }

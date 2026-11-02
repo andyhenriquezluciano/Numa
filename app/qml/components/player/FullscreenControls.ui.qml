@@ -185,7 +185,7 @@ ColumnLayout {
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width
                 // The bar swells while mixing, same as hovering but with conviction.
-                height: controls.mixing ? 10 : progress.hovered || progress.pressed ? 9 : 5
+                height: controls.mixing ? 10 : progress.hovered || progress.pressed ? 9 : 7
                 radius: height / 2
                 color: Qt.rgba(controls.primaryText.r, controls.primaryText.g, controls.primaryText.b, 0.18 + 0.1 * controls.mixGlow)
                 Behavior on height { NumberAnimation { duration: 420; easing.type: Easing.OutBack; easing.overshoot: 2.4 } }
@@ -193,7 +193,7 @@ ColumnLayout {
                 MixDotFill {
                     anchors.fill: parent
                     fraction: Math.min(1, progress.pressed ? progress.shown / progress.to : controls.shownFraction)
-                    baseColor: NumaAppearance.theme === "rose_pine_dawn" ? NumaAppearance.accentColor : controls.mixing || progress.hovered || progress.pressed ? "#ffffff"
+                    baseColor: NumaAppearance.rosePine ? NumaAppearance.accentColor : controls.mixing || progress.hovered || progress.pressed ? "#ffffff"
                          : Qt.rgba(controls.primaryText.r, controls.primaryText.g, controls.primaryText.b, 0.82)
                     colorFade: 400
                     dotColor: controls.mixAccentColor
@@ -432,7 +432,7 @@ ColumnLayout {
                 Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
                     width: parent.width
-                    height: volume.hovered || volume.pressed ? 6 : 4
+                    height: volume.hovered || volume.pressed ? 8 : 6
                     radius: height / 2
                     color: "#2effffff"
                     Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 2 } }
@@ -441,7 +441,7 @@ ColumnLayout {
                         width: volume.visualPosition * parent.width
                         height: parent.height
                         radius: parent.radius
-                        color: Qt.rgba(controls.primaryText.r, controls.primaryText.g, controls.primaryText.b, volume.hovered ? 1 : 0.7)
+                        color: NumaAppearance.rosePine ? NumaAppearance.accentColor : Qt.rgba(controls.primaryText.r, controls.primaryText.g, controls.primaryText.b, volume.hovered ? 1 : 0.7)
                         Behavior on color { ColorAnimation { duration: 160 } }
                     }
                 }

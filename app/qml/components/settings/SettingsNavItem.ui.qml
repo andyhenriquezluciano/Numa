@@ -55,7 +55,6 @@ ItemDelegate {
             font.pixelSize: 14
             font.weight: navItem.current ? Font.DemiBold : Font.Normal
             elide: Text.ElideRight
-            Behavior on color { ColorAnimation { duration: 160 } }
         }
     }
 
@@ -64,6 +63,6 @@ ItemDelegate {
         radius: 10
         color: navItem.current ? "transparent" : NumaAppearance.rosePine ? (navItem.hovered || navItem.down ? NumaAppearance.highlightColor : "transparent") : navItem.down ? "#22ffffff" : navItem.hovered ? "#14ffffff" : "transparent"
         border.color: navItem.visualFocus ? "#d8c2f2" : "transparent"
-        Behavior on color { ColorAnimation { duration: 120 } }
+
     }
 }

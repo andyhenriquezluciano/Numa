@@ -196,6 +196,8 @@ Item {
         radius: root.radius
         softGlow: false
         showBorder: true
+        border.width: NumaAppearance.borderWidth
+        border.color: NumaAppearance.borderColor
         fillColor: NumaAppearance.rosePine ? NumaAppearance.surfaceColor : root.tint(root.inkColor, root.compactMode ? 0.34 : 0.6)
         visible: !root.compactDetailsOpen
     }

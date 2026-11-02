@@ -25,6 +25,7 @@ import QtQuick.Effects
 Item {
     id: root
 
+    readonly property color lyricColor: NumaAppearance.rosePine ? NumaAppearance.accentColor : primaryText
     property color accentColor: NumaAppearance.textColor
     property color primaryText: NumaAppearance.textColor
     property color mutedText: "#858a82"
@@ -324,7 +325,7 @@ Item {
                         readonly property var adlibs: modelData.adlibs || []
                         readonly property string translation: root.translationAt(index)
                         readonly property bool translated: translation.length > 0
-                        readonly property color restColor: root.tint(root.primaryText, !root.synced ? 0.72 : hover.containsMouse ? 0.68 : 0.24)
+                        readonly property color restColor: root.tint(root.lyricColor, !root.synced ? 0.72 : hover.containsMouse ? 0.68 : 0.24)
 
                         readonly property var wordEnds: words.map((_, i) => wordEnd(words, i))
                         readonly property var adlibEnds: adlibs.map((_, i) => wordEnd(adlibs, i))
@@ -378,7 +379,7 @@ Item {
                                     width: parent.width
                                     visible: line.words.length === 0 || line.translated
                                     text: line.translated ? line.translation : line.modelData.text || ""
-                                    color: line.current ? root.primaryText : line.restColor
+                                    color: line.translated ? (line.current ? root.primaryText : root.tint(root.primaryText, 0.24)) : line.current ? root.lyricColor : line.restColor
                                     horizontalAlignment: line.alternate ? Text.AlignRight : Text.AlignLeft
                                     font.family: "Inter"
                                     font.pixelSize: root.synced ? root.pixelSize : 16
@@ -400,10 +401,10 @@ Item {
                                     pixelSize: metrics.font.pixelSize
                                     weight: line.translated ? Font.Medium : Font.Bold
                                     alignRight: line.alternate
-                                    baseColor: line.translated ? root.tint(root.primaryText, line.current ? 0.48 : 0.2)
-                                             : line.current ? root.tint(root.primaryText, 0.28) : line.restColor
-                                    fillColor: line.translated ? root.tint(root.accentColor, 0.9) : root.fillColor
-                                    doneColor: root.primaryText
+                                    baseColor: line.translated ? root.tint(root.lyricColor, line.current ? 0.48 : 0.2)
+                                             : line.current ? root.tint(root.lyricColor, 0.28) : line.restColor
+                                    fillColor: NumaAppearance.rosePine ? root.lyricColor : line.translated ? root.tint(root.accentColor, 0.9) : root.fillColor
+                                    doneColor: root.lyricColor
                                     clockSource: root
                                 }
 
@@ -411,7 +412,7 @@ Item {
                                     width: parent.width
                                     visible: line.translated && line.words.length === 0
                                     text: line.modelData.text || ""
-                                    color: root.tint(root.primaryText, line.current ? 0.48 : 0.2)
+                                    color: root.tint(root.lyricColor, line.current ? 0.48 : 0.2)
                                     horizontalAlignment: line.alternate ? Text.AlignRight : Text.AlignLeft
                                     font: adlibMetrics.font
                                     wrapMode: Text.Wrap
@@ -429,9 +430,9 @@ Item {
                                     pixelSize: adlibMetrics.font.pixelSize
                                     weight: Font.Medium
                                     alignRight: line.alternate
-                                    baseColor: root.tint(root.primaryText, line.current ? 0.48 : 0.2)
-                                    fillColor: root.tint(root.accentColor, 0.9)
-                                    doneColor: root.primaryText
+                                    baseColor: root.tint(root.lyricColor, line.current ? 0.48 : 0.2)
+                                    fillColor: NumaAppearance.rosePine ? root.lyricColor : root.tint(root.accentColor, 0.9)
+                                    doneColor: root.lyricColor
                                     clockSource: root
                                 }
                             }

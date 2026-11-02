@@ -54,8 +54,6 @@ RowLayout {
             color: videoButton.hovered ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#1fffffff") : "transparent"
             border.width: 1
             border.color: videoButton.activeFocus ? bar.primaryText : "transparent"
-
-            Behavior on color { ColorAnimation { duration: 90 } }
         }
 
         contentItem: LucideIcon {
@@ -111,8 +109,6 @@ RowLayout {
             color: volumeButton.hovered ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#1fffffff") : "transparent"
             border.width: 1
             border.color: volumeButton.activeFocus ? bar.primaryText : "transparent"
-
-            Behavior on color { ColorAnimation { duration: 90 } }
         }
 
         contentItem: LucideIcon {
@@ -171,7 +167,6 @@ RowLayout {
                     height: parent.height
                     radius: parent.radius
                     color: bar.lightTheme ? bar.progressColor : Qt.rgba(1, 1, 1, volume.hovered || volume.pressed ? 1 : 0.75)
-                    Behavior on color { ColorAnimation { duration: 120 } }
                 }
             }
         }
@@ -225,8 +220,6 @@ RowLayout {
             color: NumaAppearance.rosePine ? (bar.queueOpen || queueButton.hovered ? NumaAppearance.highlightColor : "transparent") : bar.queueOpen ? (queueButton.hovered ? "#3dffffff" : "#2effffff") : queueButton.hovered ? "#1fffffff" : "transparent"
             border.width: 1
             border.color: queueButton.activeFocus ? bar.primaryText : "transparent"
-
-            Behavior on color { ColorAnimation { duration: 90 } }
         }
 
         contentItem: LucideIcon {

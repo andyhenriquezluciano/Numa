@@ -55,7 +55,6 @@ Button {
         border.width: 1
         border.color: NumaAppearance.rosePine ? (roundButton.active || roundButton.hovered || roundButton.down ? NumaAppearance.highlightColor : "transparent") : roundButton.activeFocus ? roundButton.primaryText : "transparent"
         opacity: roundButton.enabled ? 1 : 0.4
-        Behavior on color { ColorAnimation { duration: 140 } }
     }
 
     contentItem: Item {

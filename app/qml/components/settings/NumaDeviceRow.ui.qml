@@ -56,6 +56,7 @@ RowLayout {
     }
 
     SettingsButton {
+            prominent: true
         id: removeButton
         visible: root.removable
         text: qsTr("Remove")

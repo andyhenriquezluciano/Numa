@@ -42,7 +42,7 @@ ColumnLayout {
         }
         Text {
             text: root.displayValue
-            color: "#b3c5b9"
+            color: NumaAppearance.mutedColor
             font.family: "Inter"
             font.pixelSize: 12
         }
@@ -62,12 +62,12 @@ ColumnLayout {
             width: slider.availableWidth
             height: 4
             radius: 2
-            color: "#3e423b"
+            color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#3e423b"
             Rectangle {
                 width: slider.visualPosition * parent.width
                 height: parent.height
                 radius: 2
-                color: root.enabled ? "#c4a7e7" : "#69756b"
+                color: root.enabled ? NumaAppearance.accentColor : "#69756b"
             }
         }
         handle: Rectangle {
@@ -76,7 +76,7 @@ ColumnLayout {
             width: 16
             height: 16
             radius: 8
-            color: root.enabled ? "#e5d8f7" : "#69756b"
+            color: root.enabled ? NumaAppearance.accentColor : "#69756b"
             border.width: slider.activeFocus ? 2 : 0
             border.color: "white"
         }

@@ -46,7 +46,7 @@ AppearanceSectionForm {
     animatedArtworkSwitch.onToggled: NumaAppearance.animatedArtworkEnabled = animatedArtworkSwitch.checked
     collageSwitch.onToggled: NumaAppearance.animatedCollageEnabled = collageSwitch.checked
     themePicker.onPicked: value => NumaAppearance.theme = value
-    borderPicker.onPicked: value => NumaAppearance.bordersEnabled = value === "default"
+    borderSwitch.onToggled: NumaAppearance.bordersEnabled = borderSwitch.checked
     sourcePicker.onPicked: value => NumaAppearance.artworkSource = value
     resetOrderButton.onClicked: NumaAppearance.resetMirrorOrder()
     immersiveSwitch.onToggled: NumaAppearance.immersiveBackground = immersiveSwitch.checked

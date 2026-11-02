@@ -99,6 +99,7 @@ ColumnLayout {
                 : qsTr("Download songs, playlists and albums from their menus to listen without a connection.")
 
             SettingsButton {
+                surfaceBackground: true
                 id: clearButton
                 text: qsTr("Clear all downloads")
                 enabled: root.downloadCount > 0 || root.pending > 0
@@ -117,6 +118,7 @@ ColumnLayout {
                 : qsTr("%n song(s) failed. They resume when you retry.", "", root.failedCount)
 
             SettingsButton {
+                surfaceBackground: true
                 id: retryButton
                 visible: root.failedCount > 0
                 text: qsTr("Retry")

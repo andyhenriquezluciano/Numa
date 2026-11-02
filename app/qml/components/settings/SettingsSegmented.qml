@@ -45,6 +45,20 @@ Item {
         onActivated: index => root.picked(root.model[index].value)
         delegate: ItemDelegate {
             id: option
+            hoverEnabled: true
+            rightPadding: 32
+            onHoveredChanged: {
+                if (hovered) select.hoveredOption = index;
+                else if (select.hoveredOption === index) select.hoveredOption = -1;
+            }
+            Rectangle {
+                anchors.right: parent.right
+                anchors.rightMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+                width: 8; height: 8; radius: 4
+                visible: select.currentIndex === option.index
+                color: NumaAppearance.accentColor
+            }
             required property int index
             required property var modelData
             width: ListView.view.width
@@ -57,11 +71,13 @@ Item {
                 text: option.modelData.label
                 color: NumaAppearance.textColor
                 opacity: option.enabled ? 1 : 0.4
-                font: select.font
+                font.family: select.font.family
+                font.pixelSize: select.font.pixelSize
+                font.weight: select.currentIndex === option.index ? Font.DemiBold : Font.Normal
                 wrapMode: Text.WordWrap
                 verticalAlignment: Text.AlignVCenter
             }
-            background: Rectangle { radius: 7; color: option.highlighted ? "#20ffffff" : "transparent" }
+            background: Rectangle { radius: 7; color: (select.hoveredOption >= 0 ? select.hoveredOption === option.index : option.highlighted) ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#20ffffff") : "transparent" }
         }
     }
     Label {

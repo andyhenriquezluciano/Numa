@@ -245,7 +245,7 @@ fun FoldableHomeScreen(
                             .filterNot { library.isPlaylistHidden(it.id) }
                             .map { CatalogItem.Collection(it) }
                             .ifEmpty { extractItemsOfKind<CatalogItem.Collection>(state, library) }
-                            .distinctBy { it.stableId }
+                            .distinctBy { dev.sfg.numa.mobile.library.libraryPlaylistId(it.playlist.id) }
 
                     if (playlistItems.isNotEmpty()) {
                         foldableRail(uiText("Your Playlists", "Tus listas"), playlistItems, seeAll(uiText("Your Playlists", "Tus listas"), playlistItems), openCatalogItem)

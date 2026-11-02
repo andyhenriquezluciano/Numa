@@ -18,6 +18,7 @@
  */
 
 import QtQuick
+import "../home"
 import QtQuick.Layouts
 
 // YouTube Music account card with switch and sign out buttons.
@@ -50,12 +51,10 @@ RowLayout {
             font.pixelSize: 20
         }
 
-        Image {
+        RoundedArtwork {
             anchors.fill: parent
             source: root.userAvatar
-            sourceSize: Qt.size(96, 96)
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
+            radius: 10
         }
     }
 
@@ -85,6 +84,7 @@ RowLayout {
 
     // Brand channels and other Google accounts, without signing out first.
     SettingsButton {
+            prominent: true
         id: switchButton
         text: root.switching ? qsTr("Choosing...") : qsTr("Switch account")
         enabled: root.signedIn && !root.switching
@@ -92,6 +92,7 @@ RowLayout {
     }
 
     SettingsButton {
+            prominent: true
         id: signOutButton
         text: qsTr("Sign out")
     }

@@ -137,7 +137,7 @@ SettingsSection {
                         height: Math.max(2, +(root.engine.spectrum[index] || 0) * parent.height)
                         anchors.bottom: parent.bottom
                         radius: 2
-                        color: "#9874c2"
+                        color: NumaAppearance.accentColor
                         opacity: root.engine.enabled ? 0.78 : 0.28
                     }
                 }
@@ -152,7 +152,7 @@ SettingsSection {
                       : root.engine.autoEqEnabled ? qsTr("Automatic EQ active")
                       : root.engine.eqEnabled ? qsTr("Manual EQ active")
                       : qsTr("Direct")
-                color: "#e5d8f7"
+                color: NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 12
                 font.weight: Font.Medium
@@ -330,6 +330,7 @@ SettingsSection {
 
         SettingsButton {
             id: resetButton
+            surfaceBackground: true
             text: qsTr("Reset engine")
         }
     }

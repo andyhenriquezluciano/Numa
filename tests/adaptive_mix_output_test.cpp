@@ -143,6 +143,7 @@ private slots:
     QCOMPARE(appearance.controlBorderWidth(), 1);
     appearance.setTheme(QStringLiteral("rose_pine"));
     QCOMPARE(appearance.baseColor(), QColor("#191724"));
+    QCOMPARE(appearance.accentColor(), QColor("#ebbcba"));
     QCOMPARE(appearance.borderColor(), QColor("#ebbcba"));
     QCOMPARE(appearance.borderWidth(), 2);
     QCOMPARE(appearance.controlBorderWidth(), 0);

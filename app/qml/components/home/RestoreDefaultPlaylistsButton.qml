@@ -20,7 +20,7 @@ Button {
         if (!NumaNetwork.offline) { NumaHome.refreshLibrary(); NumaHome.refresh() }
     }
     background: Item {
-        Rectangle { anchors.fill: parent; radius: 8; color: root.hovered ? "#1cffffff" : "#10ffffff" }
+        Rectangle { anchors.fill: parent; radius: 8; color: NumaAppearance.rosePine ? (root.hovered ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : root.hovered ? "#1cffffff" : "#10ffffff" }
         RoundedSurfaceFrame {
             anchors.fill: parent
             radius: 8

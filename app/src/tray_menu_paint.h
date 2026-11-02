@@ -23,7 +23,7 @@ inline void paintTrayMenu(QMenu *menu)
         surface.addRect(QRectF(menu->rect()));
     else
         surface.addRoundedRect(QRectF(menu->rect()).adjusted(inset, inset, -inset, -inset), 11.5, 11.5);
-    painter.fillPath(surface, dawn ? QColor("#fffaf3") : rose ? QColor("#1f1d2e") : QColor(14, 18, 16, nativeBlur ? 36 : 220));
+    painter.fillPath(surface, dawn ? QColor("#fffaf3") : rose ? QColor("#1f1d2e") : QColor(14, 18, 16, nativeBlur ? 28 : 135));
     painter.setPen(menu->property("bordersEnabled").toBool() ? QPen(dawn ? QColor("#d7827e") : rose ? QColor("#ebbcba") : QColor(255, 255, 255, 42), rose ? 2 : 1) : QPen(Qt::NoPen));
     if (!nativeBlur) painter.drawPath(surface);
     painter.setClipPath(surface);

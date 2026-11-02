@@ -43,7 +43,7 @@ Item {
     readonly property bool narrow: width < (canopy ? 500 : 640)
     readonly property bool showTrackInfo: width >= 520
     readonly property bool showProgress: width >= (canopy ? 700 : 600)
-    readonly property real cornerRadius: canopy ? 10 : height / 2
+    readonly property real cornerRadius: canopy ? 10 : 14
     readonly property int controlSize: canopy ? 28 : 32
     // The fullscreen player launches its cover from here.
     readonly property Item artworkItem: artworkSlot

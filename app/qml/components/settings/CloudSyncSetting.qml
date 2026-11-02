@@ -24,6 +24,7 @@ ColumnLayout {
     RowLayout {
         BusyIndicator { running: root.sync ? root.sync.busy : false; visible: running; implicitWidth: 24; implicitHeight: 24 }
         SettingsButton {
+            prominent: true
             objectName: "syncLibraryNow"
             text: root.sync && root.sync.busy ? qsTr("Syncing…") : qsTr("Sync now")
             enabled: root.signedIn && root.sync && !root.sync.busy

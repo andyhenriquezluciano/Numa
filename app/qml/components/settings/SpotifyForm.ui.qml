@@ -78,6 +78,7 @@ ColumnLayout {
         }
 
         SettingsButton {
+                surfaceBackground: true
             id: loginButton
             visible: root.loginAvailable && (root.status === "disconnected" || root.status === "restoring")
             enabled: root.status === "disconnected"
@@ -86,18 +87,21 @@ ColumnLayout {
         }
 
         SettingsButton {
+                surfaceBackground: true
             id: cookieToggleButton
             visible: root.status === "disconnected"
             text: root.enteringCookie ? qsTr("Cancel") : qsTr("Enter cookie")
         }
 
         SettingsButton {
+                surfaceBackground: true
             id: cancelButton
             visible: root.status === "connecting"
             text: qsTr("Cancel")
         }
 
         SettingsButton {
+                surfaceBackground: true
             id: disconnectButton
             visible: root.connected
             text: qsTr("Disconnect")
@@ -132,6 +136,7 @@ ColumnLayout {
         }
 
         SettingsButton {
+                surfaceBackground: true
             id: saveButton
             text: qsTr("Save")
         }

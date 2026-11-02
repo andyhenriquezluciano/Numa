@@ -57,7 +57,7 @@ Item {
         id: bassPulse
         engine: NumaPlayback.audioEngine
         running: popup.open && !panel.lyricsMode && NumaPlayback.playing
-                 && !NumaAppearance.performanceMode
+                 && NumaAppearance.fullscreenPulse
     }
 
     Rectangle {
@@ -242,7 +242,7 @@ Item {
                 Item {
                     anchors.fill: parent
                     visible: popup.open && !panel.lyricsMode
-                    scale: 1 + 0.012 * popup.artworkPulse
+                    scale: 1 + 0.024 * popup.artworkPulse
                     transformOrigin: Item.Center
 
                     TransitionArtwork {
@@ -263,7 +263,6 @@ Item {
                         anchors.fill: parent
                         active: parent.visible && popup.hasTrack
                                 && NumaAppearance.animatedArtworkEnabled
-                                && !NumaAppearance.performanceMode
                                 && !!NumaPlayback.animatedArtworkUrl
                         opacity: NumaPlayback.crossfadeActive ? 1 - Math.min(1, NumaPlayback.crossfadeProgress / 0.15) : 1
 
@@ -439,7 +438,6 @@ Item {
             border.color: parent.activeFocus ? panel.primaryText : "transparent"
             opacity: parent.enabled ? 1 : 0.4
             scale: parent.main && parent.down ? 0.94 : 1
-            Behavior on color { ColorAnimation { duration: 90 } }
             Behavior on scale { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
         }
         contentItem: LucideIcon {
@@ -460,7 +458,7 @@ Item {
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             x: parent.control.leftPadding; width: parent.control.availableWidth
-            height: rail.mixAmount > 0.01 ? 6 : rail.control.hovered || rail.control.pressed ? 6 : 4
+            height: rail.mixAmount > 0.01 || rail.control.hovered || rail.control.pressed ? 7 : 6
             radius: height / 2; color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#2effffff"
             Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.OutBack; easing.overshoot: 2 } }
 

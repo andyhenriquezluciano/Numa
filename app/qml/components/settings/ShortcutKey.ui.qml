@@ -34,7 +34,7 @@ Item {
         visible: !token.separator
         anchors.fill: parent
         radius: 6
-        color: "#22ffffff"
+        color: NumaAppearance.rosePine ? NumaAppearance.surfaceColor : "#22ffffff"
         border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#38ffffff"
         border.width: NumaAppearance.controlBorderWidth
         implicitWidth: capText.implicitWidth + 14

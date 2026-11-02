@@ -36,8 +36,8 @@ Rectangle {
     clip: true
     implicitHeight: autoplayLayout.implicitHeight + 20
     radius: 14
-    color: "#10ffffff"
-    border.color: "#1affffff"
+    color: NumaAppearance.rosePine ? "transparent" : "#10ffffff"
+    border.color: NumaAppearance.rosePine ? "transparent" : "#1affffff"
 
     RowLayout {
         id: autoplayLayout

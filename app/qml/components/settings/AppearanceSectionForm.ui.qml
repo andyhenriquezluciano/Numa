@@ -49,7 +49,7 @@ ColumnLayout {
     property alias animatedArtworkSwitch: animatedArtworkSwitch
     property alias collageSwitch: collageSwitch
     property alias themePicker: themePicker
-    property alias borderPicker: borderPicker
+    property alias borderSwitch: borderSwitch
     property alias sourcePicker: sourcePicker
     property alias resetOrderButton: resetOrderButton
     property alias immersiveSwitch: immersiveSwitch
@@ -92,10 +92,10 @@ ColumnLayout {
             iconName: "maximize"
             title: qsTr("Borders")
             description: qsTr("Keep the theme borders or turn them off without removing blur.")
-            SettingsSegmented {
-                id: borderPicker
-                currentValue: root.bordersEnabled ? "default" : "off"
-                model: [{ value: "default", label: qsTr("Default") }, { value: "off", label: qsTr("Off") }]
+            SettingsSwitch {
+                id: borderSwitch
+                checked: root.bordersEnabled
+                Accessible.name: qsTr("Borders")
             }
         }
     }
@@ -106,6 +106,7 @@ ColumnLayout {
         rowSpacing: 0
         verticalPadding: 0
         SettingsRow {
+            iconName: "image"
             title: qsTr("Use the playing song artwork")
             description: qsTr("Use the current song as the playlist background instead of its cover.")
             SettingsSwitch {
@@ -243,6 +244,7 @@ ColumnLayout {
 
             SettingsButton {
                 id: resetOrderButton
+                surfaceBackground: true
                 text: qsTr("Reset order")
                 Accessible.name: qsTr("Reset mirror order")
             }
@@ -328,6 +330,7 @@ ColumnLayout {
 
             SettingsButton {
                 id: resetControlsButton
+                surfaceBackground: true
                 objectName: "resetControls"
                 text: qsTr("Reset controls")
             }

@@ -213,16 +213,9 @@ Item {
                 // The active fill comes from navHighlight; this only handles hover and focus.
                 background: Rectangle {
                     radius: 9
-                    color: root.currentPage !== nav.modelData.key && nav.hovered ? (NumaAppearance.rosePine ? NumaAppearance.overlayColor : "#14ffffff") : "transparent"
-                    border.color: root.currentPage !== nav.modelData.key && nav.hovered ? "#22ffffff" : "transparent"
+                    color: root.currentPage !== nav.modelData.key && nav.hovered ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#14ffffff") : "transparent"
+                    border.color: "transparent"
                     border.width: 1
-
-                    Behavior on color {
-                        ColorAnimation { duration: Motion.fast }
-                    }
-                    Behavior on border.color {
-                        ColorAnimation { duration: Motion.fast }
-                    }
                 }
 
                 contentItem: Row {
@@ -243,10 +236,6 @@ Item {
                         text: nav.modelData.title
                         color: root.currentPage === nav.modelData.key ? NumaAppearance.textColor : NumaAppearance.mutedColor
                         font.weight: root.currentPage === nav.modelData.key ? Font.DemiBold : Font.Normal
-
-                        Behavior on color {
-                            ColorAnimation { duration: Motion.normal }
-                        }
                         font.family: "Inter"
                         font.pixelSize: 12
                     }
@@ -284,7 +273,6 @@ Item {
                     anchors.fill: parent
                     radius: 8
                     color: NumaAppearance.rosePine ? (newPlaylistButton.hovered ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : newPlaylistButton.hovered ? "#1cffffff" : "#10ffffff"
-                    Behavior on color { ColorAnimation { duration: Motion.fast } }
                 }
                 RoundedSurfaceFrame {
                     anchors.fill: parent
@@ -394,7 +382,7 @@ Item {
                         softGlow: true
                         showBorder: true
                         visible: !shortcut.selected && shortcut.hovered
-                        fillColor: NumaAppearance.rosePine ? NumaAppearance.overlayColor : "#14ffffff"
+                        fillColor: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#14ffffff"
                         border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#30ffffff"
                     }
                 }

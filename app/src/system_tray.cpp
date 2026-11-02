@@ -167,12 +167,11 @@ protected:
 private:
     void updateSurfaceMask()
     {
-        if (!property("nativeBlur").toBool()) {
-            clearMask();
-            return;
-        }
+        // Clip the native backdrop too, even when Windows falls back from acrylic.
+        // Transparent widget pixels alone do not remove that rectangular surface.
         QPainterPath shape;
-        shape.addRoundedRect(QRectF(rect()), 12, 12);
+        const qreal inset = property("rosePine").toBool() ? 1.0 : 0.5;
+        shape.addRoundedRect(QRectF(rect()).adjusted(inset, inset, -inset, -inset), 11.5, 11.5);
         setMask(QRegion(shape.toFillPolygon().toPolygon()));
     }
 

@@ -35,7 +35,6 @@ Button {
                                                                      : "transparent"
         border.width: 1
         border.color: control.activeFocus ? control.colors.accentColor : "transparent"
-        Behavior on color { ColorAnimation { duration: 120 } }
     }
 
     contentItem: Item {

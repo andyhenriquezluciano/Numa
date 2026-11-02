@@ -23,6 +23,8 @@ import QtQuick.Controls
 
 Button {
     id: control
+    property bool prominent: false
+    property bool surfaceBackground: false
     implicitHeight: 38
     padding: 12
     font.family: "Inter"
@@ -31,20 +33,19 @@ Button {
     contentItem: Text {
         text: control.text
         font: control.font
-        color: NumaAppearance.textColor
+        color: NumaAppearance.theme === "rose_pine" && (control.prominent || control.surfaceBackground) ? NumaAppearance.baseColor : control.prominent && NumaAppearance.theme === "rose_pine_dawn" ? NumaAppearance.surfaceColor : NumaAppearance.textColor
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
     }
     background: Item {
         Rectangle {
             anchors.fill: parent
-            radius: control.height / 2
-            color: control.highlighted ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#514060") : control.down ? "#2cffffff" : control.hovered ? "#1cffffff" : "#0fffffff"
-            Behavior on color { ColorAnimation { duration: 120 } }
+            radius: 10
+            color: NumaAppearance.theme === "rose_pine" && (control.prominent || control.surfaceBackground) ? NumaAppearance.accentColor : control.surfaceBackground && NumaAppearance.rosePine ? NumaAppearance.surfaceColor : NumaAppearance.rosePine ? (control.prominent ? NumaAppearance.accentColor : control.hovered || control.down || control.highlighted ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : control.highlighted ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#514060") : control.down ? "#2cffffff" : control.hovered ? "#1cffffff" : "#0fffffff"
         }
         RoundedSurfaceFrame {
             anchors.fill: parent
-            radius: control.height / 2
+            radius: 10
             softGlow: true
             showBorder: true
             border.width: NumaAppearance.controlBorderWidth

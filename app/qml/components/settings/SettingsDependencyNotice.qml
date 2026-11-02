@@ -37,7 +37,7 @@ Rectangle {
             Text {
                 Layout.fillWidth: true
                 text: root.title
-                color: "#eef4ef"
+                color: NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 13
                 font.weight: Font.DemiBold
@@ -46,7 +46,7 @@ Rectangle {
             Text {
                 Layout.fillWidth: true
                 text: root.message
-                color: "#b7c5ba"
+                color: NumaAppearance.mutedColor
                 font.family: "Inter"
                 font.pixelSize: 12
                 wrapMode: Text.WordWrap

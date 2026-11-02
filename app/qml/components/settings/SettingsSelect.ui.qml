@@ -25,6 +25,8 @@ import QtQuick.Layouts
 // Dropdown used by the integration cards.
 ComboBox {
     id: select
+    property int hoveredOption: -1
+    property bool tintedBackground: false
 
     Layout.fillWidth: true
     implicitHeight: 40
@@ -56,7 +58,7 @@ ComboBox {
         Rectangle {
             anchors.fill: parent
             radius: 10
-            color: NumaAppearance.rosePine ? (select.hovered || select.popup.visible ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : select.hovered ? "#1cffffff" : "#10ffffff"
+            color: NumaAppearance.rosePine ? (select.tintedBackground ? NumaAppearance.highlightColor : NumaAppearance.surfaceColor) : select.hovered ? "#1cffffff" : "#10ffffff"
             Behavior on color { ColorAnimation { duration: 120 } }
         }
         RoundedSurfaceFrame {
@@ -71,6 +73,22 @@ ComboBox {
 
     delegate: ItemDelegate {
         id: option
+        hoverEnabled: true
+        onHoveredChanged: {
+            if (hovered) select.hoveredOption = index;
+            else if (select.hoveredOption === index) select.hoveredOption = -1;
+        }
+        rightPadding: 32
+        Rectangle {
+            anchors.right: parent.right
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+            width: 8
+            height: 8
+            radius: 4
+            visible: select.currentIndex === option.index
+            color: NumaAppearance.accentColor
+        }
         required property int index
         required property var modelData
         width: ListView.view.width
@@ -80,12 +98,14 @@ ComboBox {
         contentItem: Text {
             text: option.modelData
             color: NumaAppearance.textColor
-            font: select.font
+            font.family: select.font.family
+            font.pixelSize: select.font.pixelSize
+            font.weight: select.currentIndex === option.index ? Font.DemiBold : Font.Normal
             verticalAlignment: Text.AlignVCenter
         }
         background: Rectangle {
             radius: 7
-            color: NumaAppearance.rosePine ? (select.currentIndex === option.index || option.highlighted || option.hovered ? NumaAppearance.highlightColor : "transparent") : option.highlighted ? "#20ffffff" : "transparent"
+            color: (select.hoveredOption >= 0 ? select.hoveredOption === option.index : option.highlighted) ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#20ffffff") : "transparent"
         }
     }
 
@@ -101,6 +121,6 @@ ComboBox {
             model: select.popup.visible ? select.delegateModel : null
             currentIndex: select.highlightedIndex
         }
-        background: PopupBloomSurface { radius: 12; performanceColor: NumaAppearance.overlayColor }
+        background: PopupBloomSurface { radius: 12; performanceColor: NumaAppearance.surfaceColor }
     }
 }

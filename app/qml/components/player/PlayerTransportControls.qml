@@ -133,8 +133,6 @@ RowLayout {
                 }
                 opacity: transportButton.enabled ? 1 : 0.4
                 scale: transportButton.mainButton && transportButton.down ? 0.94 : 1
-
-                Behavior on color { ColorAnimation { duration: 90 } }
                 Behavior on scale { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
             }
 

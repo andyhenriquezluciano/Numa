@@ -88,6 +88,7 @@ ColumnLayout {
         }
 
         SettingsButton {
+                surfaceBackground: true
             id: connectButton
             visible: root.status === "disconnected" || root.status === "restoring"
             enabled: root.status === "disconnected"
@@ -96,12 +97,14 @@ ColumnLayout {
         }
 
         SettingsButton {
+                surfaceBackground: true
             id: cancelButton
             visible: root.status === "connecting"
             text: qsTr("Cancel")
         }
 
         SettingsButton {
+                surfaceBackground: true
             id: disconnectButton
             visible: root.connected
             text: qsTr("Disconnect")

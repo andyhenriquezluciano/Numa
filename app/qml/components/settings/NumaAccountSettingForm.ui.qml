@@ -19,6 +19,7 @@
 
 import ".."
 import QtQuick
+import "../home"
 import QtQuick.Layouts
 
 // Numa account sign-in and device list.
@@ -64,12 +65,14 @@ ColumnLayout {
         spacing: 10
 
         SettingsButton {
+            prominent: true
             id: signInButton
             text: root.signingIn ? qsTr("Open browser again") : qsTr("Sign in with Google")
             highlighted: !root.signingIn
         }
 
         SettingsButton {
+            prominent: true
             id: cancelSignInButton
             visible: root.signingIn
             text: qsTr("Cancel")
@@ -95,12 +98,10 @@ ColumnLayout {
                 font.pixelSize: 20
             }
 
-            Image {
+            RoundedArtwork {
                 anchors.fill: parent
                 source: root.userPicture
-                sourceSize: Qt.size(96, 96)
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
+                radius: 10
             }
         }
 
@@ -129,6 +130,7 @@ ColumnLayout {
         }
 
         SettingsButton {
+            prominent: true
             id: signOutButton
             text: qsTr("Sign out")
         }
