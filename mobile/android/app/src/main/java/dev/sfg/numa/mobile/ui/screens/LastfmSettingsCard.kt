@@ -59,7 +59,7 @@ fun LastfmSettingsCard(
             Text(
                 lastfmSubtitle(state),
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (state is LastfmState.Error) CanopyColors.Danger else CanopyColors.Muted,
+                color = if (state is LastfmState.Error) CanopyColors.Danger else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             Spacer(Modifier.height(12.dp))

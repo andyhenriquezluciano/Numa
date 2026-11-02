@@ -89,7 +89,7 @@ fun WarningBanner(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp)).glassPane(RoundedCornerShape(16.dp),
-                        if (dev.sfg.numa.mobile.ui.glass.LocalGlass.current.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE)
+                        if ((dev.sfg.numa.mobile.ui.glass.LocalGlass.current.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE || dev.sfg.numa.mobile.ui.glass.LocalGlass.current.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN))
                             dev.sfg.numa.mobile.ui.glass.GlassTone.PANEL else dev.sfg.numa.mobile.ui.glass.GlassTone.OVERLAY)
                     .clickable(onClick = onDismiss),
             ) {
@@ -110,7 +110,7 @@ fun WarningBanner(
                         modifier = Modifier
                             .weight(1f)
                             .padding(horizontal = 10.dp),
-                        color = if (isSuccess) CanopyColors.Text else noticeColor,
+                        color = if (isSuccess) androidx.compose.material3.MaterialTheme.colorScheme.onSurface else noticeColor,
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                         maxLines = 2,
                     )

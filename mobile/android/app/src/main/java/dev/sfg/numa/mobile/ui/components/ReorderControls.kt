@@ -59,7 +59,7 @@ private fun ControlButton(icon: androidx.compose.ui.graphics.vector.ImageVector,
         Icon(
             icon,
             contentDescription = description,
-            tint = if (action != null) CanopyColors.Text else CanopyColors.Muted.copy(alpha = 0.35f),
+            tint = if (action != null) androidx.compose.material3.MaterialTheme.colorScheme.onSurface else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
             modifier = Modifier.size(22.dp),
         )
     }

@@ -116,7 +116,7 @@ ColumnLayout {
             Layout.fillWidth: true
             implicitHeight: 112
             radius: 16
-            color: NumaAppearance.rosePine ? "#26233a" : "#0cffffff"
+            color: NumaAppearance.rosePine ? NumaAppearance.overlayColor : "#0cffffff"
             border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#18ffffff"
             border.width: NumaAppearance.controlBorderWidth
             ColumnLayout {

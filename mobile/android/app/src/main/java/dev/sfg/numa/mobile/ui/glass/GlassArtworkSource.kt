@@ -32,7 +32,7 @@ internal class GlassArtworkSource(val sample: GraphicsLayer, val scale: Float, v
 /** Record artwork alone so controls can blur it without sampling themselves. */
 internal fun Modifier.glassArtworkSource(priority: Int = 10): Modifier = composed {
     val scene = LocalGlassScene.current ?: return@composed this
-    if (LocalGlass.current.theme == GlassTheme.ROSE_PINE) return@composed this
+    if ((LocalGlass.current.theme == GlassTheme.ROSE_PINE || LocalGlass.current.theme == GlassTheme.ROSE_PINE_DAWN)) return@composed this
     val full = rememberGraphicsLayer()
     val sample = rememberGraphicsLayer()
     val owner = LocalLifecycleOwner.current

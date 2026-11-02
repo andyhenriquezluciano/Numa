@@ -34,6 +34,8 @@ ColumnLayout {
     property bool bordersEnabled: true
     property string artworkSource: "apple_music"
     property bool immersiveBackground: true
+    property bool playlistSongBackground: false
+    property alias playlistBackgroundSwitch: playlistBackgroundSwitch
     property real speed: 1
     property real intensity: 0.8
     property real saturation: 1
@@ -75,10 +77,23 @@ ColumnLayout {
                 id: themePicker
                 objectName: "themePicker"
                 currentValue: root.theme
-                model: [{ value: "crystal", label: qsTr("Crystal") }, { value: "rose_pine", label: "Rosé Pine" }]
+                model: [{ value: "crystal", label: qsTr("Crystal") }, { value: "rose_pine", label: "Rosé Pine" }, { value: "rose_pine_dawn", label: "Rosé Pine Dawn" }]
             }
         }
 
+    }
+
+    SettingsSection {
+        Layout.fillWidth: true
+        title: qsTr("Playlist background")
+        SettingsRow {
+            title: qsTr("Use the playing song artwork")
+            description: qsTr("Use the current song as the playlist background instead of its cover.")
+            SettingsSwitch {
+                id: playlistBackgroundSwitch
+                checked: root.playlistSongBackground
+            }
+        }
     }
 
     SettingsSection {

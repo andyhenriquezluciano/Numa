@@ -178,12 +178,12 @@ private class GlassPaneNode(
     override fun ContentDrawScope.draw() {
         scene?.animationTick?.value
         if (size.minDimension > 0.5f) {
-            if (style.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE) {
+            if ((style.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE || style.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN)) {
                 val shapeOutline = outline()
-                val fill = if (tone == GlassTone.CONTROL || tone == GlassTone.OVERLAY) dev.sfg.numa.mobile.ui.theme.RosePineColors.Overlay else dev.sfg.numa.mobile.ui.theme.RosePineColors.Surface
+                val fill = if (tone == GlassTone.CONTROL || tone == GlassTone.OVERLAY) dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Overlay else dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Surface
                 drawOutline(shapeOutline, fill)
                 if (!borderless && tone != GlassTone.CONTROL && style.borders == dev.sfg.numa.mobile.model.GlassBorders.PREDETERMINADO) {
-                    drawOutline(shapeOutline, dev.sfg.numa.mobile.ui.theme.RosePineColors.Rose, style = Stroke(1f * density))
+                    drawOutline(shapeOutline, dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Rose, style = Stroke(1f * density))
                 }
                 drawContent()
                 return

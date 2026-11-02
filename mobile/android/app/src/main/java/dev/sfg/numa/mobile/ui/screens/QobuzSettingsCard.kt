@@ -78,12 +78,12 @@ fun QobuzSettingsCard(
                         text = uiText("Qobuz streaming", "Reproducción con Qobuz"),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = CanopyColors.Text,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         uiText("Lossless and Hi-Res audio", "Audio sin pérdida y de alta resolución"),
                         style = MaterialTheme.typography.bodySmall,
-                        color = CanopyColors.Muted,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
@@ -100,7 +100,7 @@ fun QobuzSettingsCard(
             Text(
                 text = uiText("Requires a Qobuz subscription and Audio quality set to Max.", "Requiere una suscripción de Qobuz y calidad de audio Max."),
                 style = MaterialTheme.typography.bodySmall,
-                color = CanopyColors.Muted,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 18.sp,
             )
 
@@ -122,7 +122,7 @@ fun QobuzSettingsCard(
                 Text(
                     text = uiText("Streaming quality", "Calidad de transmisión"),
                     style = MaterialTheme.typography.labelMedium,
-                    color = CanopyColors.MutedStrong,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(Modifier.height(8.dp))

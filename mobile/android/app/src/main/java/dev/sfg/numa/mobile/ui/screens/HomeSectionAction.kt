@@ -34,6 +34,6 @@ internal fun HomeSectionAction(label: String, onClick: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Text(label, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = CanopyColors.Text, maxLines = 1)
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface, maxLines = 1)
     }
 }

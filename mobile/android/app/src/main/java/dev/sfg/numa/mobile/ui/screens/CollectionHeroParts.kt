@@ -188,8 +188,8 @@ internal fun BestMixButton(isSorting: Boolean, statusText: String, onClick: () -
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent,
-            contentColor = CanopyColors.Text, disabledContainerColor = Color.Transparent,
-            disabledContentColor = CanopyColors.Muted),
+            contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface, disabledContainerColor = Color.Transparent,
+            disabledContentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant),
         shape = shape,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
             .height(44.dp).desktopButtonSurface(shape),

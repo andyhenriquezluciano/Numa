@@ -93,7 +93,7 @@ RowLayout {
                 width: parent.width
                 height: 40
                 radius: 10
-                color: NumaAppearance.rosePine ? "#26233a" : "transparent"
+                color: NumaAppearance.rosePine ? NumaAppearance.overlayColor : "transparent"
                 // Translucent so the glass shows through the selection.
                 gradient: NumaAppearance.rosePine ? null : selectionGradient
                 Gradient {

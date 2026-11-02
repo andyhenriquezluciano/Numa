@@ -120,7 +120,7 @@ internal fun LibraryFilterField(query: String, placeholder: String, onChange: (S
     val style = LocalGlass.current
     val showBorder = style.borders != GlassBorders.LIMPIO
     val borderModifier = if (showBorder) {
-        if (style.theme == GlassTheme.ROSE_PINE) Modifier.border(1.dp, RosePineColors.Rose, shape)
+        if ((style.theme == GlassTheme.ROSE_PINE || style.theme == GlassTheme.ROSE_PINE_DAWN)) Modifier.border(1.dp, dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Rose, shape)
         else Modifier.border(1.dp, SettingsStyle.PanelBorder, shape)
     } else Modifier
     Row(

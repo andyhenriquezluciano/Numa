@@ -113,7 +113,7 @@ internal fun FoldableMasthead(
                         fontWeight = FontWeight.Bold,
                         fontSize = 28.sp,
                     ),
-                color = CanopyColors.Text,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -135,14 +135,14 @@ internal fun FoldableMasthead(
                         Icon(
                             Icons.Rounded.Search,
                             contentDescription = uiText("Search", "Buscar"),
-                            tint = CanopyColors.Muted,
+                            tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp),
                         )
                         Spacer(Modifier.width(10.dp))
                         Text(
                             text = uiText("Search music, albums...", "Buscar música, álbumes…"),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = CanopyColors.Muted,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                         )
                     }
@@ -199,7 +199,7 @@ internal fun FoldableMasthead(
                                             if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                         fontSize = 13.sp,
                                     ),
-                                color = if (isSelected) Color.Black else CanopyColors.Text,
+                                color = if (isSelected) Color.Black else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                             )
                         }
                     }
@@ -223,7 +223,7 @@ internal fun FoldableSectionHeader(title: String, onSeeAll: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                 ),
-            color = CanopyColors.Text,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
         )
         Row(
             modifier =
@@ -235,13 +235,13 @@ internal fun FoldableSectionHeader(title: String, onSeeAll: () -> Unit) {
             Text(
                 text = uiText("See all", "Ver todo"),
                 style = MaterialTheme.typography.labelLarge,
-                color = CanopyColors.Muted,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.width(4.dp))
             Icon(
                 Icons.AutoMirrored.Rounded.ArrowForward,
                 contentDescription = null,
-                tint = CanopyColors.Muted,
+                tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(16.dp),
             )
         }

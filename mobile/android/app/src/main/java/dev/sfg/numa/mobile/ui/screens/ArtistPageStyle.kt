@@ -27,7 +27,7 @@ import dev.sfg.numa.mobile.ui.theme.legibleOnDarkChrome
 internal fun ArtistPageStyle(palette: ArtworkPalette, content: @Composable () -> Unit) {
     val inherited = LocalGlass.current
     val tint = animateColorAsState(palette.accent, tween(500), label = "ArtistGlassTint")
-    val accent = if (inherited.theme == GlassTheme.ROSE_PINE) RosePineColors.Rose
+    val accent = if ((inherited.theme == GlassTheme.ROSE_PINE || inherited.theme == GlassTheme.ROSE_PINE_DAWN)) dev.sfg.numa.mobile.ui.theme.rosePinePalette(inherited.theme).Rose
         else palette.accent.legibleOnDarkChrome()
     CompositionLocalProvider(
         LocalGlass provides rememberGlassStyle(tint, inherited.theme, inherited.borders),

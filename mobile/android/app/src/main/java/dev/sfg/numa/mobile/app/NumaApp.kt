@@ -153,7 +153,7 @@ fun NumaApp(viewModel: NumaViewModel) {
         dev.sfg.numa.mobile.ui.components.rememberPlaylistBackdropSource(collection.id, resolvedDetailArtwork)
         else resolvedDetailArtwork
 
-    val activeCoverUrl = if (isDetail) {
+    val activeCoverUrl = if (isDetail && !(settings.playlistSongBackground && collection?.kind == dev.sfg.numa.mobile.model.CatalogKind.PLAYLIST && playerPlayback.currentTrack != null)) {
         detailArtworkUrl
     } else {
         playerPlayback.currentTrack?.artworkUrl.orEmpty()
@@ -172,8 +172,8 @@ fun NumaApp(viewModel: NumaViewModel) {
         animationTick = rememberGlassAnimationClock(
             settings.animatedBackground && (playerPlayback.isPlaying || isDetail) && !playerOpen),
     )
-    val effectiveAccent = if (settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE) {
-        dev.sfg.numa.mobile.ui.theme.RosePineColors.Rose
+    val effectiveAccent = if ((settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE || settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN)) {
+        dev.sfg.numa.mobile.ui.theme.rosePinePalette(settings.glassTheme).Rose
     } else {
         dev.sfg.numa.mobile.ui.theme.CanopyColors.Accent
     }
@@ -214,11 +214,11 @@ fun NumaApp(viewModel: NumaViewModel) {
             Box(Modifier.fillMaxSize().glassSceneSource(if (playerOpen) null else glassScene)) {
                 Box(Modifier.fillMaxSize().glassWashSource(if (playerOpen) null else glassScene)) {
                     CompositionLocalProvider(LocalGlassCapture provides GlassCapture.WASH) {
-                        if (settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE) {
+                        if ((settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE || settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN)) {
                             Box(
                                 Modifier
                                     .fillMaxSize()
-                                    .background(dev.sfg.numa.mobile.ui.theme.RosePineColors.Base)
+                                    .background(dev.sfg.numa.mobile.ui.theme.rosePinePalette(settings.glassTheme).Base)
                             )
                         } else {
                             ArtworkBackdrop(

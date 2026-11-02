@@ -105,14 +105,14 @@ internal fun GlassHomeHeader(
                     fontSize = 23.sp,
                     letterSpacing = (-0.6).sp,
                 ),
-                color = CanopyColors.Text,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
             )
             HeaderAction(onClick = onSearch, description = uiText("Search", "Buscar")) {
                 Icon(
                     Icons.Rounded.Search,
                     contentDescription = null,
-                    tint = CanopyColors.Text,
+                    tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(24.dp),
                 )
             }
@@ -131,7 +131,7 @@ internal fun GlassHomeHeader(
             lineHeight = 41.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = (-0.02).em,
-            color = CanopyColors.Text,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             modifier = Modifier.riseIn(1, distance = 22f),
         )

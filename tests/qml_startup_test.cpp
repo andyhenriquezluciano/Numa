@@ -58,13 +58,17 @@ int main(int argc, char *argv[]) {
     for (const auto &error : appearanceSection.errors()) output << error.toString() << '\n';
     return 1;
   }
-  for (bool rose : {false, true}) {
+  for (const auto &theme : {QStringLiteral("crystal"), QStringLiteral("rose_pine_dawn"), QStringLiteral("rose_pine")}) {
+    const bool dawn = theme == QStringLiteral("rose_pine_dawn");
+    const bool rose = theme != QStringLiteral("crystal");
     engine.rootContext()->setContextProperty(QStringLiteral("NumaAppearance"), QVariantMap{
-        {"theme", rose ? "rose_pine" : "crystal"}, {"rosePine", rose}, {"performanceMode", rose},
+        {"theme", theme}, {"rosePine", rose}, {"performanceMode", rose},
+        {"playlistSongBackground", false},
+        {"overlayColor", dawn ? "#f2e9e1" : "#26233a"}, {"highlightColor", dawn ? "#dfdad9" : "#403d52"},
         {"borderColor", rose ? "#ebbcba" : "#1cffffff"}, {"borderWidth", rose ? 2 : 1},
         {"controlBorderWidth", rose ? 0 : 1},
         {"bordersEnabled", true},
-        {"textColor", rose ? "#e0def4" : "#f5f3ee"}, {"mutedColor", "#908caa"}, {"accentColor", "#c4a7e7"}, {"surfaceColor", "#1f1d2e"}});
+        {"textColor", dawn ? "#575279" : rose ? "#e0def4" : "#f5f3ee"}, {"mutedColor", dawn ? "#797593" : "#908caa"}, {"accentColor", dawn ? "#907aa9" : "#c4a7e7"}, {"surfaceColor", dawn ? "#fffaf3" : "#1f1d2e"}});
   QQmlComponent frame(&engine);
   frame.setData("import QtQuick\nimport Numa\nRoundedSurfaceFrame {}", QUrl());
   std::unique_ptr<QObject> surface(frame.create());

@@ -110,14 +110,14 @@ internal fun FoldableOfflineBanner(downloadedCount: Int) {
                     uiText("Offline Mode", "Modo sin conexión"),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     if (downloadedCount > 0)
                         uiText("Showing downloaded music ($downloadedCount ${if (downloadedCount == 1) "song" else "songs"})", "Mostrando música descargada ($downloadedCount canciones)")
                     else uiText("No internet connection detected", "No se detectó conexión a Internet"),
                     style = MaterialTheme.typography.bodySmall,
-                    color = CanopyColors.Muted,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }

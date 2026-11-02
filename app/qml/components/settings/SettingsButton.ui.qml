@@ -39,7 +39,7 @@ Button {
         Rectangle {
             anchors.fill: parent
             radius: control.height / 2
-            color: control.highlighted ? (NumaAppearance.rosePine ? "#403d52" : "#514060") : control.down ? "#2cffffff" : control.hovered ? "#1cffffff" : "#0fffffff"
+            color: control.highlighted ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#514060") : control.down ? "#2cffffff" : control.hovered ? "#1cffffff" : "#0fffffff"
             Behavior on color { ColorAnimation { duration: 120 } }
         }
         RoundedSurfaceFrame {

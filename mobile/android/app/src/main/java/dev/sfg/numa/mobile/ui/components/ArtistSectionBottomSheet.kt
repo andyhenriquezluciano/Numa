@@ -119,7 +119,7 @@ fun ArtistSectionBottomSheet(
     GlassBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = CanopyColors.Muted.copy(alpha = 0.4f)) },
+        dragHandle = { BottomSheetDefaults.DragHandle(color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
     ) {
         Column(
             modifier = Modifier
@@ -140,13 +140,13 @@ fun ArtistSectionBottomSheet(
                             fontWeight = FontWeight.Bold,
                             fontSize = 22.sp,
                         ),
-                        color = CanopyColors.Text,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     )
                     if (displayItems.isNotEmpty()) {
                         Text(
                             text = "${displayItems.size} items",
                             style = MaterialTheme.typography.labelMedium,
-                            color = CanopyColors.Muted,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -171,7 +171,7 @@ fun ArtistSectionBottomSheet(
                             Icon(
                                 if (showSearchBar) Icons.Rounded.Close else Icons.Rounded.Search,
                                 contentDescription = uiText("Search in section", "Buscar en la sección"),
-                                tint = CanopyColors.Muted,
+                                tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(20.dp),
                             )
                         }
@@ -183,7 +183,7 @@ fun ArtistSectionBottomSheet(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text(uiText("Filter items in $title...", "Buscar en $title…"), color = CanopyColors.Muted) },
+                    placeholder = { Text(uiText("Filter items in $title...", "Buscar en $title…"), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant) },
                     singleLine = true,
                     shape = RoundedCornerShape(14.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -191,8 +191,8 @@ fun ArtistSectionBottomSheet(
                         unfocusedContainerColor = Color.Transparent,
                         focusedBorderColor = LocalAccent.current.copy(alpha = 0.6f),
                         unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
-                        focusedTextColor = CanopyColors.Text,
-                        unfocusedTextColor = CanopyColors.Text,
+                        focusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     ),
                     modifier = Modifier
                         .fillMaxWidth()

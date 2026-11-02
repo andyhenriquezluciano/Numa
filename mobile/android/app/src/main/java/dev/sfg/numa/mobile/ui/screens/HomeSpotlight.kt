@@ -88,7 +88,7 @@ internal fun HomeSectionTitle(
         if (showDivider) {
             HorizontalDivider(
                 thickness = Dp.Hairline,
-                color = CanopyColors.Text.copy(alpha = 0.12f),
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                 modifier = Modifier.padding(start = HomeGutter, end = HomeGutter, top = HomeSectionGap),
             )
         }
@@ -109,7 +109,7 @@ internal fun HomeSectionTitle(
                     Text(
                         text = dev.sfg.numa.mobile.ui.text.catalogCaption(it),
                         style = MaterialTheme.typography.labelLarge,
-                        color = CanopyColors.Text.copy(alpha = 0.6f),
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -120,7 +120,7 @@ internal fun HomeSectionTitle(
                     lineHeight = 28.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = (-0.01).em,
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )

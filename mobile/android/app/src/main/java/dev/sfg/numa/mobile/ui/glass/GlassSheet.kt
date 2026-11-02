@@ -33,7 +33,7 @@ fun GlassBottomSheet(
     val snapshot = rememberModalGlassSnapshot(true)
     val style = LocalGlass.current
     val showBorders = style.borders != GlassBorders.LIMPIO
-    val isRosePine = style.theme == GlassTheme.ROSE_PINE
+    val isRosePine = (style.theme == GlassTheme.ROSE_PINE || style.theme == GlassTheme.ROSE_PINE_DAWN)
     val isDark = style.theme == GlassTheme.CRISTAL_OSCURO
     val shape = RoundedCornerShape(topStart = DesktopGlass.MenuRadius, topEnd = DesktopGlass.MenuRadius)
 
@@ -54,8 +54,8 @@ fun GlassBottomSheet(
                     .then(
                         if (isRosePine) {
                             Modifier
-                                .background(RosePineColors.Surface, shape)
-                                .then(if (showBorders) Modifier.border(1.dp, RosePineColors.Rose, shape) else Modifier)
+                                .background(dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Surface, shape)
+                                .then(if (showBorders) Modifier.border(1.dp, dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Rose, shape) else Modifier)
                         } else {
                             Modifier
                                 .glassPane(shape, GlassTone.OVERLAY)

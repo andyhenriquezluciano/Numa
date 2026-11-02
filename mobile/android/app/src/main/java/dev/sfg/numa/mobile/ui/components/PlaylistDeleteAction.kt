@@ -32,7 +32,7 @@ internal fun GlassConfirmButton(text: String, enabled: Boolean = true, modifier:
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.desktopButtonSurface(),
-        colors = ButtonDefaults.textButtonColors(contentColor = CanopyColors.Text, containerColor = Color.Transparent),
+        colors = ButtonDefaults.textButtonColors(contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface, containerColor = Color.Transparent),
     ) { Text(text) }
 }
 

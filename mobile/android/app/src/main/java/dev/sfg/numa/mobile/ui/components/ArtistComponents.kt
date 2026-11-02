@@ -113,7 +113,7 @@ fun ArtistHero(
                     onClick = { onSave(detail) },
                     icon = if (isSaved) Icons.Filled.Favorite else Icons.Rounded.FavoriteBorder,
                     contentDescription = if (isSaved) uiText("Unfollow artist", "Dejar de seguir al artista") else uiText("Follow artist", "Seguir artista"),
-                    tint = if (isSaved) dev.sfg.numa.mobile.ui.theme.LocalAccent.current else CanopyColors.Text,
+                    tint = if (isSaved) dev.sfg.numa.mobile.ui.theme.LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
             },
         )
@@ -132,6 +132,6 @@ fun ArtistHero(
 @Composable
 fun DetailBackButton(onBack: () -> Unit, modifier: Modifier = Modifier) {
     IconButton(onClick = onBack, modifier = modifier.padding(start = 8.dp, top = 8.dp)) {
-        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = uiText("Back", "Volver"), tint = CanopyColors.Text)
+        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = uiText("Back", "Volver"), tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
     }
 }

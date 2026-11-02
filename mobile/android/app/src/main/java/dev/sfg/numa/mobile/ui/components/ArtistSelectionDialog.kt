@@ -67,7 +67,7 @@ fun ArtistSelectionDialog(
                 Text(
                     text = uiText("View Artist", "Ver artista"),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(horizontal = 24.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -95,7 +95,7 @@ fun ArtistSelectionDialog(
                             Text(
                                 text = artist.name,
                                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                                color = CanopyColors.Text,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )

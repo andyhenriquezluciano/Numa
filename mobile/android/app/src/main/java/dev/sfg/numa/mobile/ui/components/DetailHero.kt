@@ -184,7 +184,7 @@ fun HeroCircleButton(
     contentDescription: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    tint: Color = CanopyColors.Text,
+    tint: Color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
     size: Dp = 48.dp,
 ) {
     val source = remember { MutableInteractionSource() }
@@ -250,12 +250,12 @@ fun HeroPlayRow(
         }
         val glassStyle = dev.sfg.numa.mobile.ui.glass.LocalGlass.current
         val effectivePlayFill = when (glassStyle.theme) {
-            dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE -> dev.sfg.numa.mobile.ui.theme.RosePineColors.Rose
+            dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE, dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN -> dev.sfg.numa.mobile.ui.theme.rosePinePalette(glassStyle.theme).Rose
             dev.sfg.numa.mobile.model.GlassTheme.CRISTAL_OSCURO -> if (playFill == Color.White) Color(0xFFDCDAD5) else playFill
             dev.sfg.numa.mobile.model.GlassTheme.CRISTAL -> playFill
         }
         val effectiveIconTint = when (glassStyle.theme) {
-            dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE -> dev.sfg.numa.mobile.ui.theme.RosePineColors.Base
+            dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE, dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN -> dev.sfg.numa.mobile.ui.theme.rosePinePalette(glassStyle.theme).Base
             else -> playIconTint
         }
         Surface(
@@ -309,13 +309,13 @@ fun HeroChip(
             .padding(horizontal = 12.dp, vertical = 6.dp),
     ) {
         if (icon != null) {
-            Icon(icon, contentDescription = null, tint = CanopyColors.Text, modifier = Modifier.size(16.dp))
+            Icon(icon, contentDescription = null, tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(6.dp))
         }
         Text(
             text = text,
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
-            color = CanopyColors.Text,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
         )
     }
@@ -341,13 +341,13 @@ fun HeroAbout(
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = CanopyColors.Text,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp),
         )
         Text(
             text = text.replace(Regex("\\s+"), " ").trim(),
             style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 20.sp),
-            color = CanopyColors.Text.copy(alpha = 0.72f),
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
             maxLines = if (expanded) Int.MAX_VALUE else 3,
             overflow = TextOverflow.Ellipsis,
             onTextLayout = { if (!expanded) overflows = it.hasVisualOverflow },
@@ -357,7 +357,7 @@ fun HeroAbout(
             Text(
                 text = if (expanded) uiText("Less", "Menos") else uiText("More", "Más"),
                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                color = CanopyColors.Text,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .padding(top = 6.dp)
                     .clip(RoundedCornerShape(8.dp))
@@ -390,20 +390,20 @@ fun FeaturedReleaseCard(
                 Text(
                     text = item.album.year.ifBlank { uiText("Latest release", "Última versión") },
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = CanopyColors.Text.copy(alpha = 0.6f),
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     maxLines = 1,
                 )
                 Text(
                     text = item.title,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = item.album.artist.ifBlank { uiText("Album", "Álbum") },
                     style = MaterialTheme.typography.bodySmall,
-                    color = CanopyColors.Text.copy(alpha = 0.5f),
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -411,7 +411,7 @@ fun FeaturedReleaseCard(
             Icon(
                 Icons.Rounded.PlayArrow,
                 contentDescription = null,
-                tint = CanopyColors.Text,
+                tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(horizontal = 8.dp).size(24.dp),
             )
         }

@@ -145,7 +145,7 @@ fun DetailFloatingChrome(
                 Icon(
                     Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = uiText("Back", "Volver"),
-                    tint = CanopyColors.Text,
+                    tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(20.dp),
                 )
             }
@@ -187,7 +187,7 @@ fun ChromeAction(
     icon: ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
-    tint: Color = CanopyColors.Text,
+    tint: Color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
 ) {
     IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
         Icon(icon, contentDescription = contentDescription, tint = tint, modifier = Modifier.size(20.dp))

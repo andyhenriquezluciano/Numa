@@ -100,7 +100,7 @@ fun NumaSectionHeader(
                 fontWeight = FontWeight.Bold,
                 letterSpacing = (-0.3).sp,
             ),
-            color = CanopyColors.Text,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
         )
         if (action != null && onAction != null) {
             val source = remember { MutableInteractionSource() }
@@ -160,7 +160,7 @@ fun CatalogCard(item: CatalogItem, onClick: () -> Unit, modifier: Modifier = Mod
             Text(
                 item.title,
                 style = MaterialTheme.typography.titleMedium,
-                color = CanopyColors.Text,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = if (isArtist) TextAlign.Center else TextAlign.Start,
@@ -173,7 +173,7 @@ fun CatalogCard(item: CatalogItem, onClick: () -> Unit, modifier: Modifier = Mod
         Text(
             catalogSubtitle(item),
             style = MaterialTheme.typography.bodyMedium,
-            color = CanopyColors.Muted,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             textAlign = if (isArtist) TextAlign.Center else TextAlign.Start,
@@ -216,7 +216,7 @@ fun CategoryCard(
             Text(
                 text = item.title,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = CanopyColors.Text,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
@@ -303,7 +303,7 @@ fun <T> NumaFilterChips(
                 label = "ChipBg"
             )
             val textColor by animateColorAsState(
-                if (isSelected) Color.Black else CanopyColors.Text,
+                if (isSelected) Color.Black else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 label = "ChipText"
             )
             // Selected chip swells a touch so the choice lands with some weight.
@@ -355,9 +355,9 @@ fun MessagePanel(title: String, message: String, actionLabel: String? = null, on
             .glassPane(shape)
     ) {
         Column(Modifier.padding(20.dp)) {
-            Text(title, style = MaterialTheme.typography.titleLarge, color = CanopyColors.Text)
+            Text(title, style = MaterialTheme.typography.titleLarge, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(8.dp))
-            Text(message, color = CanopyColors.Muted, style = MaterialTheme.typography.bodyLarge)
+            Text(message, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyLarge)
             if (actionLabel != null && onAction != null) {
                 Spacer(Modifier.height(16.dp))
                 CanopyButton(label = actionLabel, onClick = onAction, primary = true)

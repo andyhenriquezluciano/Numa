@@ -26,7 +26,7 @@ fun GlassDropdownMenu(
     val shape = RoundedCornerShape(DesktopGlass.MenuRadius)
     val snapshot = rememberModalGlassSnapshot(expanded)
     val style = LocalGlass.current
-    val isRosePine = style.theme == GlassTheme.ROSE_PINE
+    val isRosePine = (style.theme == GlassTheme.ROSE_PINE || style.theme == GlassTheme.ROSE_PINE_DAWN)
 
     CompositionLocalProvider(LocalGlassSnapshot provides snapshot) {
         DropdownMenu(
@@ -38,7 +38,7 @@ fun GlassDropdownMenu(
                 .then(
                     if (isRosePine) {
                         Modifier
-                            .background(RosePineColors.Surface, shape)
+                            .background(dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Surface, shape)
                     } else {
                         Modifier
                             .glassPane(shape, GlassTone.OVERLAY, borderless = true)

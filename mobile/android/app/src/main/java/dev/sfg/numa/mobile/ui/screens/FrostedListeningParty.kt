@@ -104,7 +104,7 @@ internal fun FrostedListeningPartyPanel(
                     Icon(
                         Icons.Rounded.Groups,
                         contentDescription = null,
-                        tint = if (party.isActive) accent else CanopyColors.Muted,
+                        tint = if (party.isActive) accent else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(24.dp),
                     )
                     Spacer(Modifier.width(10.dp))
@@ -112,7 +112,7 @@ internal fun FrostedListeningPartyPanel(
                         text = uiText("Shared Rooms", "Salas Compartidas"),
                         style =
                             MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = CanopyColors.Text,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
@@ -146,7 +146,7 @@ private fun FrostedInactiveParty(
     Text(
         text = uiText("Listen to the same music together.", "Escuchen la misma música juntos."),
         style = MaterialTheme.typography.bodyMedium,
-        color = CanopyColors.Muted,
+        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
     )
 
     Spacer(Modifier.height(14.dp))
@@ -155,13 +155,13 @@ private fun FrostedInactiveParty(
     TextField(
         value = codeInput,
         onValueChange = { codeInput = cleanRoomCode(it).take(ROOM_CODE_LENGTH) },
-        placeholder = { Text(uiText("Room code", "Código de sala"), color = CanopyColors.Muted) },
+        placeholder = { Text(uiText("Room code", "Código de sala"), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant) },
         singleLine = true,
         leadingIcon = {
             Icon(
                 Icons.Rounded.AutoAwesome,
                 contentDescription = null,
-                tint = if (codeInput.isNotBlank()) accent else CanopyColors.Muted,
+                tint = if (codeInput.isNotBlank()) accent else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             )
         },
         trailingIcon = {
@@ -170,7 +170,7 @@ private fun FrostedInactiveParty(
                     Icon(
                         Icons.Rounded.Close,
                         contentDescription = uiText("Clear", "Borrar"),
-                        tint = CanopyColors.Muted,
+                        tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             } else {
@@ -192,8 +192,8 @@ private fun FrostedInactiveParty(
                 unfocusedContainerColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                focusedTextColor = CanopyColors.Text,
-                unfocusedTextColor = CanopyColors.Text,
+                focusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             ),
         modifier = Modifier.fillMaxWidth().desktopButtonSurface(),
     )
@@ -207,14 +207,14 @@ private fun FrostedInactiveParty(
             enabled = codeInput.length == ROOM_CODE_LENGTH && party.status != PartyStatus.CONNECTING,
             shape = CircleShape,
             colors =
-                ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = CanopyColors.Text),
+                ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface),
             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).desktopButtonSurface(),
         ) {
             Text(uiText("Join party", "Unirse a la sala"), fontWeight = FontWeight.Bold, fontSize = 14.sp)
         }
 
         Button(
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = CanopyColors.Text),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface),
             onClick = onCreate,
             enabled = party.status != PartyStatus.CONNECTING,
             shape = CircleShape,
@@ -224,7 +224,7 @@ private fun FrostedInactiveParty(
             Text(
                 uiText("Start a party", "Crear sala"),
                 fontWeight = FontWeight.Bold,
-                color = CanopyColors.Text,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 fontSize = 14.sp,
             )
         }
@@ -249,7 +249,7 @@ private fun FrostedActiveParty(party: PartyState, onLeave: () -> Unit, onTransfe
     Text(
         text = statusText,
         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-        color = if (party.status == PartyStatus.CONNECTED) accent else CanopyColors.Muted,
+        color = if (party.status == PartyStatus.CONNECTED) accent else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
     )
 
     if (party.code.isNotBlank()) {
@@ -287,7 +287,7 @@ private fun FrostedActiveParty(party: PartyState, onLeave: () -> Unit, onTransfe
                             letterSpacing = 2.sp,
                             fontFamily = FontFamily.Monospace,
                         ),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
 
                 Spacer(Modifier.height(12.dp))
@@ -332,7 +332,7 @@ private fun FrostedActiveParty(party: PartyState, onLeave: () -> Unit, onTransfe
                                     MaterialTheme.typography.labelMedium.copy(
                                         fontWeight = FontWeight.Bold
                                     ),
-                                color = CanopyColors.Text,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                             )
                         }
                     }
@@ -380,7 +380,7 @@ private fun FrostedActiveParty(party: PartyState, onLeave: () -> Unit, onTransfe
                                     MaterialTheme.typography.labelMedium.copy(
                                         fontWeight = FontWeight.Bold
                                     ),
-                                color = CanopyColors.Text,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                             )
                         }
                     }
@@ -399,7 +399,7 @@ private fun FrostedActiveParty(party: PartyState, onLeave: () -> Unit, onTransfe
                 else -> uiText("${party.peers.size} other listeners", "${party.peers.size} oyentes más")
             },
         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-        color = CanopyColors.Muted,
+        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
     )
 
     party.peers.forEach { peer ->
@@ -445,14 +445,14 @@ private fun FrostedPeerRow(peer: PartyPeer) {
             Icon(
                 Icons.Rounded.PhoneAndroid,
                 contentDescription = null,
-                tint = if (peer.open) LocalAccent.current else CanopyColors.Muted,
+                tint = if (peer.open) LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp),
             )
             Spacer(Modifier.width(10.dp))
             Text(
                 text = peer.name.ifBlank { uiText("Listener", "Oyente") },
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = CanopyColors.Text,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
             )
 
@@ -461,7 +461,7 @@ private fun FrostedPeerRow(peer: PartyPeer) {
                 modifier =
                     Modifier.size(8.dp)
                         .clip(CircleShape)
-                        .background(if (peer.open) LocalAccent.current else CanopyColors.Muted)
+                        .background(if (peer.open) LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
             )
 
             if (peer.role == PartyRole.HOST) {

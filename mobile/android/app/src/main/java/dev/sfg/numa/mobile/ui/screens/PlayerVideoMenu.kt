@@ -95,7 +95,7 @@ private fun PlayerModeButton(
     onClick: () -> Unit,
 ) {
     val accent = LocalAccent.current
-    val iconTint = if (!enabled) CanopyColors.Text.copy(alpha = 0.35f) else if (selected) accent else CanopyColors.Text
+    val iconTint = if (!enabled) androidx.compose.material3.MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f) else if (selected) accent else androidx.compose.material3.MaterialTheme.colorScheme.onSurface
     val status = if (!enabled) unavailable else if (selected) uiText("Selected", "Seleccionado") else uiText("Available", "Disponible")
     IconButton(
         onClick = onClick,

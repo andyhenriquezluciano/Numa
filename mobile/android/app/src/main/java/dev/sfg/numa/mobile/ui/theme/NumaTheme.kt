@@ -174,9 +174,9 @@ fun NumaTheme(
 ) {
     val theme = settings?.glassTheme ?: dev.sfg.numa.mobile.model.GlassTheme.CRISTAL
     val borders = settings?.glassBorders ?: dev.sfg.numa.mobile.model.GlassBorders.PREDETERMINADO
-    val accent = if (theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE) RosePineColors.Rose else CanopyColors.Accent
-    val colorScheme = if (theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE) {
-        RosePineColorScheme
+    val accent = if ((theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE || theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN)) dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Rose else CanopyColors.Accent
+    val colorScheme = if ((theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE || theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN)) {
+        if (theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN) RosePineDawnColorScheme else RosePineColorScheme
     } else {
         NumaColorScheme.copy(primary = accent, secondary = accent)
     }
@@ -185,24 +185,24 @@ fun NumaTheme(
         LocalAccent provides accent,
         LocalGlassTheme provides theme,
         LocalGlassBorders provides borders,
-        LocalContentColor provides (if (theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE) RosePineColors.Text else CanopyColors.Text),
+        LocalContentColor provides (if ((theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE || theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN)) dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Text else CanopyColors.Text),
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = if (theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE) {
+            typography = if ((theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE || theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN)) {
                 NumaTypography.copy(
-                    displayLarge = NumaTypography.displayLarge.copy(color = RosePineColors.Text),
-                    headlineLarge = NumaTypography.headlineLarge.copy(color = RosePineColors.Text),
-                    headlineMedium = NumaTypography.headlineMedium.copy(color = RosePineColors.Text),
-                    titleLarge = NumaTypography.titleLarge.copy(color = RosePineColors.Text),
-                    titleMedium = NumaTypography.titleMedium.copy(color = RosePineColors.Text),
-                    titleSmall = NumaTypography.titleSmall.copy(color = RosePineColors.Text),
-                    bodyLarge = NumaTypography.bodyLarge.copy(color = RosePineColors.Text),
-                    bodyMedium = NumaTypography.bodyMedium.copy(color = RosePineColors.Muted),
-                    bodySmall = NumaTypography.bodySmall.copy(color = RosePineColors.Muted),
-                    labelLarge = NumaTypography.labelLarge.copy(color = RosePineColors.Text),
-                    labelMedium = NumaTypography.labelMedium.copy(color = RosePineColors.Text),
-                    labelSmall = NumaTypography.labelSmall.copy(color = RosePineColors.Subtle),
+                    displayLarge = NumaTypography.displayLarge.copy(color = dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Text),
+                    headlineLarge = NumaTypography.headlineLarge.copy(color = dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Text),
+                    headlineMedium = NumaTypography.headlineMedium.copy(color = dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Text),
+                    titleLarge = NumaTypography.titleLarge.copy(color = dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Text),
+                    titleMedium = NumaTypography.titleMedium.copy(color = dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Text),
+                    titleSmall = NumaTypography.titleSmall.copy(color = dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Text),
+                    bodyLarge = NumaTypography.bodyLarge.copy(color = dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Text),
+                    bodyMedium = NumaTypography.bodyMedium.copy(color = dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Muted),
+                    bodySmall = NumaTypography.bodySmall.copy(color = dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Muted),
+                    labelLarge = NumaTypography.labelLarge.copy(color = dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Text),
+                    labelMedium = NumaTypography.labelMedium.copy(color = dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Text),
+                    labelSmall = NumaTypography.labelSmall.copy(color = dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Subtle),
                 )
             } else NumaTypography,
             shapes = NumaShapes,

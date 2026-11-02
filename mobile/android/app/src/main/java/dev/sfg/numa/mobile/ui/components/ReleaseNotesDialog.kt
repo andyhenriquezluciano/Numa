@@ -109,7 +109,7 @@ internal fun ReleaseNoteSectionCard(section: ReleaseNoteSection) {
                     Text(
                         section.title,
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        color = CanopyColors.Text,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     )
                 }
                 Surface(
@@ -119,7 +119,7 @@ internal fun ReleaseNoteSectionCard(section: ReleaseNoteSection) {
                     Text(
                         "${section.items.size}",
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                        color = CanopyColors.Muted,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                     )
                 }
@@ -142,9 +142,9 @@ internal fun ReleaseNoteSectionCard(section: ReleaseNoteSection) {
                                 .background(categoryColor.copy(alpha = 0.8f), CircleShape),
                         )
                         Text(
-                            text = formatMarkdownInline(item, CanopyColors.Text, LocalAccent.current),
+                            text = formatMarkdownInline(item, androidx.compose.material3.MaterialTheme.colorScheme.onSurface, LocalAccent.current),
                             style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 19.sp),
-                            color = CanopyColors.MutedStrong,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -211,12 +211,12 @@ fun ReleaseNotesDialog(
                             Text(
                                 "What's new",
                                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                                color = CanopyColors.Text,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
                                 if (codename.isNotBlank()) "NÜMA $version \"$codename\"" else "NÜMA $version",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = CanopyColors.Muted,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -227,7 +227,7 @@ fun ReleaseNotesDialog(
                         Icon(
                             Icons.Rounded.Close,
                             contentDescription = uiText("Close release notes", "Cerrar notas de la versión"),
-                            tint = CanopyColors.Muted,
+                            tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp),
                         )
                     }
@@ -263,7 +263,7 @@ fun ReleaseNotesDialog(
                             Text(
                                 "v$version",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = CanopyColors.Text,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                             )
                         }
 
@@ -309,7 +309,7 @@ fun ReleaseNotesDialog(
                             Text(
                                 if (totalChanges == 1) uiText("1 change", "Un cambio") else uiText("$totalChanges changes", "$totalChanges cambios"),
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                                color = CanopyColors.Muted,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                             )
                         }
@@ -340,7 +340,7 @@ fun ReleaseNotesDialog(
                             Text(
                                 uiText("Includes general performance improvements and bug fixes.", "Incluye mejoras de rendimiento y correcciones de errores."),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = CanopyColors.Muted,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(14.dp),
                             )
                         }

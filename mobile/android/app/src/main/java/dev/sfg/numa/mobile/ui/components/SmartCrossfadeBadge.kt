@@ -218,7 +218,7 @@ fun SmartCrossfadeBadge(
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Normal,
-                            color = CanopyColors.Text.copy(alpha = 0.72f),
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,

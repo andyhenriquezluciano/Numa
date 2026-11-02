@@ -102,7 +102,7 @@ internal fun TrackActionsPopup(
     GlassBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        dragHandle = { BottomSheetDefaults.DragHandle(color = CanopyColors.Muted.copy(alpha = 0.4f)) },
+        dragHandle = { BottomSheetDefaults.DragHandle(color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
     ) {
         Column(Modifier.padding(horizontal = 20.dp).padding(bottom = 28.dp)) {
             // Track preview header
@@ -114,7 +114,7 @@ internal fun TrackActionsPopup(
                         Text(
                             track.title,
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = CanopyColors.Text,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f, fill = false),
@@ -128,7 +128,7 @@ internal fun TrackActionsPopup(
                         Text(
                             track.artist,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = CanopyColors.Muted,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -212,7 +212,7 @@ private fun PopupActionRow(icon: ImageVector, label: String, index: Int, onClick
             Text(
                 label,
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                color = CanopyColors.Text,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             )
         }
     }

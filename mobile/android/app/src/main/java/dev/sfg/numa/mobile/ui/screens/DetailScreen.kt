@@ -254,14 +254,14 @@ private fun HubDetailContent(
                         fontWeight = FontWeight.Bold,
                         letterSpacing = (-0.5).sp,
                     ),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
                 if (detail.description.isNotBlank()) {
                     Spacer(Modifier.height(6.dp))
                     Text(
                         text = detail.description,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = CanopyColors.Muted,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }

@@ -62,13 +62,13 @@ internal fun WelcomeSectionCard(
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = CanopyColors.Text,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(start = 4.dp, bottom = 2.dp),
         )
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodySmall,
-            color = CanopyColors.Muted,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
         )
         Surface(
@@ -107,12 +107,12 @@ internal fun WelcomeToggleRow(
             Text(
                 title,
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = CanopyColors.Text,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = CanopyColors.Muted,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         Switch(
@@ -121,7 +121,7 @@ internal fun WelcomeToggleRow(
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.Black,
                 checkedTrackColor = LocalAccent.current,
-                uncheckedThumbColor = CanopyColors.Muted,
+                uncheckedThumbColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 uncheckedTrackColor = CanopyColors.Canvas,
             ),
         )
@@ -152,20 +152,20 @@ internal fun WelcomeOptionChip(
         Icon(
             icon,
             contentDescription = null,
-            tint = if (selected) LocalAccent.current else CanopyColors.Muted,
+            tint = if (selected) LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.height(4.dp))
         Text(
             title,
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-            color = if (selected) LocalAccent.current else CanopyColors.Text,
+            color = if (selected) LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
         )
         Text(
             subtitle,
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-            color = CanopyColors.Muted,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
     }

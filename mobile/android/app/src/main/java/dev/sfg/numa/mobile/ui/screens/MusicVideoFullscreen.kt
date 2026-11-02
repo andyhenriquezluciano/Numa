@@ -142,7 +142,7 @@ internal fun MusicVideoFullscreen(
                     androidx.compose.foundation.layout.Spacer(Modifier.size(48.dp))
                     Column(Modifier.weight(1f).padding(start = 4.dp)) {
                         Text(track.title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(track.artist, color = CanopyColors.MutedStrong, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(track.artist, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
 
                 }

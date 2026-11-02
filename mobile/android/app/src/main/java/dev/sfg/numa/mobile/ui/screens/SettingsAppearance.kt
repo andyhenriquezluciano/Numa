@@ -60,6 +60,7 @@ internal fun ThemeStyleSection(
             GlassTheme.CRISTAL -> uiText("Light, translucent glass.", "Cristales claros y translúcidos.")
             GlassTheme.CRISTAL_OSCURO -> uiText("Dark glass with higher contrast.", "Cristales oscuros con mayor contraste.")
             GlassTheme.ROSE_PINE -> uiText("Rosé Pine colors with less transparency.", "Colores Rosé Pine y menor transparencia.")
+            GlassTheme.ROSE_PINE_DAWN -> uiText("Warm, light Rosé Pine colors.", "Colores claros y cálidos de Rosé Pine.")
         }
         RowSubtitle(themeSubtitle)
         SettingsDropdownField(
@@ -67,10 +68,23 @@ internal fun ThemeStyleSection(
                 GlassTheme.CRISTAL to uiText("Glass", "Cristal"),
                 GlassTheme.CRISTAL_OSCURO to uiText("Dark glass", "Cristal Oscuro"),
                 GlassTheme.ROSE_PINE to "Rosé Pine",
+                GlassTheme.ROSE_PINE_DAWN to "Rosé Pine Dawn",
             ),
             selected = settings.glassTheme,
             iconFor = { when (it) { GlassTheme.CRISTAL -> Icons.Rounded.AutoAwesome; GlassTheme.CRISTAL_OSCURO -> Icons.Rounded.DarkMode; else -> Icons.Rounded.Palette } },
             onSelect = { onSettings(settings.copy(glassTheme = it)) },
+        )
+    }
+
+    PanelDivider()
+
+    Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+        AppearanceOptionTitle(uiText("Playlist background", "Fondo de las listas"), Icons.Rounded.Palette)
+        RowSubtitle(uiText("Choose the artwork used behind playlists.", "Elige la carátula que se usa como fondo en las listas."))
+        SettingsDropdownField(
+            options = listOf(false to uiText("Playlist artwork", "Carátula de la lista"), true to uiText("Playing song", "Canción en reproducción")),
+            selected = settings.playlistSongBackground,
+            onSelect = { onSettings(settings.copy(playlistSongBackground = it)) },
         )
     }
 
@@ -95,6 +109,7 @@ internal fun ThemeStyleSection(
 
         Spacer(Modifier.height(14.dp))
         val comboName = when {
+            settings.glassTheme == GlassTheme.ROSE_PINE_DAWN -> "Rosé Pine Dawn"
             settings.glassTheme == GlassTheme.CRISTAL && settings.glassBorders == GlassBorders.LIMPIO -> uiText("Clear glass", "Cristal Limpio (Clear Glass)")
             settings.glassTheme == GlassTheme.CRISTAL_OSCURO && settings.glassBorders == GlassBorders.LIMPIO -> uiText("Clean dark glass", "Cristal Oscuro Limpio")
             settings.glassTheme == GlassTheme.ROSE_PINE && settings.glassBorders == GlassBorders.LIMPIO -> uiText("Clean Rosé Pine", "Rosé Pine Limpio")

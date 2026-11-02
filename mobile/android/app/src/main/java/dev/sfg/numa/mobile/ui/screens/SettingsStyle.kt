@@ -49,12 +49,16 @@ internal object SettingsStyle {
     val Divider = Color(0x12FFFFFF)
     val Tile = Color(0x12FFFFFF)
     val TileBorder: Color
-        @Composable get() = if (dev.sfg.numa.mobile.ui.glass.LocalGlass.current.borders == dev.sfg.numa.mobile.model.GlassBorders.LIMPIO) Color.Transparent else if (dev.sfg.numa.mobile.ui.glass.LocalGlass.current.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE) dev.sfg.numa.mobile.ui.theme.RosePineColors.Rose else Color(0x10FFFFFF)
+        @Composable get() = if (dev.sfg.numa.mobile.ui.glass.LocalGlass.current.borders == dev.sfg.numa.mobile.model.GlassBorders.LIMPIO) Color.Transparent else if ((dev.sfg.numa.mobile.ui.glass.LocalGlass.current.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE || dev.sfg.numa.mobile.ui.glass.LocalGlass.current.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN)) dev.sfg.numa.mobile.ui.theme.rosePinePalette(dev.sfg.numa.mobile.ui.glass.LocalGlass.current.theme).Rose else Color(0x10FFFFFF)
     val TileIcon = dev.sfg.numa.mobile.ui.theme.CanopyColors.Accent
-    val Title = Color(0xFFF0EEE7)
-    val Description = Color(0xFFC4C4D2)
-    val Caption = Color(0xFF8D968E)
-    val Chevron = Color(0xFFE0E6E2)
+    val Title: Color
+        @Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+    val Description: Color
+        @Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
+    val Caption: Color
+        @Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
+    val Chevron: Color
+        @Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
 
     /** Text and control accent; lighter than the switch fill so it holds up on the warped cover. */
     val Sage = Color(0xFFBEA5E8)
@@ -66,7 +70,7 @@ internal object SettingsStyle {
     val SegmentIdle = Color(0xFFB4BEB9)
     val ButtonFill = dev.sfg.numa.mobile.ui.glass.DesktopGlass.ButtonFill
     val ButtonBorder: Color
-        @Composable get() = if (dev.sfg.numa.mobile.ui.glass.LocalGlass.current.borders == dev.sfg.numa.mobile.model.GlassBorders.LIMPIO) Color.Transparent else if (dev.sfg.numa.mobile.ui.glass.LocalGlass.current.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE) dev.sfg.numa.mobile.ui.theme.RosePineColors.Rose else dev.sfg.numa.mobile.ui.glass.DesktopGlass.ButtonBorder
+        @Composable get() = if (dev.sfg.numa.mobile.ui.glass.LocalGlass.current.borders == dev.sfg.numa.mobile.model.GlassBorders.LIMPIO) Color.Transparent else if ((dev.sfg.numa.mobile.ui.glass.LocalGlass.current.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE || dev.sfg.numa.mobile.ui.glass.LocalGlass.current.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN)) dev.sfg.numa.mobile.ui.theme.rosePinePalette(dev.sfg.numa.mobile.ui.glass.LocalGlass.current.theme).Rose else dev.sfg.numa.mobile.ui.glass.DesktopGlass.ButtonBorder
 
     val PanelShape = RoundedCornerShape(16.dp)
 }

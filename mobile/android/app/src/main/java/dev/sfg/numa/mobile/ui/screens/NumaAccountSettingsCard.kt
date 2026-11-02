@@ -67,6 +67,7 @@ fun NumaAccountSettingsCard() {
         if (state.error.isNotBlank()) {
             Spacer(Modifier.height(10.dp))
             Text(state.error, color = Color(0xFFFF7777), style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(16.dp))
             if (state.signedIn) SettingsPill(uiText("Retry connection", "Reintentar conexión"),
                 onClick = { if (!state.loadingDevices) account.refreshDevices() }, modifier = Modifier.fillMaxWidth())
         }

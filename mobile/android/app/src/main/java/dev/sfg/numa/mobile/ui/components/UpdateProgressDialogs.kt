@@ -119,7 +119,7 @@ internal fun UpdateDownloadingDialog(state: UpdateState.Downloading, onDismiss: 
                 Text(
                     uiText("Downloading update", "Descargando actualización"),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
 
                 Spacer(Modifier.height(4.dp))
@@ -135,7 +135,7 @@ internal fun UpdateDownloadingDialog(state: UpdateState.Downloading, onDismiss: 
                 Text(
                     uiText("The installer will open automatically when finished. You can continue listening to music in the background.", "El instalador se abrirá al terminar. Puedes seguir escuchando música en segundo plano."),
                     style = MaterialTheme.typography.bodySmall.copy(lineHeight = 18.sp),
-                    color = CanopyColors.Muted,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.fillMaxWidth(),
                 )
 
@@ -162,7 +162,7 @@ internal fun UpdateDownloadingDialog(state: UpdateState.Downloading, onDismiss: 
                     Text(
                         uiText("Hide", "Ocultar"),
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                        color = CanopyColors.Muted,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -207,7 +207,7 @@ internal fun UpdateFailedDialog(state: UpdateState.Failed, onDismiss: () -> Unit
                 Text(
                     uiText("Update failed", "La actualización falló"),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -221,7 +221,7 @@ internal fun UpdateFailedDialog(state: UpdateState.Failed, onDismiss: () -> Unit
                     Text(
                         uiText("${state.reason} NÜMA ${state.version} was not installed.", "${state.reason} No se instaló NÜMA ${state.version}."),
                         style = MaterialTheme.typography.bodySmall.copy(lineHeight = 18.sp),
-                        color = CanopyColors.MutedStrong,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(14.dp),
                     )
                 }
@@ -286,7 +286,7 @@ internal fun UpdateReadyDialog(state: UpdateState.ReadyToInstall, onDismiss: () 
                 Text(
                     uiText("Update ready to install", "Actualización lista para instalar"),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
 
                 Spacer(Modifier.height(6.dp))
@@ -294,7 +294,7 @@ internal fun UpdateReadyDialog(state: UpdateState.ReadyToInstall, onDismiss: () 
                 Text(
                     uiText("NÜMA ${state.version} has finished downloading and can be installed now.", "NÜMA ${state.version} terminó de descargarse y está lista para instalar."),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = CanopyColors.Muted,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.fillMaxWidth(),
                 )
 

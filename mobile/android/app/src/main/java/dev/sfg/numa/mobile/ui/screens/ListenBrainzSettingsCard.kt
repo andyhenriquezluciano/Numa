@@ -69,7 +69,7 @@ fun ListenBrainzSettingsCard(
             Text(
                 listenBrainzSubtitle(state),
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (state is ListenBrainzState.Error) CanopyColors.Danger else CanopyColors.Muted,
+                color = if (state is ListenBrainzState.Error) CanopyColors.Danger else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             Spacer(Modifier.height(12.dp))
@@ -88,13 +88,13 @@ fun ListenBrainzSettingsCard(
         var token by remember { mutableStateOf("") }
         GlassAlertDialog(
             onDismissRequest = { showTokenDialog = false },
-            title = { Text(uiText("ListenBrainz user token", "Token de usuario de ListenBrainz"), color = CanopyColors.Text) },
+            title = { Text(uiText("ListenBrainz user token", "Token de usuario de ListenBrainz"), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface) },
             text = {
                 Column {
                     Text(
                         uiText("Paste the token from listenbrainz.org/settings. It is encrypted on this device.", "Pega el token de listenbrainz.org/settings. Se guarda cifrado en este dispositivo."),
                         style = MaterialTheme.typography.bodySmall,
-                        color = CanopyColors.Muted,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
@@ -119,7 +119,7 @@ fun ListenBrainzSettingsCard(
             },
             dismissButton = {
                 TextButton(onClick = { showTokenDialog = false }) {
-                    Text(uiText("Cancel", "Cancelar"), color = CanopyColors.Muted)
+                    Text(uiText("Cancel", "Cancelar"), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
         )

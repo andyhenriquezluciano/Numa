@@ -71,7 +71,7 @@ Item {
         height: root.canopy ? 38 : 42
         radius: height / 2
         clip: true
-        color: NumaAppearance.rosePine ? (search.activeFocus ? "#403d52" : "#26233a") : search.activeFocus ? "#1effffff" : "#15ffffff"
+        color: NumaAppearance.rosePine ? (search.activeFocus ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : search.activeFocus ? "#1effffff" : "#15ffffff"
         border.color: search.activeFocus ? NumaAppearance.accentColor : "#70ffffff"
         border.width: NumaAppearance.controlBorderWidth
 

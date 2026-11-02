@@ -80,7 +80,7 @@ Item {
         Rectangle {
             anchors.fill: parent
             radius: capsule.radius
-            color: NumaAppearance.rosePine ? "#403d52" : "#14ffffff"
+            color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#14ffffff"
             gradient: NumaAppearance.performanceMode ? null : vertGrad
 
             Gradient {
@@ -280,7 +280,7 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     radius: 8
-                    color: NumaAppearance.rosePine ? (newPlaylistButton.hovered ? "#403d52" : "#26233a") : newPlaylistButton.hovered ? "#1cffffff" : "#10ffffff"
+                    color: NumaAppearance.rosePine ? (newPlaylistButton.hovered ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : newPlaylistButton.hovered ? "#1cffffff" : "#10ffffff"
                     Behavior on color { ColorAnimation { duration: Motion.fast } }
                 }
                 RoundedSurfaceFrame {
@@ -391,7 +391,7 @@ Item {
                         softGlow: true
                         showBorder: true
                         visible: !shortcut.selected && shortcut.hovered
-                        fillColor: NumaAppearance.rosePine ? "#26233a" : "#14ffffff"
+                        fillColor: NumaAppearance.rosePine ? NumaAppearance.overlayColor : "#14ffffff"
                         border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#30ffffff"
                     }
                 }

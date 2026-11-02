@@ -128,12 +128,12 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
                             Text(
                                 uiText("NÜMA update", "Actualización de NÜMA"),
                                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                                color = CanopyColors.Text,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
                                 if (metadata.publishedAt.isNotBlank()) "Published ${metadata.publishedAt}" else uiText("Update available", "Actualización disponible"),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = CanopyColors.Muted,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -144,7 +144,7 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
                         Icon(
                             Icons.Rounded.Close,
                             contentDescription = uiText("Close update prompt", "Cerrar aviso de actualización"),
-                            tint = CanopyColors.Muted,
+                            tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp),
                         )
                     }
@@ -180,14 +180,14 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
                             Text(
                                 "v$currentVersion",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                                color = CanopyColors.MutedStrong,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
 
                         Icon(
                             Icons.AutoMirrored.Rounded.ArrowForward,
                             contentDescription = null,
-                            tint = CanopyColors.Muted.copy(alpha = 0.6f),
+                            tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                             modifier = Modifier.size(18.dp),
                         )
 
@@ -206,7 +206,7 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
                                 Text(
                                     "v${metadata.version}",
                                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = CanopyColors.Text,
+                                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                                 )
                                 if (metadata.codename.isNotBlank()) {
                                     Spacer(Modifier.width(6.dp))
@@ -255,7 +255,7 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
                             Text(
                                 if (totalChanges == 1) uiText("1 change", "Un cambio") else uiText("$totalChanges changes", "$totalChanges cambios"),
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                                color = CanopyColors.Muted,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                             )
                         }
@@ -286,7 +286,7 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
                             Text(
                                 uiText("Includes general performance improvements and bug fixes.", "Incluye mejoras de rendimiento y correcciones de errores."),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = CanopyColors.Muted,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(14.dp),
                             )
                         }
@@ -311,7 +311,7 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
                         Text(
                             uiText("Not now", "Ahora no"),
                             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                            color = CanopyColors.Muted,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
 

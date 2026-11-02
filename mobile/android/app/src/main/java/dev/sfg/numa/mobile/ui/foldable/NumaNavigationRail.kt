@@ -96,8 +96,8 @@ fun NumaNavigationRail(
 ) {
     val glassTint = LocalGlass.current.tint
     val tintColor = if (glassTint != Color.Unspecified && glassTint.alpha > 0f) glassTint else LocalAccent.current
-    val isRosePine = LocalGlass.current.theme == GlassTheme.ROSE_PINE
-    val selectionColor = if (isRosePine) RosePineColors.Rose else tintColor
+    val isRosePine = (LocalGlass.current.theme == GlassTheme.ROSE_PINE || LocalGlass.current.theme == GlassTheme.ROSE_PINE_DAWN)
+    val selectionColor = if (isRosePine) dev.sfg.numa.mobile.ui.theme.rosePinePalette(LocalGlass.current.theme).Rose else tintColor
 
     val selectedIndex = remember(currentRoute) {
         val idx = foldableDestinations.indexOfFirst { it.route == currentRoute }
@@ -169,7 +169,7 @@ fun NumaNavigationRail(
                         label = "RailItemSelect_${destination.route}",
                     )
 
-                    val unselectedColor = if (isRosePine) RosePineColors.Muted else Color.White.copy(alpha = 0.72f)
+                    val unselectedColor = if (isRosePine) dev.sfg.numa.mobile.ui.theme.rosePinePalette(LocalGlass.current.theme).Muted else Color.White.copy(alpha = 0.72f)
                     val itemColor by animateColorAsState(
                         targetValue = if (isSelected) selectionColor else unselectedColor,
                         animationSpec = tween(180),
@@ -178,7 +178,7 @@ fun NumaNavigationRail(
 
                     val textColor by animateColorAsState(
                         targetValue = if (isSelected) {
-                            if (isRosePine) RosePineColors.Text else Color.White
+                            if (isRosePine) dev.sfg.numa.mobile.ui.theme.rosePinePalette(LocalGlass.current.theme).Text else Color.White
                         } else unselectedColor,
                         animationSpec = tween(180),
                         label = "RailItemText_${destination.route}",

@@ -85,7 +85,7 @@ ItemDelegate {
         radius: 10
         softGlow: root.current || root.hovered || trackMenu.visible || root.searchMatch
         showBorder: softGlow || root.activeFocus
-        fillColor: NumaAppearance.rosePine ? (root.current || root.searchMatch ? "#403d52"
+        fillColor: NumaAppearance.rosePine ? (root.current || root.searchMatch ? NumaAppearance.highlightColor
                  : root.tint(NumaAppearance.textColor, (root.hovered || trackMenu.visible) ? 0.08 : 0.0))
                  : root.searchMatch ? root.tint(root.rowAccent, 0.3)
                  : root.current ? root.tint(root.rowAccent, (root.hovered || trackMenu.visible) ? 0.22 : 0.14)

@@ -201,7 +201,7 @@ internal fun CollectionDetailContent(
                             Text(
                                 text = uiText("${filteredTracks.size} ${if (filteredTracks.size == 1) "track" else "tracks"} found", "${filteredTracks.size} canciones encontradas"),
                                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                                color = CanopyColors.Muted,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Surface(
                                 onClick = { searchQuery = "" },

@@ -85,19 +85,19 @@ internal fun DeleteDownloadsRow(downloadedBytes: Long, onDelete: () -> Unit) {
         GlassAlertDialog(
             onDismissRequest = { showConfirmDialog = false },
             title = {
-                Text(uiText("Delete all downloads?", "¿Eliminar todas las descargas?"), color = CanopyColors.Text, fontWeight = FontWeight.Bold)
+                Text(uiText("Delete all downloads?", "¿Eliminar todas las descargas?"), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         uiText("This frees $formattedSize and cancels downloads in progress.", "Libera $formattedSize y cancela las descargas en curso."),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = CanopyColors.Text,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         uiText("Songs remain in your library and can be downloaded again.", "Las canciones permanecen en tu biblioteca y puedes descargarlas de nuevo."),
                         style = MaterialTheme.typography.bodySmall,
-                        color = CanopyColors.Muted,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             },
@@ -113,7 +113,7 @@ internal fun DeleteDownloadsRow(downloadedBytes: Long, onDelete: () -> Unit) {
             },
             dismissButton = {
                 TextButton(onClick = { showConfirmDialog = false }) {
-                    Text(uiText("Cancel", "Cancelar"), color = CanopyColors.Muted)
+                    Text(uiText("Cancel", "Cancelar"), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             shape = RoundedCornerShape(16.dp),

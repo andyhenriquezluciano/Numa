@@ -72,11 +72,11 @@ internal fun NewPlaylistSheet(
     GlassBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        dragHandle = { BottomSheetDefaults.DragHandle(color = CanopyColors.Muted.copy(alpha = 0.4f)) },
+        dragHandle = { BottomSheetDefaults.DragHandle(color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
     ) {
         Column(Modifier.fillMaxWidth().imePadding().verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp).padding(bottom = 28.dp)) {
-            Text(stringResource(R.string.qol_new_playlist), style = MaterialTheme.typography.titleLarge, color = CanopyColors.Text)
+            Text(stringResource(R.string.qol_new_playlist), style = MaterialTheme.typography.titleLarge, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(14.dp))
             SettingsSegmented(
                 options = listOf(false to "YouTube Music", true to uiText("On this phone", "En este teléfono")),
@@ -87,7 +87,7 @@ internal fun NewPlaylistSheet(
             Text(
                 stringResource(if (local) R.string.qol_local_hint else R.string.qol_cloud_hint),
                 style = MaterialTheme.typography.bodySmall,
-                color = CanopyColors.Muted,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(14.dp))
             OutlinedTextField(
@@ -97,9 +97,9 @@ internal fun NewPlaylistSheet(
                 singleLine = true,
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = CanopyColors.Text, unfocusedTextColor = CanopyColors.Text,
+                    focusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface, unfocusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     focusedBorderColor = CanopyColors.Accent,
-                    unfocusedBorderColor = CanopyColors.Text.copy(alpha = 0.18f)),
+                    unfocusedBorderColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(16.dp))

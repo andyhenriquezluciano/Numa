@@ -113,7 +113,7 @@ fun DevicesSheet(
         GlassBottomSheet(
             onDismissRequest = onDismiss,
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            dragHandle = { BottomSheetDefaults.DragHandle(color = CanopyColors.Muted.copy(alpha = 0.4f)) },
+            dragHandle = { BottomSheetDefaults.DragHandle(color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
         ) {
             FrostedDevicesScreenContent(
                 targets = targets,
@@ -173,7 +173,7 @@ fun RenameDeviceDialog(device: PlaybackDevice, onDismiss: () -> Unit, onConfirm:
                 Text(
                     text = uiText("Rename This Device", "Cambiar nombre del dispositivo"),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
 
                 Spacer(Modifier.height(4.dp))
@@ -181,7 +181,7 @@ fun RenameDeviceDialog(device: PlaybackDevice, onDismiss: () -> Unit, onConfirm:
                 Text(
                     text = uiText("Set a custom name for this device in Connect and Listening Parties.", "Elige un nombre para este dispositivo en Connect y en las salas compartidas."),
                     style = MaterialTheme.typography.bodySmall,
-                    color = CanopyColors.Muted,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
 
@@ -190,7 +190,7 @@ fun RenameDeviceDialog(device: PlaybackDevice, onDismiss: () -> Unit, onConfirm:
                 TextField(
                     value = nameInput,
                     onValueChange = { nameInput = it },
-                    placeholder = { Text(device.name, color = CanopyColors.Muted) },
+                    placeholder = { Text(device.name, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant) },
                     singleLine = true,
                     shape = CircleShape,
                     colors =
@@ -199,8 +199,8 @@ fun RenameDeviceDialog(device: PlaybackDevice, onDismiss: () -> Unit, onConfirm:
                             unfocusedContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            focusedTextColor = CanopyColors.Text,
-                            unfocusedTextColor = CanopyColors.Text,
+                            focusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                         ),
                     trailingIcon = {
                         if (nameInput.isNotBlank()) {
@@ -208,7 +208,7 @@ fun RenameDeviceDialog(device: PlaybackDevice, onDismiss: () -> Unit, onConfirm:
                                 Icon(
                                     Icons.Rounded.Close,
                                     contentDescription = uiText("Clear", "Borrar"),
-                                    tint = CanopyColors.Muted,
+                                    tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
@@ -229,14 +229,14 @@ fun RenameDeviceDialog(device: PlaybackDevice, onDismiss: () -> Unit, onConfirm:
                         Icon(
                             Icons.Rounded.RestartAlt,
                             contentDescription = null,
-                            tint = CanopyColors.Muted,
+                            tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp),
                         )
                         Spacer(Modifier.width(6.dp))
                         Text(
                             text = uiText("Reset to Default (${device.name})", "Restablecer nombre original (${device.name})"),
                             style = MaterialTheme.typography.labelSmall,
-                            color = CanopyColors.MutedStrong,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -256,7 +256,7 @@ fun RenameDeviceDialog(device: PlaybackDevice, onDismiss: () -> Unit, onConfirm:
                                 .glassPane(CircleShape, GlassTone.CONTROL)
                                 .border(1.dp, CanopyColors.Rule, CircleShape),
                     ) {
-                        Text(uiText("Cancel", "Cancelar"), fontWeight = FontWeight.SemiBold, color = CanopyColors.Text)
+                        Text(uiText("Cancel", "Cancelar"), fontWeight = FontWeight.SemiBold, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
                     }
 
                     Button(

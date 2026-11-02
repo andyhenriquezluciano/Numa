@@ -88,7 +88,7 @@ fun SongShareBottomSheet(
     GlassBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = CanopyColors.Muted.copy(alpha = 0.4f)) },
+        dragHandle = { BottomSheetDefaults.DragHandle(color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
     ) {
         Column(
             modifier = Modifier
@@ -108,10 +108,10 @@ fun SongShareBottomSheet(
                         else -> uiText("Share", "Compartir")
                     },
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
                 IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Rounded.Close, contentDescription = uiText("Close", "Cerrar"), tint = CanopyColors.Muted)
+                    Icon(Icons.Rounded.Close, contentDescription = uiText("Close", "Cerrar"), tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -140,7 +140,7 @@ fun SongShareBottomSheet(
                             Text(
                                 text = state.title.ifBlank { "NÜMA Music" },
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                                color = CanopyColors.Text,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f, fill = false),
@@ -155,7 +155,7 @@ fun SongShareBottomSheet(
                             Text(
                                 text = state.subtitle,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = CanopyColors.Muted,
+                                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -185,7 +185,7 @@ fun SongShareBottomSheet(
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,
-                                contentColor = CanopyColors.Text,
+                                contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                             ),
                         ) {
                             Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -207,14 +207,14 @@ fun SongShareBottomSheet(
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Transparent,
-                                contentColor = CanopyColors.Text,
+                                contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                             ),
                         ) {
                             Icon(
                                 if (copied) Icons.Rounded.Check else Icons.Rounded.ContentCopy,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
-                                tint = if (copied) CanopyColors.Accent else CanopyColors.Text,
+                                tint = if (copied) CanopyColors.Accent else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(if (copied) uiText("Copied", "Copiado") else uiText("Copy", "Copiar"),
@@ -233,7 +233,7 @@ fun SongShareBottomSheet(
                         Text(
                             text = state.message,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = CanopyColors.Muted,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }

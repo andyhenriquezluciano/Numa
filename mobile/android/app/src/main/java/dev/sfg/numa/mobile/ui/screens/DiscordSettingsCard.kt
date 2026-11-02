@@ -69,7 +69,7 @@ fun DiscordSettingsCard(
                 DiscordPresenceStatus.Unavailable -> Text(
                     uiText("Install and sign in to the Discord app to share what you’re listening to.", "Instala Discord e inicia sesión para compartir lo que estás escuchando."),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = CanopyColors.Muted,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 is DiscordPresenceStatus.Error -> Text(
                     discordStatus.message,
@@ -79,7 +79,7 @@ fun DiscordSettingsCard(
                 else -> Text(
                     uiText("Uses the Discord app on this device.", "Usa la aplicación de Discord de este dispositivo."),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = CanopyColors.Muted,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -126,7 +126,7 @@ private fun DiscordToggleRow(
             Icon(
                 icon,
                 contentDescription = null,
-                tint = if (enabled) LocalAccent.current else CanopyColors.Muted,
+                tint = if (enabled) LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -135,12 +135,12 @@ private fun DiscordToggleRow(
             Text(
                 title,
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                color = if (enabled) CanopyColors.Text else CanopyColors.Muted,
+                color = if (enabled) androidx.compose.material3.MaterialTheme.colorScheme.onSurface else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = CanopyColors.Muted,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         SettingsSwitch(

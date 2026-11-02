@@ -28,8 +28,6 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
-import dev.sfg.numa.mobile.ui.glass.glassArtworkSource
-
 
 
 import dev.sfg.numa.mobile.ui.text.uiText
@@ -100,8 +98,8 @@ import dev.sfg.numa.mobile.ui.theme.CanopyColors
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
 import dev.sfg.numa.mobile.ui.theme.legibleOnDarkChrome
 
-private fun BrowseDetail.supportsBestMix() =
-    (kind == CatalogKind.PLAYLIST || kind == CatalogKind.ALBUM) && tracks.size > 1
+private fun BrowseDetail.supportsBestMix(enabled: Boolean) =
+    enabled && (kind == CatalogKind.PLAYLIST || kind == CatalogKind.ALBUM) && tracks.size > 1
 
 /**
  * Album and playlist hero: faded full-bleed cover on phones (a shadowed card on wide
@@ -110,6 +108,8 @@ private fun BrowseDetail.supportsBestMix() =
 @Composable
 internal fun CollectionHero(
     detail: BrowseDetail,
+    playback: dev.sfg.numa.mobile.model.PlaybackSnapshot = dev.sfg.numa.mobile.model.PlaybackSnapshot(),
+    onTogglePlayback: (() -> Unit)? = null,
     palette: ArtworkPalette,
     shuffleAvailable: Boolean,
     onPlayAll: (List<Track>, String) -> Unit,
@@ -121,12 +121,8 @@ internal fun CollectionHero(
     artistPortraitUrl: String = "",
     onOpenArtist: (() -> Unit)? = null,
     smartCrossfadeEnabled: Boolean = false,
-    playback: dev.sfg.numa.mobile.model.PlaybackSnapshot = dev.sfg.numa.mobile.model.PlaybackSnapshot(),
-    onTogglePlayback: (() -> Unit)? = null,
 ) {
     val isAlbum = detail.kind == CatalogKind.ALBUM
-    val trackIds = remember(detail.tracks) { detail.tracks.map { it.id }.toSet() }
-    val ownsPlayback = dev.sfg.numa.mobile.playback.collectionOwnsPlayback(detail.id, trackIds, playback)
     val automatic by dev.sfg.numa.mobile.NumaGraph.from(LocalContext.current).automaticPlaylistCovers.state.collectAsState()
     val coverAnimation = animatedArtworkUrl.takeUnless { dev.sfg.numa.mobile.artwork.coverPlaylistKey(detail.id) in automatic.enabled }.orEmpty()
     val albumAccent = remember(palette.accent) { palette.accent.legibleOnDarkChrome() }
@@ -150,7 +146,7 @@ internal fun CollectionHero(
             modifier = Modifier.padding(horizontal = HeroGutter),
         ) {
             Text(
-                text = if (detail.kind == CatalogKind.PLAYLIST) dev.sfg.numa.mobile.ui.text.playlistDisplayTitle(detail.id, detail.title) else detail.title,
+                text = detail.title,
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 30.sp,
@@ -192,8 +188,11 @@ internal fun CollectionHero(
 
         Spacer(Modifier.height(24.dp))
         HeroPlayRow(
-            onPlay = { if (ownsPlayback && onTogglePlayback != null) onTogglePlayback() else onPlayAll(detail.tracks, detail.title) },
-            playing = ownsPlayback && playback.isPlaying,
+            onPlay = {
+                if (playback.sourcePlaylistId == detail.id && playback.currentTrack != null && onTogglePlayback != null) onTogglePlayback()
+                else onPlayAll(detail.tracks, detail.title)
+            },
+            playing = playback.sourcePlaylistId == detail.id && playback.isPlaying,
             playEnabled = detail.tracks.isNotEmpty(),
             // Albums keep their cover's colour on the disc; playlists stay neutral.
             playFill = if (isAlbum) albumAccent else Color.White,
@@ -219,7 +218,7 @@ internal fun CollectionHero(
             },
         )
 
-        if (detail.supportsBestMix()) {
+        if (detail.supportsBestMix(smartCrossfadeEnabled)) {
             Spacer(Modifier.height(12.dp))
             BestMixButton(isSorting = bestMix.isSorting, statusText = bestMix.statusText, onClick = bestMix::trigger)
         }
@@ -242,7 +241,6 @@ internal fun CollectionHero(
             Box(
                 modifier = Modifier
                     .size(minOf(240.dp, androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * 0.55f))
-                    .glassArtworkSource()
                     .shadow(28.dp, RoundedCornerShape(16.dp), spotColor = Color.Black.copy(alpha = 0.7f))
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color(0xFF1E1E1E)),
@@ -356,6 +354,7 @@ internal fun CollectionChrome(
             add(uiText("Cover", "Carátula") to local.onPickCover)
             add(automaticLabel to {
                 graph.automaticPlaylistCovers.rememberSource(detail.id, detail.tracks)
+                graph.automaticPlaylistCovers.setEnabled(detail.id, !automaticEnabled)
                 graph.automaticPlaylistCovers.setEnabled(detail.id, !automaticEnabled, candidateArt)
             })
             if (dev.sfg.numa.mobile.artwork.hasRemovablePlaylistCover(local.onClearCover != null, automaticEnabled)) add(uiText("Remove cover", "Eliminar carátula") to {
@@ -368,6 +367,7 @@ internal fun CollectionChrome(
             add(uiText("Change cover", "Cambiar carátula") to chooseCover)
             add(automaticLabel to {
                 graph.automaticPlaylistCovers.rememberSource(detail.id, detail.tracks)
+                graph.automaticPlaylistCovers.setEnabled(detail.id, !automaticEnabled)
                 graph.automaticPlaylistCovers.setEnabled(detail.id, !automaticEnabled, candidateArt)
             })
             if (dev.sfg.numa.mobile.artwork.hasRemovablePlaylistCover(!graph.playlistCovers.cover(detail.id, covers).isNullOrBlank(), automaticEnabled))

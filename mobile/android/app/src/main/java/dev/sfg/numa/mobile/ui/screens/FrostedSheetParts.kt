@@ -52,10 +52,10 @@ internal fun FrostedSectionHeader(title: String, badge: String? = null) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = CanopyColors.Text,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
         )
         badge?.let {
-            Text(text = it, style = MaterialTheme.typography.labelSmall, color = CanopyColors.Muted)
+            Text(text = it, style = MaterialTheme.typography.labelSmall, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -84,7 +84,7 @@ internal fun FrostedMessageBanner(message: String, isError: Boolean = false) {
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = CanopyColors.Text,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             )
         }
     }

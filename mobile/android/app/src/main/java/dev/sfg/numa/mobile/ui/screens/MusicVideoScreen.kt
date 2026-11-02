@@ -179,7 +179,7 @@ private fun MusicVideoPortrait(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 IconButton(onClick = actions.onMinimize) {
-                    Icon(Icons.Rounded.ExpandMore, uiText("Minimize player", "Minimizar reproductor"), tint = CanopyColors.Text)
+                    Icon(Icons.Rounded.ExpandMore, uiText("Minimize player", "Minimizar reproductor"), tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
                 }
             }
             Box(Modifier.fillMaxWidth().height(pictureHeight).background(Color.Black)) {
@@ -204,7 +204,7 @@ private fun MusicVideoPortrait(
                 Column(Modifier.weight(1f)) {
                     Text(
                         track.title,
-                        color = CanopyColors.Text,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -212,7 +212,7 @@ private fun MusicVideoPortrait(
                     )
                     Text(
                         track.artist,
-                        color = CanopyColors.MutedStrong,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 16.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -222,7 +222,7 @@ private fun MusicVideoPortrait(
                     Icon(
                         if (liked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                         if (liked) uiText("Unlike", "Quitar Me gusta") else uiText("Like", "Me gusta"),
-                        tint = if (liked) CanopyColors.Favorite else CanopyColors.Text,
+                        tint = if (liked) CanopyColors.Favorite else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }

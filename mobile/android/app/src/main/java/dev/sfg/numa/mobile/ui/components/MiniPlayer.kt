@@ -268,14 +268,14 @@ fun MiniPlayer(
                         Text(
                             text = title,
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                            color = CanopyColors.Text,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             modifier = Modifier.basicMarquee()
                         )
                         Text(
                             text = artist,
                             style = MaterialTheme.typography.bodySmall,
-                            color = CanopyColors.Muted,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1
                         )
                     }
@@ -357,7 +357,7 @@ fun PlaybackTargetLabel(name: String, isLocal: Boolean, onClick: () -> Unit) {
                 Modifier
                     .size(8.dp)
                     .background(
-                        if (isLocal) CanopyColors.Muted else LocalAccent.current,
+                        if (isLocal) androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant else LocalAccent.current,
                         CircleShape,
                     ),
             )
@@ -365,7 +365,7 @@ fun PlaybackTargetLabel(name: String, isLocal: Boolean, onClick: () -> Unit) {
             Text(
                 name,
                 style = MaterialTheme.typography.labelSmall,
-                color = if (isLocal) CanopyColors.Text else LocalAccent.current,
+                color = if (isLocal) androidx.compose.material3.MaterialTheme.colorScheme.onSurface else LocalAccent.current,
             )
         }
     }

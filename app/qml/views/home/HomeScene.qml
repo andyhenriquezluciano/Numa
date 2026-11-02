@@ -82,6 +82,8 @@ Item {
         if (scene.shell.currentPage === "album")
             return (NumaAlbum.detail || {}).thumbnail || "";
         if (scene.shell.currentPage === "playlist") {
+            if (NumaAppearance.playlistSongBackground && scene.playbackArtwork.length > 0)
+                return scene.playbackArtwork;
             const detail = NumaPlaylist.detail || {};
             const fallback = detail.thumbnail || "";
             const id = detail.playlistId || detail.browseId || detail.id || "";

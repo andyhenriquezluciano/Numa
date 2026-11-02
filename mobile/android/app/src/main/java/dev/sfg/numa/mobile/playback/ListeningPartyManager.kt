@@ -127,8 +127,12 @@ class ListeningPartyManager(
             // Only tear down the client this call created. A second attempt may already have
             // replaced it, and disposing that one would kill a party that is connecting fine.
             if (client === created) leaveParty(closeRoom = false)
-            mutableState.value = PartyState(error = error.message.orEmpty())
-            throw error
+            val message = dev.sfg.numa.mobile.ui.text.uiText(
+                "Could not open the room. Check the code and your connection.",
+                "No se pudo abrir la sala. Comprueba el código y la conexión.",
+            )
+            mutableState.value = PartyState(error = message)
+            throw IllegalStateException(message, error)
         }
     }
 

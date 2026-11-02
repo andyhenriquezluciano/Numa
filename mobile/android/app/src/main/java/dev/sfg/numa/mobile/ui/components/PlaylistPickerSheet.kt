@@ -71,7 +71,7 @@ internal fun PlaylistPickerSheet(
     GlassBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        dragHandle = { BottomSheetDefaults.DragHandle(color = CanopyColors.Muted.copy(alpha = 0.4f)) },
+        dragHandle = { BottomSheetDefaults.DragHandle(color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
     ) {
         LazyColumn(
             modifier = Modifier
@@ -80,11 +80,11 @@ internal fun PlaylistPickerSheet(
             contentPadding = PaddingValues(bottom = 28.dp),
         ) {
             item {
-                Text(stringResource(R.string.qol_add_to_playlist), style = MaterialTheme.typography.titleLarge, color = CanopyColors.Text)
+                Text(stringResource(R.string.qol_add_to_playlist), style = MaterialTheme.typography.titleLarge, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
                 Text(
                     track.title,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = CanopyColors.Muted,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -95,7 +95,7 @@ internal fun PlaylistPickerSheet(
                     Text(
                         stringResource(R.string.qol_empty_playlists),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = CanopyColors.Muted,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(vertical = 16.dp),
                     )
                 }
@@ -115,17 +115,17 @@ internal fun PlaylistPickerSheet(
                             PlaylistArtwork(playlist.id, playlist.title, playlist.artworkUrl, Modifier.size(42.dp))
                             Spacer(Modifier.width(14.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(if (PlaylistActions.isLikedMusicPlaylist(playlist.id)) stringResource(R.string.qol_liked_music) else playlist.title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium), color = CanopyColors.Text)
+                                Text(if (PlaylistActions.isLikedMusicPlaylist(playlist.id)) stringResource(R.string.qol_liked_music) else playlist.title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
                                 Text(
                                     stringResource(if (containsTrack) R.string.qol_already_added else if (isLocalPlaylistId(playlist.id)) R.string.qol_local_playlist else R.string.qol_youtube_playlist),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = CanopyColors.Muted,
+                                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                             Icon(
                                 Icons.AutoMirrored.Rounded.PlaylistAdd,
                                 contentDescription = null,
-                                tint = if (containsTrack) CanopyColors.Muted else LocalAccent.current,
+                                tint = if (containsTrack) androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant else LocalAccent.current,
                             )
                         }
                     }

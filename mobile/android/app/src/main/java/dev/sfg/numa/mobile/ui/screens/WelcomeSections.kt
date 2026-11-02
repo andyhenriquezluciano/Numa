@@ -135,7 +135,7 @@ internal fun WelcomeHeroHeader() {
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 28.sp,
             ),
-            color = CanopyColors.Text,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             modifier = Modifier.riseIn(1),
         )
@@ -145,7 +145,7 @@ internal fun WelcomeHeroHeader() {
         Text(
             text = uiText("Personalize your sound, visuals, and music experience", "Personaliza el sonido, la apariencia y tu experiencia musical"),
             style = MaterialTheme.typography.bodyLarge,
-            color = CanopyColors.Muted,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 16.dp).riseIn(2),
         )
@@ -202,12 +202,12 @@ internal fun WelcomeAuthSection(
                 Text(
                     text = if (isSignedIn) displayName else uiText("Not Connected", "Sin conexión"),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     text = if (isSignedIn) uiText("Signed in and ready to stream", "Sesión iniciada y lista para reproducir") else uiText("Guest mode active", "Modo invitado activo"),
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (isSignedIn) LocalAccent.current else CanopyColors.Muted,
+                    color = if (isSignedIn) LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -293,7 +293,7 @@ internal fun WelcomeCrossfadeSection(
                     Text(
                         uiText("Duration", "Duración"),
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                        color = CanopyColors.Text,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         "${settings.crossfadeSeconds} seconds",
@@ -315,7 +315,7 @@ internal fun WelcomeCrossfadeSection(
                 Text(
                     uiText("Transition Type", "Tipo de transición"),
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.height(8.dp))
                 Row(
@@ -373,7 +373,7 @@ internal fun WelcomeQualityAndStorageSection(
                     Text(
                         uiText("Streaming Quality", "Calidad de transmisión"),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = CanopyColors.Text,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         settings.audioQuality.name.lowercase().replace('_', ' ').replaceFirstChar(Char::titlecase),
@@ -417,7 +417,7 @@ internal fun WelcomeQualityAndStorageSection(
                             },
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) Color.Black else CanopyColors.Muted,
+                            color = if (isSelected) Color.Black else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -437,12 +437,12 @@ internal fun WelcomeQualityAndStorageSection(
                     Text(
                         uiText("Audio Cache Size", "Tamaño de la caché de audio"),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = CanopyColors.Text,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         uiText("Store up to ${formatCacheSize(steps[index])} of played music", "Guarda hasta ${formatCacheSize(steps[index])} de música reproducida"),
                         style = MaterialTheme.typography.bodySmall,
-                        color = CanopyColors.Muted,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 Text(

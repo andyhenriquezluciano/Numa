@@ -173,12 +173,12 @@ internal fun ChromecastSettingsRow(modifier: Modifier = Modifier) {
             Text(
                 "Chromecast",
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Normal),
-                color = CanopyColors.Text,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 if (isConnected) uiText("Connected to $castDeviceName", "Conectado a $castDeviceName")
                 else uiText("Play on speakers and displays", "Reproduce en altavoces y pantallas"),
-                color = if (isConnected) LocalAccent.current else CanopyColors.Muted,
+                color = if (isConnected) LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -222,7 +222,7 @@ internal fun ChromecastConnectRow(modifier: Modifier = Modifier) {
                 Icon(
                     imageVector = Icons.Rounded.Cast,
                     contentDescription = null,
-                    tint = if (isConnected) LocalAccent.current else CanopyColors.MutedStrong,
+                    tint = if (isConnected) LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp),
                 )
             }
@@ -233,7 +233,7 @@ internal fun ChromecastConnectRow(modifier: Modifier = Modifier) {
                 Text(
                     text = "Chromecast",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
@@ -241,7 +241,7 @@ internal fun ChromecastConnectRow(modifier: Modifier = Modifier) {
                             Modifier.size(7.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (isConnected) CanopyColors.Accent else CanopyColors.Muted
+                                    if (isConnected) CanopyColors.Accent else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                     )
                     Spacer(Modifier.width(6.dp))
@@ -250,7 +250,7 @@ internal fun ChromecastConnectRow(modifier: Modifier = Modifier) {
                             if (isConnected) uiText("Connected to $castDeviceName", "Conectado a $castDeviceName")
                             else uiText("Cast to speakers and displays", "Transmitir a altavoces y pantallas"),
                         style = MaterialTheme.typography.bodySmall,
-                        color = CanopyColors.Muted,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }

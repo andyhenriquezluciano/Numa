@@ -147,7 +147,7 @@ private fun FrostedHeader() {
     Text(
         uiText("Connect", "Conectar"),
         style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-        color = CanopyColors.Text,
+        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.padding(bottom = 12.dp),
     )
 }
@@ -205,7 +205,7 @@ private fun FrostedActiveDeviceHeroCard(
                                 MaterialTheme.typography.titleLarge.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
-                            color = CanopyColors.Text,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                         )
                         if (onRename != null) {
                             Spacer(Modifier.width(6.dp))
@@ -213,7 +213,7 @@ private fun FrostedActiveDeviceHeroCard(
                                 Icon(
                                     Icons.Rounded.Edit,
                                     contentDescription = "Rename ${device.displayName}",
-                                    tint = CanopyColors.Muted,
+                                    tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(15.dp),
                                 )
                             }
@@ -230,7 +230,7 @@ private fun FrostedActiveDeviceHeroCard(
                                     else -> uiText("Playing there, controlled from here", "Reproduciendo allí, controlando desde aquí")
                                 },
                         style = MaterialTheme.typography.bodySmall,
-                        color = CanopyColors.Muted,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
@@ -259,7 +259,7 @@ private fun FrostedActiveDeviceHeroCard(
                         text = uiText("Connecting…", "Conectando…"),
                         style =
                             MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = CanopyColors.Text,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }

@@ -126,7 +126,7 @@ internal fun RankedSongRow(
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
                     ),
-                    color = CanopyColors.Muted,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.width(22.dp),
                 )
                 Spacer(Modifier.width(6.dp))
@@ -147,7 +147,7 @@ internal fun RankedSongRow(
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 14.5.sp,
                         ),
-                        color = CanopyColors.Text,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false),
@@ -161,7 +161,7 @@ internal fun RankedSongRow(
                 Text(
                     text = track.artist.ifBlank { uiText("Unknown Artist", "Artista desconocido") },
                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
-                    color = CanopyColors.Muted,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -173,7 +173,7 @@ internal fun RankedSongRow(
                 Icon(
                     if (liked) Icons.Filled.Favorite else Icons.Rounded.FavoriteBorder,
                     contentDescription = if (liked) uiText("Unlike", "Quitar Me gusta") else uiText("Like", "Me gusta"),
-                    tint = if (liked) CanopyColors.Favorite else CanopyColors.Muted,
+                    tint = if (liked) CanopyColors.Favorite else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     // A like deserves a little heartbeat; an unlike leaves quietly.
                     modifier = Modifier.size(18.dp).popOnChange(liked, peak = 1.5f, onlyOn = true),
                 )
@@ -185,7 +185,7 @@ internal fun RankedSongRow(
                 Icon(
                     Icons.Rounded.MoreHoriz,
                     contentDescription = uiText("Options", "Opciones"),
-                    tint = CanopyColors.Muted,
+                    tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp),
                 )
             }

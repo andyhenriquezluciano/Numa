@@ -68,11 +68,11 @@ private fun buildSpec(
                 borderAlpha = borderAlpha,
             )
         }
-        GlassTheme.ROSE_PINE -> {
-            val base = if (isControl) RosePineColors.Overlay else RosePineColors.Surface
+        GlassTheme.ROSE_PINE, GlassTheme.ROSE_PINE_DAWN -> {
+            val base = if (isControl) dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Overlay else dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Surface
             GlassSpec(
                 base = base, film = 1f, tintMix = 0f, contrastUndercoat = 0f,
-                solidBase = RosePineColors.Base, solidFilm = 1f, solidTintMix = 0f, solidUndercoat = 0f,
+                solidBase = dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Base, solidFilm = 1f, solidTintMix = 0f, solidUndercoat = 0f,
                 borderAlpha = borderAlpha,
             )
         }

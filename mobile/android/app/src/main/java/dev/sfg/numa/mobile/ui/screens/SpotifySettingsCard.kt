@@ -88,13 +88,13 @@ fun SpotifySettingsCard(
         var input by remember { mutableStateOf(settings.spotifySpdc) }
         GlassAlertDialog(
             onDismissRequest = { showSpdcDialog = false },
-            title = { Text(uiText("Spotify sp_dc Cookie", "Cookie sp_dc de Spotify"), color = CanopyColors.Text) },
+            title = { Text(uiText("Spotify sp_dc Cookie", "Cookie sp_dc de Spotify"), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface) },
             text = {
                 Column {
                     Text(
                         uiText("Paste your sp_dc cookie value from spotify.com browser session:", "Pega el valor de la cookie sp_dc de tu sesión de spotify.com:"),
                         style = MaterialTheme.typography.bodySmall,
-                        color = CanopyColors.Muted,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
@@ -117,7 +117,7 @@ fun SpotifySettingsCard(
             },
             dismissButton = {
                 TextButton(onClick = { showSpdcDialog = false }) {
-                    Text(uiText("Cancel", "Cancelar"), color = CanopyColors.Muted)
+                    Text(uiText("Cancel", "Cancelar"), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
         )
@@ -139,12 +139,12 @@ private fun SpotifyToggleRow(
             Text(
                 title,
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                color = CanopyColors.Text,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = CanopyColors.Muted,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         SettingsSwitch(

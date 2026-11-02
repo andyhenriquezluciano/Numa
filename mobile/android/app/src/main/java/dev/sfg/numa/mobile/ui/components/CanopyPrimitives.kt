@@ -133,7 +133,7 @@ fun CanopyButton(
     primary: Boolean = false,
 ) {
     val contentColor by animateColorAsState(
-        CanopyColors.Text,
+        androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
         label = "BtnText"
     )
 

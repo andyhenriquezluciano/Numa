@@ -151,7 +151,7 @@ internal fun ClearCacheRow(
             title = {
                 Text(
                     uiText("Clear cache?", "¿Borrar la caché?"),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                 )
             },
@@ -160,12 +160,12 @@ internal fun ClearCacheRow(
                     Text(
                         uiText("This will free up $formattedSize of cached audio streams, album artwork, and temporary files.", "Se liberarán $formattedSize de audio en caché, carátulas y archivos temporales."),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = CanopyColors.Text,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         uiText("Your downloaded offline songs and library will remain intact.", "Tus canciones descargadas y tu biblioteca se conservarán."),
                         style = MaterialTheme.typography.bodySmall,
-                        color = CanopyColors.Muted,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             },
@@ -185,7 +185,7 @@ internal fun ClearCacheRow(
             },
             dismissButton = {
                 TextButton(onClick = { showConfirmDialog = false }) {
-                    Text(uiText("Cancel", "Cancelar"), color = CanopyColors.Muted)
+                    Text(uiText("Cancel", "Cancelar"), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             shape = RoundedCornerShape(16.dp),

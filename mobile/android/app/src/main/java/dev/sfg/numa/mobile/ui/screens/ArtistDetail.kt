@@ -26,10 +26,6 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
-import dev.sfg.numa.mobile.ui.glass.GlassContentLayer
-import dev.sfg.numa.mobile.ui.glass.FloatingGlassControls
-import dev.sfg.numa.mobile.ui.glass.rememberFloatingGlassScene
-
 import dev.sfg.numa.mobile.ui.text.uiText
 
 import androidx.compose.foundation.background
@@ -96,7 +92,6 @@ internal fun ArtistDetailContent(
     val palette = rememberArtworkPalette(detail.artworkUrl)
     val listState = rememberLazyListState()
     val scrimProgress = rememberHeroScrimProgress(listState)
-    val floatingScene = rememberFloatingGlassScene()
     var activeSectionSheet by remember { mutableStateOf<SectionSheetState?>(null) }
     var showAllPopularTracks by remember { mutableStateOf(false) }
 
@@ -117,109 +112,102 @@ internal fun ArtistDetailContent(
         activeSectionSheet = SectionSheetState(title, items, browseId, params)
     }
 
-    ArtistPageStyle(palette) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    // Portrait tint holds through the hero, then eases into the app chrome.
-                    Brush.verticalGradient(
-                        0f to palette.top.copy(alpha = 0.6f),
-                        0.4f to palette.deep,
-                        1f to CanopyColors.Chrome,
-                    ),
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(
+                // Portrait tint holds through the hero, then eases into the app chrome.
+                Brush.verticalGradient(
+                    0f to palette.top.copy(alpha = 0.6f),
+                    0.4f to palette.deep,
+                    1f to CanopyColors.Chrome,
                 ),
-        ) {
-            GlassContentLayer(floatingScene, Modifier.fillMaxSize()) {
-                ArtistAnimatedBackdrop(detail.artworkUrl, palette)
-                LazyColumn(modifier = Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = 128.dp)) {
+            ),
+    ) {
+        LazyColumn(modifier = Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = 128.dp)) {
+            item {
+                ArtistHero(
+                    detail = detail,
+                    palette = palette,
+                    onPlayAll = onPlayAll,
+                    onShuffle = onShuffle,
+                    shuffleAvailable = shuffleAvailable,
+                    onSave = onSave,
+                    isSaved = isSaved,
+                )
+            }
+
+            val latestRelease = detail.sections.firstNotNullOfOrNull { section ->
+                section.items.firstOrNull { it is CatalogItem.Record } as? CatalogItem.Record
+            }
+            if (latestRelease != null) {
+                item { FeaturedReleaseCard(item = latestRelease, onClick = { onOpen(latestRelease.stableId) }) }
+            }
+
+            if (detail.tracks.isNotEmpty()) {
+                val hasMorePopular = detail.tracks.size > PopularPreviewCount
+                val displayedTracks = if (showAllPopularTracks || !hasMorePopular) detail.tracks
+                    else detail.tracks.take(PopularPreviewCount)
+                item {
+                    HomeSectionTitle(
+                        title = uiText("Top songs", "Canciones destacadas"),
+                        onClick = if (hasMorePopular) {{ showAllPopularTracks = !showAllPopularTracks }} else null,
+                        actionLabel = if (showAllPopularTracks) uiText("Show less", "Mostrar menos") else null,
+                    )
+                }
+                // A collection may legitimately list the same track twice, so the id alone is not
+                // a unique key and LazyColumn throws the moment the duplicate scrolls in.
+                itemsIndexed(displayedTracks, key = { index, track -> "${track.id}_$index" }) { index, track ->
+                    TrackRow(
+                        track = track,
+                        onPlay = { onPlayTrack(detail.tracks, index, detail.title) },
+                        modifier = Modifier
+                            .animateItem(fadeInSpec = null)
+                            .padding(horizontal = 8.dp)
+                            .riseIn(index, cascadeOnScroll = true),
+                        showDivider = false,
+                        onPlayNext = onPlayNext?.let { action -> { action(track) } },
+                        onAddToQueue = onAdd?.let { action -> { action(track) } },
+                        onDownload = onDownloadTrack?.let { action -> { action(track) } },
+                        onRemoveDownload = onRemoveDownloadTrack?.let { action -> { action(track.id) } },
+                        isDownloaded = track.id in downloadedTrackIds,
+                        isDownloading = track.id in downloadingTrackIds,
+                        onShare = onShareTrack?.let { action -> { action(track) } },
+                        onViewAlbum = if (track.albumId.isNotBlank()) {{ onOpen(track.albumId) }} else null,
+                        onViewArtist = if (track.artistId.isNotBlank()) {{ onOpen(track.artistId) }} else null,
+                        compact = true,
+                    )
+                }
+            }
+
+            if (detail.sections.isNotEmpty()) {
+                detail.sections.forEach { section ->
+                    // "See all" when the API can page further or the rail already overflows.
+                    val canViewAll = section.browseId.isNotBlank() || section.items.size > 3
                     item {
-                        ArtistHero(
-                            detail = detail,
-                            palette = palette,
-                            onPlayAll = onPlayAll,
-                            onShuffle = onShuffle,
-                            shuffleAvailable = shuffleAvailable,
-                            onSave = onSave,
-                            isSaved = isSaved,
+                        HomeSectionTitle(
+                            title = section.title,
+                            onClick = if (canViewAll) {
+                                { openSheet(section.title, section.items, section.browseId, section.params) }
+                            } else null,
                         )
                     }
-
-                    val latestRelease = detail.sections.firstNotNullOfOrNull { section ->
-                        section.items.firstOrNull { it is CatalogItem.Record } as? CatalogItem.Record
-                    }
-                    if (latestRelease != null) {
-                        item { FeaturedReleaseCard(item = latestRelease, onClick = { onOpen(latestRelease.stableId) }) }
-                    }
-
-                    if (detail.tracks.isNotEmpty()) {
-                        val hasMorePopular = detail.tracks.size > PopularPreviewCount
-                        val displayedTracks = if (showAllPopularTracks || !hasMorePopular) detail.tracks
-                            else detail.tracks.take(PopularPreviewCount)
-                        item {
-                            HomeSectionTitle(
-                                title = uiText("Top songs", "Canciones destacadas"),
-                                onClick = if (hasMorePopular) {{ showAllPopularTracks = !showAllPopularTracks }} else null,
-                                actionLabel = if (showAllPopularTracks) uiText("Show less", "Mostrar menos") else null,
-                            )
-                        }
-                        // A collection may legitimately list the same track twice, so the id alone is not
-                        // a unique key and LazyColumn throws the moment the duplicate scrolls in.
-                        itemsIndexed(displayedTracks, key = { index, track -> "${track.id}_$index" }) { index, track ->
-                            TrackRow(
-                                track = track,
-                                onPlay = { onPlayTrack(detail.tracks, index, detail.title) },
-                                modifier = Modifier
-                                    .animateItem(fadeInSpec = null)
-                                    .padding(horizontal = 8.dp)
-                                    .riseIn(index, cascadeOnScroll = true),
-                                showDivider = false,
-                                onPlayNext = onPlayNext?.let { action -> { action(track) } },
-                                onAddToQueue = onAdd?.let { action -> { action(track) } },
-                                onDownload = onDownloadTrack?.let { action -> { action(track) } },
-                                onRemoveDownload = onRemoveDownloadTrack?.let { action -> { action(track.id) } },
-                                isDownloaded = track.id in downloadedTrackIds,
-                                isDownloading = track.id in downloadingTrackIds,
-                                onShare = onShareTrack?.let { action -> { action(track) } },
-                                onViewAlbum = if (track.albumId.isNotBlank()) {{ onOpen(track.albumId) }} else null,
-                                onViewArtist = if (track.artistId.isNotBlank()) {{ onOpen(track.artistId) }} else null,
-                                compact = true,
-                            )
-                        }
-                    }
-
-                    if (detail.sections.isNotEmpty()) {
-                        detail.sections.forEach { section ->
-                            // "See all" when the API can page further or the rail already overflows.
-                            val canViewAll = section.browseId.isNotBlank() || section.items.size > 3
-                            item {
-                                HomeSectionTitle(
-                                    title = section.title,
-                                    onClick = if (canViewAll) {
-                                        { openSheet(section.title, section.items, section.browseId, section.params) }
-                                    } else null,
-                                )
-                            }
-                            catalogRail(section.items, section.title, onPlayTrack, onOpen)
-                        }
-                    } else if (detail.related.isNotEmpty()) {
-                        item {
-                            HomeSectionTitle(
-                                title = uiText("Fans also like", "A sus seguidores también les gusta"),
-                                onClick = if (detail.related.size > 3) {{ openSheet(uiText("Fans also like", "A sus seguidores también les gusta"), detail.related) }} else null,
-                            )
-                        }
-                        catalogRail(detail.related, detail.title, onPlayTrack, onOpen)
-                    }
+                    catalogRail(section.items, section.title, onPlayTrack, onOpen)
                 }
-
+            } else if (detail.related.isNotEmpty()) {
+                item {
+                    HomeSectionTitle(
+                        title = uiText("Fans also like", "A sus seguidores también les gusta"),
+                        onClick = if (detail.related.size > 3) {{ openSheet(uiText("Fans also like", "A sus seguidores también les gusta"), detail.related) }} else null,
+                    )
+                }
+                catalogRail(detail.related, detail.title, onPlayTrack, onOpen)
             }
-            FloatingGlassControls(floatingScene) {
-                DetailFloatingChrome(onBack = onBack, scrimProgress = scrimProgress, palette = palette) {
-                    if (onShareCollection != null) {
-                        ChromeAction(Icons.Rounded.IosShare, uiText("Share artist", "Compartir artista"), { onShareCollection(detail) })
-                    }
-                }
+        }
+
+        DetailFloatingChrome(onBack = onBack, scrimProgress = scrimProgress, palette = palette) {
+            if (onShareCollection != null) {
+                ChromeAction(Icons.Rounded.IosShare, uiText("Share artist", "Compartir artista"), { onShareCollection(detail) })
             }
         }
     }

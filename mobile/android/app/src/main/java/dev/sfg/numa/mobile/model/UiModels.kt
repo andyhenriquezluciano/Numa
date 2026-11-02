@@ -61,6 +61,7 @@ data class LibrarySnapshot(
 
 data class NumaSettings(
     val glassTheme: GlassTheme = GlassTheme.CRISTAL,
+    val playlistSongBackground: Boolean = false,
     val glassBorders: GlassBorders = GlassBorders.PREDETERMINADO,
     val lockScreenPlayer: Boolean = false,
     val animatedArtwork: Boolean = true,
@@ -179,6 +180,7 @@ enum class GlassTheme(val displayName: String) {
     CRISTAL("Cristal"),
     CRISTAL_OSCURO("Cristal Oscuro"),
     ROSE_PINE("Rosé Pine"),
+    ROSE_PINE_DAWN("Rosé Pine Dawn"),
 }
 
 enum class GlassBorders(val displayName: String) {

@@ -39,7 +39,7 @@ internal fun PlayerCastButton() {
         IconButton(onClick = { routeButton?.showDialog() }, enabled = supported && routeButton != null, modifier = Modifier.fillMaxSize()) {
             Icon(if (device == null) Icons.Rounded.Cast else Icons.Rounded.CastConnected,
                 contentDescription = label, modifier = Modifier.size(24.dp),
-                tint = if (!supported) CanopyColors.Muted else if (device != null) LocalAccent.current else CanopyColors.Text)
+                tint = if (!supported) androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant else if (device != null) LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
         }
     }
 }

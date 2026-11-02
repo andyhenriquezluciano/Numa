@@ -31,6 +31,8 @@ AppearanceSectionForm {
     bordersEnabled: NumaAppearance.bordersEnabled
     artworkSource: NumaAppearance.artworkSource
     immersiveBackground: NumaAppearance.immersiveBackground
+    playlistSongBackground: NumaAppearance.playlistSongBackground
+    playlistBackgroundSwitch.onToggled: NumaAppearance.playlistSongBackground = playlistBackgroundSwitch.checked
     speed: NumaAppearance.speed
     intensity: NumaAppearance.intensity
     saturation: NumaAppearance.saturation

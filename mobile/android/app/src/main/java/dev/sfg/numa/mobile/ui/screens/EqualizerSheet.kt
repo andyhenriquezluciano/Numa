@@ -88,7 +88,7 @@ private fun EqualizerContent(config: EqualizerConfig, onConfigChange: (Equalizer
         Text(
             uiText("Equalizer", "Ecualizador"),
             style = MaterialTheme.typography.headlineMedium,
-            color = CanopyColors.Text,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
@@ -105,8 +105,8 @@ private fun EqualizerContent(config: EqualizerConfig, onConfigChange: (Equalizer
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
-                    focusedTextColor = CanopyColors.Text,
-                    unfocusedTextColor = CanopyColors.Text,
+                    focusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 ),
                 modifier = Modifier.menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth()
             )
@@ -133,7 +133,7 @@ private fun EqualizerContent(config: EqualizerConfig, onConfigChange: (Equalizer
         Spacer(Modifier.height(24.dp))
 
         // Preamp Slider
-        Text("Preamp: ${config.preampDb.roundToInt()} dB", color = CanopyColors.Text)
+        Text("Preamp: ${config.preampDb.roundToInt()} dB", color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
         ThinGlassSlider(
             value = config.preampDb,
             onValueChange = { 
@@ -144,7 +144,7 @@ private fun EqualizerContent(config: EqualizerConfig, onConfigChange: (Equalizer
         Spacer(Modifier.height(16.dp))
         
         // Bass Boost Slider
-        Text(uiText("Bass Boost: ${(config.bassBoost * 100).roundToInt()}%", "Refuerzo de graves: ${(config.bassBoost * 100).roundToInt()}%"), color = CanopyColors.Text)
+        Text(uiText("Bass Boost: ${(config.bassBoost * 100).roundToInt()}%", "Refuerzo de graves: ${(config.bassBoost * 100).roundToInt()}%"), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
         ThinGlassSlider(
             value = config.bassBoost,
             onValueChange = { 
@@ -163,7 +163,7 @@ private fun EqualizerContent(config: EqualizerConfig, onConfigChange: (Equalizer
             ) {
                 Text(
                     text = band.label,
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.width(48.dp),
                     textAlign = TextAlign.End
                 )
@@ -184,7 +184,7 @@ private fun EqualizerContent(config: EqualizerConfig, onConfigChange: (Equalizer
                 Spacer(Modifier.width(16.dp))
                 Text(
                     text = "${if (gain > 0) "+" else ""}${gain.roundToInt()} dB",
-                    color = CanopyColors.Muted,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.width(52.dp)
                 )
             }

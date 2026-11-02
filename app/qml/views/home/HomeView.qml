@@ -126,7 +126,7 @@ Item {
                 id: homeTitle
 
                 text: qsTr("Home")
-                color: "#f2eee7"
+                color: NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 32
                 font.weight: Font.Bold

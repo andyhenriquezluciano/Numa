@@ -49,7 +49,7 @@ Rectangle {
             implicitWidth: 24
             implicitHeight: 24
             radius: 12
-            color: NumaAppearance.rosePine ? "#403d52" : "#3e2a55"
+            color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#3e2a55"
             border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#6b528c"
             border.width: NumaAppearance.controlBorderWidth
 

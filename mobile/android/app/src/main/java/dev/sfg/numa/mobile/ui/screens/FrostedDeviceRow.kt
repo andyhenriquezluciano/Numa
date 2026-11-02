@@ -94,7 +94,7 @@ internal fun FrostedDeviceRow(
                 Icon(
                     imageVector = getDeviceIcon(device),
                     contentDescription = null,
-                    tint = CanopyColors.MutedStrong,
+                    tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp),
                 )
             }
@@ -105,7 +105,7 @@ internal fun FrostedDeviceRow(
                 Text(
                     text = device.displayName,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val isOnline = device.availability == DeviceAvailability.ONLINE
@@ -114,7 +114,7 @@ internal fun FrostedDeviceRow(
                             Modifier.size(7.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (isOnline) CanopyColors.Accent else CanopyColors.Muted
+                                    if (isOnline) CanopyColors.Accent else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                     )
                     Spacer(Modifier.width(6.dp))
@@ -129,7 +129,7 @@ internal fun FrostedDeviceRow(
                                     else -> uiText("Unavailable", "No disponible")
                                 },
                         style = MaterialTheme.typography.bodySmall,
-                        color = CanopyColors.Muted,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -143,7 +143,7 @@ internal fun FrostedDeviceRow(
                         Icon(
                             Icons.Rounded.Edit,
                             contentDescription = uiText("Rename", "Cambiar nombre"),
-                            tint = CanopyColors.Muted,
+                            tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp),
                         )
                     }
@@ -183,7 +183,7 @@ internal fun FrostedDeviceRow(
                                 MaterialTheme.typography.labelSmall.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
-                            color = CanopyColors.Text,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }

@@ -102,8 +102,8 @@ fun SpotifyLoginScreen(
             },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = CanopyColors.Canvas,
-                titleContentColor = CanopyColors.Text,
-                navigationIconContentColor = CanopyColors.Text,
+                titleContentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                navigationIconContentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             ),
         )
         Box(Modifier.weight(1f).fillMaxWidth()) {
@@ -161,7 +161,7 @@ fun SpotifyLoginScreen(
                         Text(
                             pageError,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = CanopyColors.Muted,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         TextButton(onClick = { webView?.reload() }) {
                             Text(uiText("Retry", "Reintentar"))

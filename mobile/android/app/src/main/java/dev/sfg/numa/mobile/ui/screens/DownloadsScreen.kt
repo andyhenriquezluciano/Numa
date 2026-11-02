@@ -96,13 +96,13 @@ fun DownloadsScreen(
                 Text(
                     uiText("Downloads", "Descargas"),
                     style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold),
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     uiText("Offline tracks • ${formatStorageSize(totalBytesUsed)} used", "Canciones sin conexión · ${formatStorageSize(totalBytesUsed)} utilizados"),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = CanopyColors.Muted,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -127,7 +127,7 @@ fun DownloadsScreen(
                 Text(
                     "DOWNLOADED (${completed.size})",
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = CanopyColors.Muted,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
@@ -190,7 +190,7 @@ internal fun DownloadedTrackRow(
                     Text(
                         item.track.title,
                         style = MaterialTheme.typography.titleMedium,
-                        color = CanopyColors.Text,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false),
@@ -203,16 +203,16 @@ internal fun DownloadedTrackRow(
                 Text(
                     "${item.track.artist} • ${formatStorageSize(item.bytesDownloaded)}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = CanopyColors.Muted,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
             IconButton(onClick = onPlay) {
-                Icon(Icons.Rounded.PlayArrow, contentDescription = uiText("Play offline", "Reproducir sin conexión"), tint = CanopyColors.Text)
+                Icon(Icons.Rounded.PlayArrow, contentDescription = uiText("Play offline", "Reproducir sin conexión"), tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Rounded.Delete, contentDescription = uiText("Delete download", "Eliminar descarga"), tint = CanopyColors.Muted)
+                Icon(Icons.Rounded.Delete, contentDescription = uiText("Delete download", "Eliminar descarga"), tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -239,7 +239,7 @@ internal fun DownloadingRow(
                 Text(
                     item.track.title,
                     style = MaterialTheme.typography.titleMedium,
-                    color = CanopyColors.Text,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false),
@@ -270,13 +270,13 @@ internal fun DownloadingRow(
                 Text(
                     "Queued...",
                     style = MaterialTheme.typography.bodySmall,
-                    color = CanopyColors.Muted,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
         Spacer(Modifier.width(8.dp))
         IconButton(onClick = onCancel) {
-            Icon(Icons.Rounded.Delete, contentDescription = uiText("Cancel download", "Cancelar descarga"), tint = CanopyColors.Muted)
+            Icon(Icons.Rounded.Delete, contentDescription = uiText("Cancel download", "Cancelar descarga"), tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

@@ -32,6 +32,7 @@ AppearanceSettings::AppearanceSettings(QObject *parent) : QObject(parent) {
     m_settings.beginGroup(QStringLiteral("appearance"));
     m_bordersEnabled = m_settings.value(QStringLiteral("bordersEnabled"), true).toBool();
     m_immersive = m_settings.value(QStringLiteral("immersiveBackground"), true).toBool();
+    m_playlistSongBackground = m_settings.value(QStringLiteral("playlistSongBackground"), false).toBool();
     m_showBitrate = m_settings.value(QStringLiteral("showBitrate"), false).toBool();
     m_welcomeSeen = m_settings.value(QStringLiteral("welcomeSeen"), false).toBool();
     m_lastSeenRelease = m_settings.value(QStringLiteral("lastSeenRelease")).toString();
@@ -48,10 +49,13 @@ AppearanceSettings::AppearanceSettings(QObject *parent) : QObject(parent) {
     m_animatedArtwork = m_settings.value(QStringLiteral("animatedArtworkEnabled"), true).toBool();
     m_animatedCollage = m_settings.value(QStringLiteral("animatedCollageEnabled"), true).toBool();
     const auto theme = m_settings.value(QStringLiteral("theme"), QStringLiteral("crystal")).toString();
-    m_theme = theme == QLatin1String("rose_pine") ? theme : QStringLiteral("crystal");
+    m_theme = (theme == QLatin1String("rose_pine") || theme == QLatin1String("rose_pine_dawn")) ? theme : QStringLiteral("crystal");
     m_artworkSource = m_settings.value(QStringLiteral("artworkSource"), QStringLiteral("apple_music")).toString();
     const QStringList savedMirrors = m_settings.value(QStringLiteral("mirrorOrder")).toStringList();
     m_mirrorOrder = sanitizeMirrorOrder(savedMirrors.isEmpty() ? QStringList{QStringLiteral("m8tec"), QStringLiteral("boidu"), QStringLiteral("spotify")} : savedMirrors);
+}
+void AppearanceSettings::setPlaylistSongBackground(bool value) {
+    setFlag(QStringLiteral("playlistSongBackground"), value, m_playlistSongBackground);
 }
 void AppearanceSettings::setImmersiveBackground(bool value) {
     if (value == m_immersive) return;
@@ -125,7 +129,7 @@ void AppearanceSettings::setBordersEnabled(bool value) {
 }
 
 void AppearanceSettings::setTheme(const QString &value) {
-    if ((value != QLatin1String("crystal") && value != QLatin1String("rose_pine")) || value == m_theme) return;
+    if ((value != QLatin1String("crystal") && value != QLatin1String("rose_pine") && value != QLatin1String("rose_pine_dawn")) || value == m_theme) return;
     m_theme = value;
     m_settings.setValue(QStringLiteral("theme"), value);
     emit changed();
@@ -225,6 +229,7 @@ QVariantList AppearanceSettings::availableMirrors() const {
 void AppearanceSettings::reset() {
     setLayoutStyle(QStringLiteral("glade"));
     setImmersiveBackground(true);
+    setPlaylistSongBackground(false);
     setSpeed(2.0);
     setIntensity(1.0);
     setSaturation(1.5);

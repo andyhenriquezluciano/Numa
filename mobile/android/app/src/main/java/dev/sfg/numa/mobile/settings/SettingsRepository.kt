@@ -65,6 +65,7 @@ class SettingsRepository(context: Context, private val scope: CoroutineScope) {
         .map { values ->
             NumaSettings(
                 glassTheme = runCatching { GlassTheme.valueOf(values[GLASS_THEME].orEmpty()) }.getOrDefault(GlassTheme.CRISTAL),
+                playlistSongBackground = values[PLAYLIST_SONG_BACKGROUND] ?: false,
                 glassBorders = runCatching { GlassBorders.valueOf(values[GLASS_BORDERS].orEmpty()) }.getOrDefault(GlassBorders.PREDETERMINADO),
                 lockScreenPlayer = values[LOCK_SCREEN_PLAYER] ?: false,
                 animatedArtwork = values[ANIMATED_ARTWORK] ?: true,
@@ -135,6 +136,7 @@ class SettingsRepository(context: Context, private val scope: CoroutineScope) {
         scope.launch {
             store.edit {
                 it[GLASS_THEME] = value.glassTheme.name
+                it[PLAYLIST_SONG_BACKGROUND] = value.playlistSongBackground
                 it[GLASS_BORDERS] = value.glassBorders.name
                 it[LOCK_SCREEN_PLAYER] = value.lockScreenPlayer
                 it[ANIMATED_ARTWORK] = value.animatedArtwork
@@ -258,6 +260,7 @@ class SettingsRepository(context: Context, private val scope: CoroutineScope) {
 
     private companion object {
         val GLASS_THEME = stringPreferencesKey("glass_theme")
+        val PLAYLIST_SONG_BACKGROUND = booleanPreferencesKey("playlist_song_background")
         val GLASS_BORDERS = stringPreferencesKey("glass_borders")
         val LOCK_SCREEN_PLAYER = booleanPreferencesKey("lock_screen_player")
         val ANIMATED_ARTWORK = booleanPreferencesKey("animated_artwork")

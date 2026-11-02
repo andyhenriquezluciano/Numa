@@ -112,8 +112,8 @@ fun QobuzLoginScreen(
             },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = CanopyColors.Canvas,
-                titleContentColor = CanopyColors.Text,
-                navigationIconContentColor = CanopyColors.Text,
+                titleContentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                navigationIconContentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             ),
         )
 
@@ -125,7 +125,7 @@ fun QobuzLoginScreen(
                         Spacer(Modifier.height(16.dp))
                         Text(
                             text = if (exchanging) uiText("Connecting account…", "Conectando la cuenta…") else uiText("Preparing Qobuz login…", "Preparando el acceso a Qobuz…"),
-                            color = CanopyColors.Text,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }

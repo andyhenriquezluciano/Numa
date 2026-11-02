@@ -71,7 +71,7 @@ Item {
         width: parent.width
         height: body.implicitHeight + root.verticalPadding * 2
         radius: 16
-        color: NumaAppearance.rosePine ? "#26233a" : "#0affffff"
+        color: NumaAppearance.rosePine ? NumaAppearance.overlayColor : "#0affffff"
         border.color: NumaAppearance.borderColor
         border.width: NumaAppearance.controlBorderWidth
 

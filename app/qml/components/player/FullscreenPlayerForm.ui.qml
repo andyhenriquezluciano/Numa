@@ -43,7 +43,7 @@ Item {
     property real paneSwap: 1
 
     readonly property color primaryText: NumaAppearance.textColor
-    readonly property color secondaryText: NumaAppearance.rosePine ? "#b6b1cb" : "#c3c6bf"
+    readonly property color secondaryText: NumaAppearance.rosePine ? NumaAppearance.mutedColor : "#c3c6bf"
     readonly property color mutedText: NumaAppearance.mutedColor
 
     // Playback state, bound by the logic layer.
