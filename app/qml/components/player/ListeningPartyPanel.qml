@@ -25,7 +25,7 @@ ColumnLayout {
         contentItem: Text {
             text: button.text
             font: button.font
-            color: button.primary ? "#191724" : root.ink
+            color: button.primary ? (NumaAppearance.theme === "rose_pine_dawn" ? "#fffaf3" : "#191724") : root.ink
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight

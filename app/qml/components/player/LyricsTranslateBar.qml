@@ -53,7 +53,7 @@ Row {
                 width: 34
                 height: 34
                 radius: 12
-                color: toggle.down ? "#30ffffff" : toggle.hovered ? "#24ffffff"
+                color: NumaAppearance.rosePine ? (bar.on || toggle.hovered || toggle.down ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : toggle.down ? "#30ffffff" : toggle.hovered ? "#24ffffff"
                     : bar.on ? "#20ffffff" : "#10ffffff"
             }
         }
@@ -64,7 +64,7 @@ Row {
                 height: 18
                 visible: !bar.loading
                 name: "languages"
-                color: bar.on ? "#f2ffffff" : "#99ffffff"
+                color: NumaAppearance.rosePine ? (bar.on ? NumaAppearance.accentColor : NumaAppearance.textColor) : bar.on ? "#f2ffffff" : "#99ffffff"
             }
             Item {
                 anchors.centerIn: parent
@@ -78,7 +78,7 @@ Row {
                         ctx.clearRect(0, 0, width, height);
                         ctx.lineWidth = 1.5;
                         ctx.lineCap = "round";
-                        ctx.strokeStyle = "#f2ffffff";
+                        ctx.strokeStyle = NumaAppearance.textColor.toString();
                         ctx.beginPath();
                         ctx.arc(width / 2, height / 2, 6.5, -Math.PI / 2, Math.PI);
                         ctx.stroke();

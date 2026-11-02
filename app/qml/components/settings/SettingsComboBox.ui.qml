@@ -45,7 +45,7 @@ ComboBox {
         width: 14
         height: 14
         name: "chevron-down"
-        color: "#b4beb9"
+        color: NumaAppearance.mutedColor
         rotation: control.popup.visible ? 180 : 0
         Behavior on rotation { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
     }
@@ -55,7 +55,7 @@ ComboBox {
         Rectangle {
             anchors.fill: parent
             radius: control.height / 2
-            color: control.hovered ? "#1cffffff" : "#10ffffff"
+            color: NumaAppearance.rosePine ? (control.hovered ? NumaAppearance.highlightColor : NumaAppearance.baseColor) : control.hovered ? "#1cffffff" : "#10ffffff"
             Behavior on color { ColorAnimation { duration: 120 } }
         }
         RoundedSurfaceFrame {
@@ -81,13 +81,13 @@ ComboBox {
         contentItem: Text {
             text: option.modelData[control.textRole] ?? option.modelData
             font: control.font
-            color: control.currentIndex === option.index ? "#ffffff" : NumaAppearance.textColor
+            color: NumaAppearance.textColor
             elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
         }
         background: Rectangle {
             radius: 10
-            color: option.highlighted || option.hovered ? "#1cffffff" : "transparent"
+            color: NumaAppearance.rosePine ? (control.currentIndex === option.index ? NumaAppearance.highlightColor : option.highlighted || option.hovered ? NumaAppearance.overlayColor : "transparent") : option.highlighted || option.hovered ? "#1cffffff" : "transparent"
         }
     }
 

@@ -15,6 +15,7 @@
 #include <QFile>
 #include <QQmlComponent>
 #include <QQmlEngine>
+#include <QJSValue>
 #include <QQmlContext>
 #include <QVariantMap>
 #include <memory>
@@ -68,7 +69,7 @@ int main(int argc, char *argv[]) {
         {"borderColor", rose ? "#ebbcba" : "#1cffffff"}, {"borderWidth", rose ? 2 : 1},
         {"controlBorderWidth", rose ? 0 : 1},
         {"bordersEnabled", true},
-        {"textColor", dawn ? "#575279" : rose ? "#e0def4" : "#f5f3ee"}, {"mutedColor", dawn ? "#797593" : "#908caa"}, {"accentColor", dawn ? "#907aa9" : "#c4a7e7"}, {"surfaceColor", dawn ? "#fffaf3" : "#1f1d2e"}});
+        {"textColor", dawn ? "#575279" : rose ? "#e0def4" : "#f5f3ee"}, {"mutedColor", dawn ? "#797593" : "#908caa"}, {"accentColor", dawn ? "#d7827e" : "#c4a7e7"}, {"surfaceColor", dawn ? "#fffaf3" : "#1f1d2e"}});
   QQmlComponent frame(&engine);
   frame.setData("import QtQuick\nimport Numa\nRoundedSurfaceFrame {}", QUrl());
   std::unique_ptr<QObject> surface(frame.create());
@@ -370,9 +371,9 @@ int main(int argc, char *argv[]) {
   if (!captureDir.isEmpty()) {
     engine.rootContext()->setContextProperty("NumaAppearance", QVariantMap{
       {"theme", "rose_pine_dawn"}, {"rosePine", true}, {"performanceMode", true}, {"layoutStyle", "glade"},
-      {"baseColor", "#faf4ed"}, {"surfaceColor", "#fffaf3"}, {"overlayColor", "#f2e9e1"}, {"highlightColor", "#dfdad9"},
-      {"textColor", "#575279"}, {"mutedColor", "#797593"}, {"accentColor", "#907aa9"},
-      {"borderColor", "#dfdad9"}, {"bordersEnabled", false}, {"borderWidth", 0}, {"controlBorderWidth", 0},
+      {"baseColor", "#faf4ed"}, {"surfaceColor", "#fffaf3"}, {"overlayColor", "#f2e9e1"}, {"highlightColor", "#efd4cf"},
+      {"textColor", "#575279"}, {"mutedColor", "#797593"}, {"accentColor", "#d7827e"},
+      {"borderColor", "#d7827e"}, {"bordersEnabled", false}, {"borderWidth", 0}, {"controlBorderWidth", 0},
       {"animatedArtworkEnabled", false}, {"animatedCollageEnabled", false}, {"showBitrate", false}});
     engine.rootContext()->setContextProperty("NumaPlayback", QVariantMap{
       {"track", QVariantMap{{"id", "preview"}, {"title", "Let It Happen"}, {"artist", "Tame Impala"}, {"thumbnail", ""}}},
@@ -395,7 +396,7 @@ int main(int argc, char *argv[]) {
         id: preview
         width: 1160; height: 600; color: NumaAppearance.baseColor
         Item { id: backdrop; anchors.fill: parent }
-        NavigationSidebar { width: 220; height: 500; currentPage: "library" }
+        NavigationSidebar { objectName: "dawnSidebar"; width: 220; height: 500; currentPage: "library" }
         SettingsNavItem { x: 540; y: 270; width: 200; current: true; entry: ({key: "general", label: "General", icon: "sliders-horizontal"}) }
         SettingsNavItem { x: 540; y: 312; width: 200; entry: ({key: "accounts", label: "Cuentas", icon: "circle-user-round"}) }
         CollectionHero { x: 250; y: 20; width: 260; title: "Música que me gusta"; kind: "Lista de reproducción"; byline: "Edsen"; meta: ["211 canciones", "12 h 21 min"]; gradientCover: true }
@@ -412,6 +413,16 @@ int main(int argc, char *argv[]) {
       for (const auto &error : dawnPreview.errors()) output << error.toString() << '\n';
       return 1;
     }
+    auto *sidebar = dawnObject->findChild<QObject *>("dawnSidebar");
+    QVariant same;
+    QMetaObject::invokeMethod(sidebar, "samePlaylist", Q_RETURN_ARG(QVariant, same),
+        Q_ARG(QVariant, QVariant(QVariantMap{{"id", "offline-playlist:LM"}})),
+        Q_ARG(QVariant, QVariant(QVariantMap{{"id", "FEmusic_liked_videos"}})));
+    if (!same.toBool()) { output << "Offline likes must keep the same playlist identity.\n"; return 1; }
+    QVariant visible;
+    QMetaObject::invokeMethod(sidebar, "visiblePlaylists", Q_RETURN_ARG(QVariant, visible),
+        Q_ARG(QVariant, QVariant(QVariantList{QVariantMap{{"id", "offline-playlist:LM"}}, QVariantMap{{"id", "VLLM"}}})));
+    if (visible.value<QJSValue>().property("length").toInt() != 1) return 1;
     dawnWindow->show();
     for (int i = 0; i < 35; ++i) { application.processEvents(); QThread::msleep(10); }
     auto *brand = dawnObject->findChild<QObject *>("applicationBrand");

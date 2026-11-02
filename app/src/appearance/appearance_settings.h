@@ -60,7 +60,7 @@ class AppearanceSettings final : public QObject {
 public:
     explicit AppearanceSettings(QObject *parent = nullptr);
     bool immersiveBackground() const { return m_immersive; }
-    bool playlistSongBackground() const { return m_playlistSongBackground; }
+    bool playlistSongBackground() const { return !performanceMode() && m_playlistSongBackground; }
     bool showBitrate() const { return m_showBitrate; }
     bool welcomeSeen() const { return m_welcomeSeen; }
     QString lastSeenRelease() const { return m_lastSeenRelease; }
@@ -80,11 +80,11 @@ public:
     QColor baseColor() const { return QColor(dawn() ? "#faf4ed" : performanceMode() ? "#191724" : "#0d0f12"); }
     QColor surfaceColor() const { return QColor(dawn() ? "#fffaf3" : performanceMode() ? "#1f1d2e" : "#660e1210"); }
     QColor overlayColor() const { return QColor(dawn() ? "#f2e9e1" : "#26233a"); }
-    QColor highlightColor() const { return QColor(dawn() ? "#dfdad9" : "#403d52"); }
+    QColor highlightColor() const { return QColor(dawn() ? "#efd4cf" : "#403d52"); }
     QColor textColor() const { return QColor(dawn() ? "#575279" : performanceMode() ? "#e0def4" : "#f5f3ee"); }
     QColor mutedColor() const { return QColor(dawn() ? "#797593" : performanceMode() ? "#908caa" : "#b4b8b1"); }
-    QColor accentColor() const { return QColor(dawn() ? "#907aa9" : "#c4a7e7"); }
-    QColor borderColor() const { return QColor(dawn() ? "#dfdad9" : performanceMode() ? "#ebbcba" : "#1cffffff"); }
+    QColor accentColor() const { return QColor(dawn() ? "#d7827e" : "#c4a7e7"); }
+    QColor borderColor() const { return QColor(dawn() ? "#d7827e" : performanceMode() ? "#ebbcba" : "#1cffffff"); }
     bool bordersEnabled() const { return m_bordersEnabled; }
     int borderWidth() const { return m_bordersEnabled ? (performanceMode() ? 2 : 1) : 0; }
     int controlBorderWidth() const { return m_bordersEnabled && !performanceMode() ? 1 : 0; }

@@ -26,7 +26,9 @@ Item {
     id: root
     function visiblePlaylists(items) {
         const cloud = typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.section("playlists") : [];
-        return typeof NumaSync !== "undefined" ? NumaSync.visiblePlaylists(items.concat(cloud.filter(c => !items.some(p => root.samePlaylist(p, c))))) : items;
+        const merged = items.concat(cloud.filter(c => !items.some(p => root.samePlaylist(p, c))));
+        const unique = merged.filter((p, index) => merged.findIndex(other => root.samePlaylist(p, other)) === index);
+        return typeof NumaSync !== "undefined" ? NumaSync.visiblePlaylists(unique) : unique;
     }
 
 
@@ -45,7 +47,7 @@ Item {
         const payload = playlist.browsePayload || {};
         let identity = String(playlist.id || playlist.playlistId || playlist.browseId
                               || payload.browseId || "");
-        return identity.replace(/^VL/, "").replace(/^LM$/, "FEmusic_liked_videos");
+        return identity.replace(/^offline-playlist:/, "").replace(/^VL/, "").replace(/^LM$/, "FEmusic_liked_videos");
     }
 
     function samePlaylist(first, second) {
@@ -211,7 +213,7 @@ Item {
                 // The active fill comes from navHighlight; this only handles hover and focus.
                 background: Rectangle {
                     radius: 9
-                    color: root.currentPage !== nav.modelData.key && nav.hovered ? "#14ffffff" : "transparent"
+                    color: root.currentPage !== nav.modelData.key && nav.hovered ? (NumaAppearance.rosePine ? NumaAppearance.overlayColor : "#14ffffff") : "transparent"
                     border.color: root.currentPage !== nav.modelData.key && nav.hovered ? "#22ffffff" : "transparent"
                     border.width: 1
 

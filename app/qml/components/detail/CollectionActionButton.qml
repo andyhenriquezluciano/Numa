@@ -24,7 +24,7 @@ Button {
         Rectangle {
             anchors.fill: parent
             radius: control.round ? control.width / 2 : 10
-            color: control.down ? "#26ffffff" : control.hovered ? "#22ffffff" : "#14ffffff"
+            color: NumaAppearance.rosePine ? (control.down || control.hovered ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : control.down ? "#26ffffff" : control.hovered ? "#22ffffff" : "#14ffffff"
             Behavior on color { ColorAnimation { duration: 120 } }
         }
         RoundedSurfaceFrame {

@@ -34,9 +34,9 @@ Menu {
             radius: 6
             softGlow: remove.highlighted
             showBorder: remove.highlighted
-            fillColor: remove.highlighted ? "#16ffffff" : "transparent"
+            fillColor: remove.highlighted ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#16ffffff") : "transparent"
         }
-        contentItem: Text { text: remove.text; color: remove.enabled ? "#f2f0eb" : "#7c857f"; font.pixelSize: 13; verticalAlignment: Text.AlignVCenter }
+        contentItem: Text { text: remove.text; color: remove.enabled ? NumaAppearance.textColor : NumaAppearance.mutedColor; font.pixelSize: 13; verticalAlignment: Text.AlignVCenter }
     }
 
     Component {

@@ -245,7 +245,7 @@ Item {
                     Rectangle {
                         anchors.fill: parent
                         radius: 10
-                        color: playButton.down ? "#26ffffff" : playButton.hovered ? "#22ffffff" : "#14ffffff"
+                        color: NumaAppearance.rosePine ? (playButton.down || playButton.hovered ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : playButton.down ? "#26ffffff" : playButton.hovered ? "#22ffffff" : "#14ffffff"
                         Behavior on color { ColorAnimation { duration: 120 } }
                     }
                     RoundedSurfaceFrame {

@@ -44,13 +44,13 @@ Menu {
             radius: 6
             softGlow: entry.highlighted
             showBorder: entry.highlighted
-            fillColor: entry.highlighted ? "#16ffffff" : "transparent"
+            fillColor: entry.highlighted ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#16ffffff") : "transparent"
             border.color: entry.highlighted ? "#32ffffff" : "transparent"
             Behavior on fillColor { ColorAnimation { duration: Motion.fast } }
         }
         contentItem: Text {
             text: entry.text
-            color: entry.enabled ? "#f2f0eb" : "#7c857f"
+            color: entry.enabled ? NumaAppearance.textColor : NumaAppearance.mutedColor
             font.family: "Inter"
             font.pixelSize: 13
             verticalAlignment: Text.AlignVCenter

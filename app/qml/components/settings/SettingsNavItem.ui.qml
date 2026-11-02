@@ -62,7 +62,7 @@ ItemDelegate {
     // Hover tint only; the selection pill sits underneath.
     background: Rectangle {
         radius: 10
-        color: navItem.current ? "transparent" : navItem.down ? "#22ffffff" : navItem.hovered ? "#14ffffff" : "transparent"
+        color: navItem.current ? "transparent" : NumaAppearance.rosePine ? (navItem.hovered || navItem.down ? NumaAppearance.highlightColor : "transparent") : navItem.down ? "#22ffffff" : navItem.hovered ? "#14ffffff" : "transparent"
         border.color: navItem.visualFocus ? "#d8c2f2" : "transparent"
         Behavior on color { ColorAnimation { duration: 120 } }
     }

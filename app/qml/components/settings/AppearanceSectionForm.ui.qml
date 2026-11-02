@@ -110,6 +110,7 @@ ColumnLayout {
             description: qsTr("Use the current song as the playlist background instead of its cover.")
             SettingsSwitch {
                 id: playlistBackgroundSwitch
+                enabled: !NumaAppearance.rosePine
                 checked: root.playlistSongBackground
             }
         }

@@ -39,8 +39,8 @@ Item {
     // Saved for offline listening; shows only the songs still downloaded.
     readonly property bool isOffline: detail.source === "download"
     readonly property bool isLikedPlaylist: {
-        const id = String(detail.playlistId || detail.browseId || detail.id || "").replace(/^VL/, "");
-        return !isLocal && (id === "LM" || ["liked music", "liked songs", "your likes", "música que te gusta"].includes(String(detail.title || "").toLowerCase()));
+        const id = String(detail.playlistId || detail.browseId || detail.id || "").replace(/^offline-playlist:/, "").replace(/^VL/, "");
+        return !isLocal && (id === "LM" || id === "FEmusic_liked_videos" || ["liked music", "liked songs", "your likes", "música que te gusta"].includes(String(detail.title || "").toLowerCase()));
     }
     readonly property var downloadInfo: NumaDownloads.revision >= 0 ? NumaDownloads.collectionState(tracks) : ({})
     readonly property string downloadState: downloadInfo.total > 0 && downloadInfo.downloaded >= downloadInfo.total ? "done"

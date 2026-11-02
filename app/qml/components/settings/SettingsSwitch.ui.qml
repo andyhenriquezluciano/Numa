@@ -42,7 +42,7 @@ Switch {
             width: control.down ? 22 : 18
             height: 18
             radius: 9
-            color: control.checked && NumaAppearance.rosePine ? "#191724" : "#e0def4"
+            color: NumaAppearance.theme === "rose_pine_dawn" ? (control.checked ? NumaAppearance.surfaceColor : NumaAppearance.mutedColor) : control.checked && NumaAppearance.rosePine ? "#191724" : "#e0def4"
             Behavior on x { NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 1.4 } }
             Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
             Behavior on color { ColorAnimation { duration: 180 } }

@@ -29,6 +29,10 @@ QString CloudLibrary::artworkFor(const QString &id, const QString &fallback) con
         if (QUrl(deviceArt).isLocalFile() && QFile::exists(QUrl(deviceArt).toLocalFile())) return deviceArt;
         const auto url = automatic.value("art:" + key).toString(); if (url.startsWith("https://")) return url;
     }
+    if (key == "FEmusic_liked_videos") {
+        const QByteArray svg = R"svg(<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 24 24"><defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#9464ee"/><stop offset="1" stop-color="#f54fa1"/></linearGradient></defs><rect width="24" height="24" rx="2" fill="url(#g)"/><path fill="white" transform="translate(5 5) scale(.58)" d="M1 21h4V9H1v12zm21-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L13.17 1 6.59 7.59C6.22 7.95 6 8.45 6 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>)svg";
+        return QStringLiteral("data:image/svg+xml;base64,") + QString::fromLatin1(svg.toBase64());
+    }
     return fallback;
 }
 void CloudLibrary::setCover(const QString &id, const QUrl &url) { setCoverCrop(id, url, {}); }

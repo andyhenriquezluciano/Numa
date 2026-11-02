@@ -433,7 +433,7 @@ Item {
         hoverEnabled: true; focusPolicy: Qt.TabFocus
         background: Rectangle {
             radius: width / 2
-            color: parent.main ? (parent.down ? "#e5e2da" : parent.hovered ? "#ffffff" : "#f7f5f0")
+            color: NumaAppearance.theme === "rose_pine_dawn" && parent.main ? NumaAppearance.accentColor : parent.main ? (parent.down ? "#e5e2da" : parent.hovered ? "#ffffff" : "#f7f5f0")
                                : parent.active ? (parent.hovered ? "#3dffffff" : "#2effffff")
                                                : parent.hovered ? "#1fffffff" : "transparent"
             border.color: parent.activeFocus ? panel.primaryText : "transparent"
@@ -444,7 +444,7 @@ Item {
         }
         contentItem: LucideIcon {
             name: parent.glyph
-            color: parent.main ? "#121212" : !parent.enabled ? "#6b6f68" : parent.active ? "#ffffff" : panel.primaryText
+            color: parent.main ? (NumaAppearance.theme === "rose_pine_dawn" ? NumaAppearance.surfaceColor : "#121212") : !parent.enabled ? "#6b6f68" : parent.active ? NumaAppearance.accentColor : panel.primaryText
             implicitWidth: parent.main ? 19 : 16; implicitHeight: implicitWidth
         }
     }
@@ -461,13 +461,13 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             x: parent.control.leftPadding; width: parent.control.availableWidth
             height: rail.mixAmount > 0.01 ? 6 : rail.control.hovered || rail.control.pressed ? 6 : 4
-            radius: height / 2; color: "#2effffff"
+            radius: height / 2; color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#2effffff"
             Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.OutBack; easing.overshoot: 2 } }
 
             MixDotFill {
                 anchors.fill: parent
                 fraction: Math.max(0, Math.min(1, rail.fill))
-                baseColor: Qt.rgba(1, 1, 1, rail.control.hovered || rail.control.pressed ? 1 : 0.75)
+                baseColor: NumaAppearance.rosePine ? NumaAppearance.accentColor : Qt.rgba(1, 1, 1, rail.control.hovered || rail.control.pressed ? 1 : 0.75)
                 dotColor: rail.mixDotColor
                 amount: rail.mixAmount
                 maxBand: 160; rows: 2

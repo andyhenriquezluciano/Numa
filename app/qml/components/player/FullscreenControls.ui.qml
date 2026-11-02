@@ -193,7 +193,7 @@ ColumnLayout {
                 MixDotFill {
                     anchors.fill: parent
                     fraction: Math.min(1, progress.pressed ? progress.shown / progress.to : controls.shownFraction)
-                    baseColor: controls.mixing || progress.hovered || progress.pressed ? "#ffffff"
+                    baseColor: NumaAppearance.theme === "rose_pine_dawn" ? NumaAppearance.accentColor : controls.mixing || progress.hovered || progress.pressed ? "#ffffff"
                          : Qt.rgba(controls.primaryText.r, controls.primaryText.g, controls.primaryText.b, 0.82)
                     colorFade: 400
                     dotColor: controls.mixAccentColor
