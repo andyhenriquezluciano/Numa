@@ -17,7 +17,7 @@ letras sincronizadas, escucha sin conexión y Salas Compartidas.
 **[Windows](#windows)** · **[Android](#android)** · **[Sincronización](#sincronización-entre-pc-y-android)** ·
 **[Reportar un problema](https://github.com/andyhenriquezluciano/Numa/issues/new/choose)**
 
-<div align="center">
+<div>
 
 <p align="center">
   <a href="#android"><img src="https://img.shields.io/badge/Android-12%2B-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 12+"></a>
