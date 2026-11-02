@@ -159,7 +159,7 @@ Item {
                 }
                 CompactWindowButton {
                     colors: panel; glyph: ""; minimizeGlyph: true; label: qsTr("Minimize")
-                    onClicked: if (popup.Window.window) popup.Window.window.showMinimized()
+                    onClicked: if (popup.Window.window) { const win = popup.Window.window; "minimizeSmoothly" in win ? win.minimizeSmoothly() : win.showMinimized(); }
                 }
                 CompactWindowButton {
                     colors: panel; glyph: "x"; label: qsTr("Close")

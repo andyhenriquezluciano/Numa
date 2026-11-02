@@ -19,6 +19,8 @@
 
 #include "appearance_settings.h"
 #include <algorithm>
+#include <QFile>
+#include <QRegularExpression>
 #include <cmath>
 
 namespace {
@@ -245,3 +247,15 @@ void AppearanceSettings::reset() {
     resetMirrorOrder();
 }
 
+
+QString AppearanceSettings::iconSource() const {
+    const QString source = QStringLiteral("qrc:/qt/qml/Numa/app/qml/assets/numa-logo-rounded.svg");
+    if (!performanceMode()) return source;
+    QFile file(QStringLiteral(":/qt/qml/Numa/app/qml/assets/numa-logo-rounded.svg"));
+    if (!file.open(QIODevice::ReadOnly)) return source;
+    QString svg = QString::fromUtf8(file.readAll());
+    svg.replace(QRegularExpression(QStringLiteral("#(?:6975fa|6a75fa|6a75fb|6a76fb|6b76fb|6b77fb|6c78fb|7474FF)")), dawn() ? QStringLiteral("#d7827e") : QStringLiteral("#ebbcba"));
+    svg.replace(QStringLiteral("#141723"), dawn() ? QStringLiteral("#575279") : QStringLiteral("#191724"));
+    svg.replace(QStringLiteral("#151723"), dawn() ? QStringLiteral("#575279") : QStringLiteral("#191724"));
+    return QStringLiteral("data:image/svg+xml;base64,") + QString::fromLatin1(svg.toUtf8().toBase64());
+}

@@ -229,13 +229,14 @@ public:
         layout->addWidget(m_artistLabel);
     }
 
-    void setTheme(bool rose)
+    void setTheme(bool rose, bool dawn)
     {
         setProperty("rosePine", rose);
+        setProperty("dawn", dawn);
         m_titleLabel->setStyleSheet(QStringLiteral("color: %1; font-size: 14px; font-weight: 600; font-family: 'Inter'; background: transparent;")
-            .arg(rose ? "#e0def4" : "#f2f0eb"));
+            .arg(dawn ? "#575279" : rose ? "#e0def4" : "#f2f0eb"));
         m_artistLabel->setStyleSheet(QStringLiteral("color: %1; font-size: 12px; font-weight: 500; font-family: 'Inter'; background: transparent;")
-            .arg(rose ? "#908caa" : "#b8bbc3"));
+            .arg(dawn ? "#797593" : rose ? "#908caa" : "#b8bbc3"));
     }
 
     void setTrack(const QString &title, const QString &artist)
@@ -278,7 +279,7 @@ protected:
             QPainter p(this);
             p.setRenderHint(QPainter::Antialiasing);
             p.setPen(Qt::NoPen);
-            p.setBrush(property("rosePine").toBool() ? QColor("#403d52") : QColor(255, 255, 255, 24));
+            p.setBrush(property("dawn").toBool() ? QColor("#efd4cf") : property("rosePine").toBool() ? QColor("#403d52") : QColor(255, 255, 255, 24));
             p.drawRoundedRect(rect().adjusted(4, 2, -4, -2), 6, 6);
         }
     }
@@ -376,7 +377,16 @@ void SystemTray::setAppearance(AppearanceSettings *appearance)
         const bool rose = appearance->performanceMode();
         m_menu->setProperty("rosePine", rose);
         m_menu->setProperty("bordersEnabled", appearance->bordersEnabled());
-        m_headerWidget->setTheme(rose);
+        m_menu->setProperty("dawn", appearance->dawn());
+        m_headerWidget->setTheme(rose, appearance->dawn());
+        QPixmap pixmap;
+        const auto source = appearance->iconSource();
+        if (source.startsWith("data:")) pixmap.loadFromData(QByteArray::fromBase64(source.section(',', 1).toLatin1()), "SVG");
+        else pixmap.load(QStringLiteral(":/qt/qml/Numa/app/qml/assets/numa-logo-rounded.svg"));
+        const QIcon icon(pixmap);
+        QApplication::setWindowIcon(icon);
+        if (m_icon) m_icon->setIcon(icon);
+        for (auto *window : QGuiApplication::allWindows()) window->setIcon(icon);
         m_menu->update();
     };
     connect(appearance, &AppearanceSettings::changed, this, update);

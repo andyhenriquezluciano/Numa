@@ -160,7 +160,14 @@ private slots:
     QCOMPARE(appearance.theme(), QStringLiteral("rose_pine"));
     AppearanceSettings restored;
     QCOMPARE(restored.theme(), QStringLiteral("rose_pine"));
+    appearance.setPlaylistSongBackground(true);
+    QVERIFY(!appearance.playlistSongBackground());
+    appearance.setTheme(QStringLiteral("rose_pine_dawn"));
+    QCOMPARE(appearance.accentColor(), QColor("#d7827e"));
+    QCOMPARE(appearance.borderColor(), QColor("#d7827e"));
+    QVERIFY(!appearance.playlistSongBackground());
     appearance.setTheme(QStringLiteral("crystal"));
+    QVERIFY(appearance.playlistSongBackground());
     QVERIFY(!appearance.performanceMode());
     QCOMPARE(appearance.borderWidth(), 1);
   }

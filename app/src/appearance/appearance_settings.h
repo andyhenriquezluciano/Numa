@@ -41,6 +41,7 @@ class AppearanceSettings final : public QObject {
     Q_PROPERTY(bool animatedCollageEnabled READ animatedCollageEnabled WRITE setAnimatedCollageEnabled NOTIFY changed)
     Q_PROPERTY(bool performanceMode READ performanceMode NOTIFY changed)
     Q_PROPERTY(QString theme READ theme WRITE setTheme NOTIFY changed)
+    Q_PROPERTY(QString iconSource READ iconSource NOTIFY changed)
     Q_PROPERTY(bool rosePine READ performanceMode NOTIFY changed)
     Q_PROPERTY(QColor baseColor READ baseColor NOTIFY changed)
     Q_PROPERTY(QColor surfaceColor READ surfaceColor NOTIFY changed)
@@ -77,6 +78,7 @@ public:
     bool performanceMode() const { return m_theme == QLatin1String("rose_pine") || dawn(); }
     bool dawn() const { return m_theme == QLatin1String("rose_pine_dawn"); }
     QString theme() const { return m_theme; }
+    QString iconSource() const;
     QColor baseColor() const { return QColor(dawn() ? "#faf4ed" : performanceMode() ? "#191724" : "#0d0f12"); }
     QColor surfaceColor() const { return QColor(dawn() ? "#fffaf3" : performanceMode() ? "#1f1d2e" : "#660e1210"); }
     QColor overlayColor() const { return QColor(dawn() ? "#f2e9e1" : "#26233a"); }

@@ -79,7 +79,7 @@ Row {
             cursorShape: Qt.PointingHandCursor
             onClicked: {
                 if (root.targetWindow)
-                    root.targetWindow.showMinimized();
+                    "minimizeSmoothly" in root.targetWindow ? root.targetWindow.minimizeSmoothly() : root.targetWindow.showMinimized();
             }
         }
 

@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 
   QQmlEngine engine;
   engine.rootContext()->setContextProperty(QStringLiteral("NumaAppearance"), QVariantMap{
-      {"theme", "crystal"}, {"rosePine", false}, {"performanceMode", false}, {"borderColor", "#1cffffff"}, {"borderWidth", 1}, {"controlBorderWidth", 1}, {"bordersEnabled", true},
+      {"iconSource", "qrc:/qt/qml/Numa/app/qml/assets/numa-logo-rounded.svg"}, {"theme", "crystal"}, {"rosePine", false}, {"performanceMode", false}, {"borderColor", "#1cffffff"}, {"borderWidth", 1}, {"controlBorderWidth", 1}, {"bordersEnabled", true},
       {"textColor", "#f5f3ee"}, {"mutedColor", "#b4b8b1"}, {"accentColor", "#c4a7e7"}, {"surfaceColor", "#660e1210"}});
   QQmlComponent component(&engine,
       QUrl(QStringLiteral("qrc:/qt/qml/Numa/app/qml/Main.qml")),
@@ -370,7 +370,7 @@ int main(int argc, char *argv[]) {
   window->close();
   if (!captureDir.isEmpty()) {
     engine.rootContext()->setContextProperty("NumaAppearance", QVariantMap{
-      {"theme", "rose_pine_dawn"}, {"rosePine", true}, {"performanceMode", true}, {"layoutStyle", "glade"},
+      {"iconSource", "qrc:/qt/qml/Numa/app/qml/assets/numa-logo-rounded.svg"}, {"theme", "rose_pine_dawn"}, {"rosePine", true}, {"performanceMode", true}, {"layoutStyle", "glade"},
       {"baseColor", "#faf4ed"}, {"surfaceColor", "#fffaf3"}, {"overlayColor", "#f2e9e1"}, {"highlightColor", "#efd4cf"},
       {"textColor", "#575279"}, {"mutedColor", "#797593"}, {"accentColor", "#d7827e"},
       {"borderColor", "#d7827e"}, {"bordersEnabled", false}, {"borderWidth", 0}, {"controlBorderWidth", 0},

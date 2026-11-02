@@ -86,6 +86,30 @@ Window {
         ScriptAction { script: mainWindow.modeTransitionActive = false }
     }
 
+    property bool resumeAnimationPending: false
+    function minimizeSmoothly() {
+        if (!modeTransitionActive) minimizeTransition.restart();
+    }
+    onVisibilityChanged: {
+        if (visibility === Window.Minimized || visibility === Window.Hidden) {
+            resumeAnimationPending = true;
+        } else if (resumeAnimationPending) {
+            resumeAnimationPending = false;
+            minimizeTransition.stop();
+            restoreTransition.restart();
+        }
+    }
+    SequentialAnimation {
+        id: minimizeTransition
+        NumberAnimation { target: mainWindow; property: "opacity"; to: 0; duration: 140; easing.type: Easing.InOutQuad }
+        ScriptAction { script: { mainWindow.showMinimized(); mainWindow.opacity = 1; } }
+    }
+    NumberAnimation {
+        id: restoreTransition
+        target: mainWindow; property: "opacity"; from: 0; to: 1
+        duration: 220; easing.type: Easing.OutCubic
+    }
+
     visible: true
     width: NumaWindowState.initialWidth
     height: NumaWindowState.initialHeight

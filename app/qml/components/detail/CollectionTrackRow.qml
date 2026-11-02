@@ -150,7 +150,7 @@ ItemDelegate {
                             width: 3
                             radius: 1.5
                             height: 14 * modelData
-                            color: root.rowAccentSoft
+                            color: NumaAppearance.rosePine ? NumaAppearance.accentColor : root.rowAccentSoft
                             SequentialAnimation on height {
                                 running: NumaPlayback.playing
                                 loops: Animation.Infinite
@@ -209,14 +209,20 @@ ItemDelegate {
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 // Saved on this computer, so it plays without a connection.
-                LucideIcon {
+                Rectangle {
                     id: downloadedIcon
                     visible: root.downloaded
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 14
-                    height: 14
-                    name: "circle-arrow-down"
-                    color: root.rowAccentSoft
+                    width: 18
+                    height: 18
+                    radius: 9
+                    color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : root.tint(root.rowAccentSoft, 0.18)
+                    LucideIcon {
+                        anchors.centerIn: parent
+                        width: 12; height: 12
+                        name: "check"
+                        color: NumaAppearance.rosePine ? NumaAppearance.textColor : root.rowAccentSoft
+                    }
                 }
             }
             Text {

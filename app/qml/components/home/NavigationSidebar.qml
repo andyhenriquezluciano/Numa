@@ -167,7 +167,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 width: 48
                 height: 48
-                source: "../../assets/numa-logo-rounded.svg"
+                source: NumaAppearance.iconSource
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true

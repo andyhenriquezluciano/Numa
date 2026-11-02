@@ -48,7 +48,7 @@ Item {
                 anchors.centerIn: parent
                 width: 60
                 height: 60
-                source: "qrc:/qt/qml/Numa/app/qml/assets/numa-logo-rounded.svg"
+                source: NumaAppearance.iconSource
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true

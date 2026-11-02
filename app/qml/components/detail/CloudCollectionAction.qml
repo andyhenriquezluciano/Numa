@@ -35,7 +35,7 @@ Row {
             radius: 6
             softGlow: entry.highlighted
             showBorder: entry.highlighted
-            fillColor: entry.highlighted ? "#16ffffff" : "transparent"
+            fillColor: entry.highlighted || entry.hovered ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#16ffffff") : "transparent"
             border.color: entry.highlighted ? "#32ffffff" : "transparent"
         }
         contentItem: Item {
@@ -103,7 +103,7 @@ Row {
                     if (root.media.source === "local" || root.mediaId.startsWith("local-playlist:")) NumaLocal.clearPlaylistCover(root.mediaId)
                 }
             }
-            MenuSeparator {}
+
             Entry { text: qsTr("Remove from application"); onTriggered: removal.open() }
         }
     }
