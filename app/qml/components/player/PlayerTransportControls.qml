@@ -112,17 +112,19 @@ RowLayout {
             background: Rectangle {
                 radius: width / 2
                 border.width: 1
-                border.color: transportButton.activeFocus ? bar.primaryText : "transparent"
+                border.color: transportButton.activeFocus ? (bar.lightTheme ? bar.accentColor : bar.primaryText) : "transparent"
                 color: {
                     if (transportButton.mainButton) {
                         if (bar.lightTheme)
-                            return transportButton.down ? NumaAppearance.textColor : bar.accentColor;
+                            return transportButton.down ? Qt.darker(bar.accentColor, 1.12) : bar.accentColor;
                         if (transportButton.down)
                             return "#e5e2da";
                         if (transportButton.hovered)
                             return "#ffffff";
                         return "#f7f5f0";
                     }
+                    if (bar.lightTheme)
+                        return transportButton.modeActive || transportButton.hovered || transportButton.down ? NumaAppearance.highlightColor : "transparent";
                     if (transportButton.modeActive)
                         return transportButton.hovered ? "#3dffffff" : "#2effffff";
                     if (transportButton.hovered && transportButton.enabled)

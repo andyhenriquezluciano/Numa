@@ -397,6 +397,7 @@ int main(int argc, char *argv[]) {
         width: 1160; height: 600; color: NumaAppearance.baseColor
         Item { id: backdrop; anchors.fill: parent }
         NavigationSidebar { objectName: "dawnSidebar"; width: 220; height: 500; currentPage: "library" }
+        SettingsSelect { x: 800; y: 270; width: 220; model: ["English", "Español"]; currentIndex: 1; Component.onCompleted: popup.open() }
         SettingsNavItem { x: 540; y: 270; width: 200; current: true; entry: ({key: "general", label: "General", icon: "sliders-horizontal"}) }
         SettingsNavItem { x: 540; y: 312; width: 200; entry: ({key: "accounts", label: "Cuentas", icon: "circle-user-round"}) }
         CollectionHero { x: 250; y: 20; width: 260; title: "Música que me gusta"; kind: "Lista de reproducción"; byline: "Edsen"; meta: ["211 canciones", "12 h 21 min"]; gradientCover: true }

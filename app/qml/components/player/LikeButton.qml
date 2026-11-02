@@ -51,7 +51,7 @@ Button {
         radius: width / 2
         border.width: 1
         border.color: root.activeFocus ? root.iconColor : "transparent"
-        color: root.hovered && root.enabled ? "#1fffffff" : "transparent"
+        color: root.hovered && root.enabled ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#1fffffff") : "transparent"
         Behavior on color { ColorAnimation { duration: 90 } }
     }
 

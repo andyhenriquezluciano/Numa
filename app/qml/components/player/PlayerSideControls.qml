@@ -51,7 +51,7 @@ RowLayout {
 
         background: Rectangle {
             radius: width / 2
-            color: videoButton.hovered ? "#1fffffff" : "transparent"
+            color: videoButton.hovered ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#1fffffff") : "transparent"
             border.width: 1
             border.color: videoButton.activeFocus ? bar.primaryText : "transparent"
 
@@ -108,7 +108,7 @@ RowLayout {
 
         background: Rectangle {
             radius: width / 2
-            color: volumeButton.hovered ? "#1fffffff" : "transparent"
+            color: volumeButton.hovered ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#1fffffff") : "transparent"
             border.width: 1
             border.color: volumeButton.activeFocus ? bar.primaryText : "transparent"
 
@@ -193,7 +193,7 @@ RowLayout {
 
         background: Rectangle {
             radius: width / 2
-            color: compactButton.hovered ? "#1fffffff" : "transparent"
+            color: compactButton.hovered ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#1fffffff") : "transparent"
             border.width: 1
             border.color: compactButton.activeFocus ? bar.primaryText : "transparent"
         }
@@ -222,7 +222,7 @@ RowLayout {
 
         background: Rectangle {
             radius: width / 2
-            color: bar.queueOpen ? (queueButton.hovered ? "#3dffffff" : "#2effffff") : queueButton.hovered ? "#1fffffff" : "transparent"
+            color: NumaAppearance.rosePine ? (bar.queueOpen || queueButton.hovered ? NumaAppearance.highlightColor : "transparent") : bar.queueOpen ? (queueButton.hovered ? "#3dffffff" : "#2effffff") : queueButton.hovered ? "#1fffffff" : "transparent"
             border.width: 1
             border.color: queueButton.activeFocus ? bar.primaryText : "transparent"
 

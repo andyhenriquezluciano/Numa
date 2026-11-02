@@ -74,7 +74,7 @@ Button {
         border.color: transport.activeFocus ? transport.primaryText : "transparent"
         color: NumaAppearance.theme === "rose_pine_dawn" && transport.main ? NumaAppearance.accentColor : transport.main ? (transport.hovered ? Qt.lighter(transport.primaryText, 1.05) : transport.primaryText)
              : transport.modeActive ? Qt.rgba(transport.accentColor.r, transport.accentColor.g, transport.accentColor.b, transport.hovered ? 0.3 : 0.2)
-             : transport.hovered && transport.enabled ? "#1cffffff" : "transparent"
+             : transport.hovered && transport.enabled ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#1cffffff") : "transparent"
         opacity: transport.enabled ? 1 : 0.4
         scale: transport.down ? 0.88 : transport.main && transport.hovered ? 1.05 : 1
         Behavior on color { ColorAnimation { duration: 140 } }

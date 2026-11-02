@@ -87,7 +87,7 @@ RowLayout {
                 text: qsTr("Song")
                 height: 36
                 onClicked: NumaMusicVideo.hide()
-                background: Rectangle { radius: 18; color: songMode.hovered ? "#14ffffff" : "transparent" }
+                background: Rectangle { radius: 18; color: songMode.hovered ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#14ffffff") : "transparent" }
                 contentItem: Label { text: songMode.text; color: "#c3c6bf"; font.pixelSize: 13; leftPadding: 10; rightPadding: 10; verticalAlignment: Text.AlignVCenter }
             }
 

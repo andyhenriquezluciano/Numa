@@ -50,7 +50,7 @@ Button {
         Rectangle {
             anchors.fill: parent
             radius: parent.width / 2
-            color: root.fill.a > 0 ? root.fill
+            color: NumaAppearance.rosePine && (root.hovered || root.down || root.active) ? NumaAppearance.highlightColor : root.fill.a > 0 ? root.fill
                  : root.active ? "#1fffffff"
                  : root.hovered ? "#14ffffff" : "transparent"
             Behavior on color { ColorAnimation { duration: 90 } }

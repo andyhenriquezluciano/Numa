@@ -48,7 +48,7 @@ ComboBox {
         width: 14
         height: 14
         name: "chevron-right"
-        color: "#a4aaa1"
+        color: NumaAppearance.mutedColor
         rotation: select.popup.visible ? -90 : 90
     }
 
@@ -56,7 +56,7 @@ ComboBox {
         Rectangle {
             anchors.fill: parent
             radius: 10
-            color: select.hovered ? "#1cffffff" : "#10ffffff"
+            color: NumaAppearance.rosePine ? (select.hovered || select.popup.visible ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : select.hovered ? "#1cffffff" : "#10ffffff"
             Behavior on color { ColorAnimation { duration: 120 } }
         }
         RoundedSurfaceFrame {
@@ -79,13 +79,13 @@ ComboBox {
 
         contentItem: Text {
             text: option.modelData
-            color: select.currentIndex === option.index ? "#ffffff" : NumaAppearance.textColor
+            color: NumaAppearance.textColor
             font: select.font
             verticalAlignment: Text.AlignVCenter
         }
         background: Rectangle {
             radius: 7
-            color: option.highlighted ? "#20ffffff" : "transparent"
+            color: NumaAppearance.rosePine ? (select.currentIndex === option.index || option.highlighted || option.hovered ? NumaAppearance.highlightColor : "transparent") : option.highlighted ? "#20ffffff" : "transparent"
         }
     }
 
@@ -101,6 +101,6 @@ ComboBox {
             model: select.popup.visible ? select.delegateModel : null
             currentIndex: select.highlightedIndex
         }
-        background: PopupBloomSurface { radius: 12 }
+        background: PopupBloomSurface { radius: 12; performanceColor: NumaAppearance.overlayColor }
     }
 }

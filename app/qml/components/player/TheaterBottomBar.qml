@@ -62,7 +62,7 @@ Item {
             Label {
                 anchors.verticalCenter: parent.verticalCenter
                 text: item.text
-                color: item.checked ? "#ffffff" : "#dedbd4"
+                color: NumaAppearance.rosePine ? NumaAppearance.textColor : item.checked ? "#ffffff" : "#dedbd4"
                 font.pixelSize: 13
                 font.weight: item.checked ? Font.DemiBold : Font.Normal
             }
@@ -70,7 +70,7 @@ Item {
 
         background: Rectangle {
             radius: 8
-            color: item.highlighted ? "#24ffffff" : "transparent"
+            color: item.highlighted || item.hovered ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#24ffffff") : "transparent"
             Behavior on color { ColorAnimation { duration: 90 } }
         }
     }
@@ -171,7 +171,7 @@ Item {
             Label {
                 Layout.fillWidth: true
                 text: root.track.title || ""
-                color: "#f7f5f0"
+                color: NumaAppearance.rosePine ? NumaAppearance.textColor : "#f7f5f0"
                 font.pixelSize: 32
                 font.weight: Font.Bold
                 font.letterSpacing: -0.6
@@ -258,13 +258,13 @@ Item {
 
                 background: Rectangle {
                     radius: 18
-                    color: qualityButton.hovered || qualityMenu.visible ? "#1fffffff" : "#0fffffff"
+                    color: NumaAppearance.rosePine ? (qualityButton.hovered || qualityMenu.visible ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : qualityButton.hovered || qualityMenu.visible ? "#1fffffff" : "#0fffffff"
                     border.color: qualityButton.activeFocus ? root.accentColor : "#14ffffff"
                 }
 
                 contentItem: Label {
                     text: NumaMusicVideo.height > 0 ? root.heightLabel(NumaMusicVideo.height) : qsTr("Quality")
-                    color: "#f7f5f0"
+                    color: NumaAppearance.rosePine ? NumaAppearance.textColor : "#f7f5f0"
                     font.pixelSize: 13
                     font.weight: Font.DemiBold
                     font.features: { "tnum": 1 }

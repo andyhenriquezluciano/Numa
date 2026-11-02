@@ -76,8 +76,8 @@ Item {
         Rectangle {
             anchors.fill: parent; radius: panel.radius; antialiasing: true
             color: NumaAppearance.rosePine ? NumaAppearance.surfaceColor : panel.tint(panel.inkColor, panel.compactMode ? 0.34 : 0.6)
-            border.color: panel.compactMode ? "transparent" : "#26ffffff"
-            border.width: panel.compactMode ? 0 : 1
+            border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#26ffffff"
+            border.width: NumaAppearance.bordersEnabled ? NumaAppearance.borderWidth : 0
         }
 
         Rectangle {
@@ -434,7 +434,7 @@ Item {
         background: Rectangle {
             radius: width / 2
             color: NumaAppearance.theme === "rose_pine_dawn" && parent.main ? NumaAppearance.accentColor : parent.main ? (parent.down ? "#e5e2da" : parent.hovered ? "#ffffff" : "#f7f5f0")
-                               : parent.active ? (parent.hovered ? "#3dffffff" : "#2effffff")
+                               : NumaAppearance.rosePine ? (parent.active || parent.hovered || parent.down ? NumaAppearance.highlightColor : "transparent") : parent.active ? (parent.hovered ? "#3dffffff" : "#2effffff")
                                                : parent.hovered ? "#1fffffff" : "transparent"
             border.color: parent.activeFocus ? panel.primaryText : "transparent"
             opacity: parent.enabled ? 1 : 0.4

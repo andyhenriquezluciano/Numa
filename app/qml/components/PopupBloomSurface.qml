@@ -17,6 +17,7 @@ import QtQuick.Controls
 
 Item {
     id: root
+    property color performanceColor: NumaAppearance.surfaceColor
 
     property color accentColor: "#d8dcde"
     property real radius: 12
@@ -90,7 +91,7 @@ Item {
         anchors.fill: parent
         radius: root.radius
         color: (root.opaqueInPerformanceMode && NumaAppearance.performanceMode)
-            ? NumaAppearance.surfaceColor
+            ? root.performanceColor
             : (root.neutral ? Qt.rgba(0.08, 0.09, 0.10, root.tintOpacity) : "#220e1210")
     }
 

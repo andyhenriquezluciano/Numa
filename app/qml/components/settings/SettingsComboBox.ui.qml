@@ -104,6 +104,6 @@ ComboBox {
             currentIndex: control.highlightedIndex
             ScrollIndicator.vertical: ScrollIndicator {}
         }
-        background: PopupBloomSurface { radius: 14 }
+        background: PopupBloomSurface { radius: 14; performanceColor: NumaAppearance.overlayColor }
     }
 }

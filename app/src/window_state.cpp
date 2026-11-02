@@ -50,14 +50,7 @@ void configureNativeFrame(QWindow *window, bool compact, bool videoFullScreen = 
     if (firstConfiguration)
         DwmSetWindowAttribute(handle, DWMWA_TRANSITIONS_FORCEDISABLED,
                               &disableTransitions, sizeof(disableTransitions));
-    static const HICON smallIcon = static_cast<HICON>(LoadImageW(GetModuleHandleW(nullptr),
-        MAKEINTRESOURCEW(1), IMAGE_ICON, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), LR_SHARED));
-    static const HICON largeIcon = static_cast<HICON>(LoadImageW(GetModuleHandleW(nullptr),
-        MAKEINTRESOURCEW(1), IMAGE_ICON, GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON), LR_SHARED));
-    if (smallIcon && reinterpret_cast<HICON>(SendMessageW(handle, WM_GETICON, ICON_SMALL, 0)) != smallIcon)
-        SendMessageW(handle, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(smallIcon));
-    if (largeIcon && reinterpret_cast<HICON>(SendMessageW(handle, WM_GETICON, ICON_BIG, 0)) != largeIcon)
-        SendMessageW(handle, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(largeIcon));
+    // Qt owns the current theme icon; do not replace it with the executable resource.
     const bool fillsScreen = videoFullScreen
         || window->visibility() == QWindow::Maximized
         || window->visibility() == QWindow::FullScreen;

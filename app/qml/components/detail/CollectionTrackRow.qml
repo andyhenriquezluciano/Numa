@@ -209,20 +209,14 @@ ItemDelegate {
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 // Saved on this computer, so it plays without a connection.
-                Rectangle {
+                LucideIcon {
                     id: downloadedIcon
                     visible: root.downloaded
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 18
-                    height: 18
-                    radius: 9
-                    color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : root.tint(root.rowAccentSoft, 0.18)
-                    LucideIcon {
-                        anchors.centerIn: parent
-                        width: 12; height: 12
-                        name: "check"
-                        color: NumaAppearance.rosePine ? NumaAppearance.textColor : root.rowAccentSoft
-                    }
+                    width: 14
+                    height: 14
+                    name: "circle-arrow-down"
+                    color: NumaAppearance.rosePine ? NumaAppearance.accentColor : root.rowAccentSoft
                 }
             }
             Text {

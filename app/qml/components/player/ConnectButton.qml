@@ -43,7 +43,7 @@ Button {
 
     background: Rectangle {
         radius: width / 2
-        color: root.linked ? Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, root.hovered ? 0.3 : 0.2)
+        color: NumaAppearance.rosePine ? (root.linked || root.hovered || root.down ? NumaAppearance.highlightColor : "transparent") : root.linked ? Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, root.hovered ? 0.3 : 0.2)
                            : root.hovered ? "#1fffffff" : "transparent"
         border.width: 1
         border.color: root.activeFocus ? root.focusColor : "transparent"
@@ -53,7 +53,7 @@ Button {
 
     contentItem: LucideIcon {
         name: "circle-user-round"
-        color: root.linked ? root.accentColor : root.controlColor
+        color: NumaAppearance.rosePine ? (root.linked || root.hovered || root.down ? NumaAppearance.highlightColor : "transparent") : root.linked ? root.accentColor : root.controlColor
         implicitWidth: 17
         implicitHeight: 17
     }
