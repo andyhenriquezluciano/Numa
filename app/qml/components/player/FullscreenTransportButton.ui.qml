@@ -72,8 +72,8 @@ Button {
         radius: width / 2
         border.width: 1
         border.color: transport.activeFocus ? transport.primaryText : "transparent"
-        color: NumaAppearance.theme === "rose_pine_dawn" && transport.main ? NumaAppearance.accentColor : transport.main ? (transport.hovered ? Qt.lighter(transport.primaryText, 1.05) : transport.primaryText)
-             : transport.modeActive ? Qt.rgba(transport.accentColor.r, transport.accentColor.g, transport.accentColor.b, transport.hovered ? 0.3 : 0.2)
+        color: NumaAppearance.theme === "rose_pine_dawn" && transport.main ? (transport.hovered || transport.down ? Qt.darker(NumaAppearance.accentColor, 1.08) : NumaAppearance.accentColor) : transport.main ? (transport.hovered ? Qt.lighter(transport.primaryText, 1.05) : transport.primaryText)
+             : NumaAppearance.rosePine && transport.modeActive ? NumaAppearance.highlightColor : transport.modeActive ? Qt.rgba(transport.accentColor.r, transport.accentColor.g, transport.accentColor.b, transport.hovered ? 0.3 : 0.2)
              : transport.hovered && transport.enabled ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#1cffffff") : "transparent"
         opacity: transport.enabled ? 1 : 0.4
         scale: transport.down ? 0.88 : transport.main && transport.hovered ? 1.05 : 1
@@ -95,7 +95,7 @@ Button {
             name: transport.glyph
             color: transport.main ? (NumaAppearance.theme === "rose_pine_dawn" ? NumaAppearance.surfaceColor : Qt.darker(transport.inkColor, 1.2))
                  : !transport.enabled ? "#6b6f68"
-                 : transport.modeActive ? transport.accentColor : transport.primaryText
+                 : transport.modeActive ? (NumaAppearance.rosePine ? NumaAppearance.accentColor : transport.accentColor) : transport.primaryText
             opacity: shown ? 1 : 0
             scale: shown ? 1 : 0.4
             rotation: shown ? 0 : 90
