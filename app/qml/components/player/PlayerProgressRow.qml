@@ -87,7 +87,7 @@ Item {
                 width: parent.width
                 height: NumaPlayback.crossfadeActive ? 6 : progress.hovered || progress.pressed ? 6 : 4
                 radius: height / 2
-                color: "#2effffff"
+                color: bar.trackColor
 
                 Behavior on height {
                     NumberAnimation { duration: 180; easing.type: Easing.OutBack; easing.overshoot: 2 }
@@ -96,7 +96,7 @@ Item {
                 MixDotFill {
                     anchors.fill: parent
                     fraction: progress.visualPosition
-                    baseColor: Qt.rgba(1, 1, 1, progress.hovered || progress.pressed ? 1 : 0.82)
+                    baseColor: bar.lightTheme ? bar.progressColor : Qt.rgba(1, 1, 1, progress.hovered || progress.pressed ? 1 : 0.82)
                     dotColor: bar.mixAccentColor
                     amount: row.mixAmount
                     maxBand: 160

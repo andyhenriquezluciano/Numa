@@ -164,7 +164,7 @@ Item {
             spacing: 6
             Text {
                 text: [root.kind, root.year].filter(Boolean).join("  ·  ")
-                color: "#9aa09a"
+                color: NumaAppearance.mutedColor
                 font.family: "Inter"
                 font.pixelSize: 12
             }
@@ -183,7 +183,7 @@ Item {
         Text {
             width: parent.width
             text: root.title
-            color: "#f6f4ef"
+            color: NumaAppearance.textColor
             font.family: "Inter"
             font.pixelSize: root.title.length > 40 ? 22 : 28
             font.weight: Font.Bold
@@ -199,7 +199,7 @@ Item {
             width: Math.min(implicitWidth, parent.width)
             visible: text.length > 0
             text: root.byline
-            color: bylineMouse.containsMouse ? "white" : "#f6f4ef"
+            color: NumaAppearance.textColor
             font.family: "Inter"
             font.pixelSize: 14
             font.weight: Font.DemiBold
@@ -219,7 +219,7 @@ Item {
             width: parent.width
             visible: text.length > 0
             text: root.meta.filter(Boolean).join("  ·  ")
-            color: "#9aa09a"
+            color: NumaAppearance.mutedColor
             font.family: "Inter"
             font.pixelSize: 12
             elide: Text.ElideRight
@@ -267,12 +267,12 @@ Item {
                             height: 16
                             anchors.verticalCenter: parent.verticalCenter
                             name: root.playing ? "pause" : "play"
-                            color: "#f7f5f0"
+                            color: NumaAppearance.textColor
                         }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: root.playing ? qsTr("Pause") : qsTr("Play")
-                            color: "#f7f5f0"
+                            color: NumaAppearance.textColor
                             font.family: "Inter"
                             font.pixelSize: 13
                             font.weight: Font.DemiBold
@@ -297,7 +297,7 @@ Item {
                 id: downloadButton
                 visible: root.downloadable
                 glyph: root.downloadState === "done" ? "circle-arrow-down" : "download"
-                glyphColor: root.downloadState === "done" ? NumaAppearance.accentColor : "#eef0ec"
+                glyphColor: root.downloadState === "done" ? NumaAppearance.accentColor : NumaAppearance.textColor
                 enabled: root.downloadEnabled
                 opacity: !enabled ? 0.4 : root.downloadState === "busy" ? 0.7 : 1
                 Accessible.name: ToolTip.text
@@ -349,7 +349,7 @@ Item {
             width: parent.width
             visible: text.length > 0
             text: root.description
-            color: "#9aa09a"
+            color: NumaAppearance.mutedColor
             font.family: "Inter"
             font.pixelSize: 12
             lineHeight: 1.35
@@ -362,7 +362,7 @@ Item {
             id: readMore
             visible: descriptionText.truncated || descriptionText.expanded
             text: descriptionText.expanded ? qsTr("Show less") : qsTr("Read more")
-            color: readMoreMouse.containsMouse ? "white" : "#d8dcd6"
+            color: NumaAppearance.textColor
             font.family: "Inter"
             font.pixelSize: 12
             font.weight: Font.DemiBold
@@ -390,7 +390,7 @@ Item {
             background: Rectangle { radius: 6; color: removeItem.highlighted ? "#20ffffff" : "transparent" }
             contentItem: Text {
                 text: removeItem.text
-                color: "#f2f0eb"
+                color: NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 13
                 verticalAlignment: Text.AlignVCenter

@@ -85,19 +85,6 @@ ColumnLayout {
 
     SettingsSection {
         Layout.fillWidth: true
-        title: qsTr("Playlist background")
-        SettingsRow {
-            title: qsTr("Use the playing song artwork")
-            description: qsTr("Use the current song as the playlist background instead of its cover.")
-            SettingsSwitch {
-                id: playlistBackgroundSwitch
-                checked: root.playlistSongBackground
-            }
-        }
-    }
-
-    SettingsSection {
-        Layout.fillWidth: true
         title: qsTr("Crystal borders")
         rowSpacing: 0
         verticalPadding: 0
@@ -109,6 +96,21 @@ ColumnLayout {
                 id: borderPicker
                 currentValue: root.bordersEnabled ? "default" : "off"
                 model: [{ value: "default", label: qsTr("Default") }, { value: "off", label: qsTr("Off") }]
+            }
+        }
+    }
+
+    SettingsSection {
+        Layout.fillWidth: true
+        title: qsTr("Playlist background")
+        rowSpacing: 0
+        verticalPadding: 0
+        SettingsRow {
+            title: qsTr("Use the playing song artwork")
+            description: qsTr("Use the current song as the playlist background instead of its cover.")
+            SettingsSwitch {
+                id: playlistBackgroundSwitch
+                checked: root.playlistSongBackground
             }
         }
     }

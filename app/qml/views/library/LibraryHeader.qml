@@ -65,7 +65,7 @@ Column {
             Text {
                 width: parent.width
                 text: qsTr("Your library")
-                color: "#f2eee7"
+                color: NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 26
                 font.weight: Font.DemiBold
@@ -75,7 +75,7 @@ Column {
                 width: parent.width
                 visible: root.summary !== ""
                 text: root.summary
-                color: "#a4adb1"
+                color: NumaAppearance.mutedColor
                 font.family: "Inter"
                 font.pixelSize: 13
                 elide: Text.ElideRight
@@ -103,7 +103,7 @@ Column {
                     width: 14
                     height: 14
                     name: "search"
-                    color: "#a4adb1"
+                    color: NumaAppearance.mutedColor
                 }
 
                 TextField {
@@ -113,7 +113,7 @@ Column {
                     rightPadding: 30
                     placeholderText: qsTr("Filter")
                     placeholderTextColor: NumaAppearance.mutedColor
-                    color: "#f2eee7"
+                    color: NumaAppearance.textColor
                     font.family: "Inter"
                     font.pixelSize: 13
                     Accessible.name: qsTr("Filter your library")
@@ -137,7 +137,7 @@ Column {
                     }
                     contentItem: LucideIcon {
                         name: "x"
-                        color: "#d6d9d3"
+                        color: NumaAppearance.textColor
                     }
                 }
             }
@@ -186,7 +186,7 @@ Column {
             }
             contentItem: Text {
                 text: entry.text
-                color: "#f2f0eb"
+                color: NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 13
                 verticalAlignment: Text.AlignVCenter

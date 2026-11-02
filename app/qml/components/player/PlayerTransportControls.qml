@@ -115,6 +115,8 @@ RowLayout {
                 border.color: transportButton.activeFocus ? bar.primaryText : "transparent"
                 color: {
                     if (transportButton.mainButton) {
+                        if (bar.lightTheme)
+                            return transportButton.down ? NumaAppearance.textColor : bar.accentColor;
                         if (transportButton.down)
                             return "#e5e2da";
                         if (transportButton.hovered)
@@ -138,13 +140,13 @@ RowLayout {
                 name: transportButton.iconName
                 color: {
                     if (transportButton.mainButton)
-                        return "#121212";
+                        return bar.lightTheme ? NumaAppearance.surfaceColor : "#121212";
 
                     if (!transportButton.enabled)
                         return "#6b6f68";
 
                     if (transportButton.modeActive)
-                        return "#ffffff";
+                        return bar.lightTheme ? bar.accentColor : "#ffffff";
 
                     return bar.controlColor;
                 }

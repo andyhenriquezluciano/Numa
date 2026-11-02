@@ -9,7 +9,7 @@ Button {
     id: control
     property string glyph
     property color accentColor: NumaAppearance.accentColor
-    property color glyphColor: "#f7f5f0"
+    property color glyphColor: NumaAppearance.textColor
     property bool round: false
     width: 40
     height: 40

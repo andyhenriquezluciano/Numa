@@ -42,7 +42,7 @@ ItemDelegate {
             Layout.preferredWidth: 17
             Layout.preferredHeight: 17
             name: navItem.entry.icon
-            color: NumaAppearance.rosePine ? (navItem.current ? NumaAppearance.borderColor : NumaAppearance.mutedColor) : navItem.current ? "#e5d8f7" : "#a4aaa1"
+            color: NumaAppearance.rosePine ? (navItem.current ? NumaAppearance.accentColor : NumaAppearance.mutedColor) : navItem.current ? "#e5d8f7" : "#a4aaa1"
             scale: navItem.current ? 1.1 : 1.0
             Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
         }

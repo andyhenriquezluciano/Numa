@@ -202,7 +202,7 @@ Item {
     }
 
     component Caption: Text {
-        color: "#f2eee7"
+        color: NumaAppearance.textColor
         font.family: "Inter"
         font.pixelSize: 13
     }
@@ -238,7 +238,7 @@ Item {
             Caption {
                 width: parent.width - (NumaHome.libraryLoading ? 30 : 0)
                 text: NumaHome.libraryLoading ? qsTr("Loading your library…") : NumaHome.libraryError
-                color: NumaHome.libraryError ? "#e6a197" : "#a4adb1"
+                color: NumaHome.libraryError ? "#e6a197" : NumaAppearance.mutedColor
                 wrapMode: Text.Wrap
             }
         }
@@ -297,7 +297,7 @@ Item {
                 width: parent.width
                 visible: sectionColumn.modelData.items.length === 0 || Boolean(sectionColumn.modelData.error)
                 text: root.sectionStatus(sectionColumn.modelData)
-                color: sectionColumn.modelData.error ? "#e6a197" : "#a4adb1"
+                color: sectionColumn.modelData.error ? "#e6a197" : NumaAppearance.mutedColor
                 wrapMode: Text.Wrap
                 bottomPadding: 12
             }
@@ -312,7 +312,7 @@ Item {
             text: qsTr("Nothing in your library matches \"%1\".").arg(header.query.trim())
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.Wrap
-            color: "#a4adb1"
+            color: NumaAppearance.mutedColor
         }
     }
 
@@ -328,7 +328,7 @@ Item {
         sortKey: root.sortKey
         sortDescending: root.sortDescending
         emptyText: root.sectionStatus(root.selectedSection)
-        emptyColor: root.selectedSection.error ? "#e6a197" : "#a4adb1"
+        emptyColor: root.selectedSection.error ? "#e6a197" : NumaAppearance.mutedColor
         onSortRequested: (key, descending) => {
             root.sortKey = key;
             root.sortDescending = descending;
@@ -378,7 +378,7 @@ Item {
             text: root.sectionStatus(root.selectedSection)
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.Wrap
-            color: root.selectedSection.error ? "#e6a197" : "#a4adb1"
+            color: root.selectedSection.error ? "#e6a197" : NumaAppearance.mutedColor
         }
 
         footer: Item { width: 1; height: 28 }

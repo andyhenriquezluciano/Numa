@@ -65,8 +65,10 @@ Item {
 
     readonly property color primaryText: NumaAppearance.textColor
     readonly property color secondaryText: NumaAppearance.mutedColor
-    readonly property color controlColor: "#e6e4dc"
-    readonly property color trackColor: "#33ffffff"
+    readonly property bool lightTheme: NumaAppearance.theme === "rose_pine_dawn"
+    readonly property color controlColor: NumaAppearance.rosePine ? NumaAppearance.textColor : "#e6e4dc"
+    readonly property color trackColor: lightTheme ? NumaAppearance.highlightColor : "#33ffffff"
+    readonly property color progressColor: lightTheme ? NumaAppearance.accentColor : "#e6e4dc"
 
     function paletteColor(key, fallback) {
         const value = (root.artPalette || {})[key];

@@ -47,7 +47,7 @@ Item {
         : downloadInfo.pending > 0 ? "busy" : downloadInfo.downloaded > 0 ? "partial" : "none"
 
     readonly property color accentColor: rgb(artworkPalette.accent, [183, 155, 237])
-    readonly property color accentSoftColor: rgb(artworkPalette.accentSoft, [196, 167, 231])
+    readonly property color accentSoftColor: NumaAppearance.rosePine ? NumaAppearance.accentColor : rgb(artworkPalette.accentSoft, [196, 167, 231])
     readonly property color deepColor: rgb(artworkPalette.deep, [15, 21, 18])
     readonly property color inkColor: rgb(artworkPalette.ink, [8, 12, 10])
     readonly property color onAccentColor: rgb(artworkPalette.onAccent, [9, 16, 11])

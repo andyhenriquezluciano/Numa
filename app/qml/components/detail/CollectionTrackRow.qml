@@ -288,7 +288,7 @@ ItemDelegate {
                 radius: width / 2
                 color: moreButton.hovered ? "#1fffffff" : "transparent"
             }
-            contentItem: LucideIcon { name: "ellipsis"; color: "#e6e8e3" }
+            contentItem: LucideIcon { name: "ellipsis"; color: NumaAppearance.textColor }
         }
     }
 }

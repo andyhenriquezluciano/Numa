@@ -176,7 +176,8 @@ Item {
                 opacity: root.labelOpacity
                 visible: opacity > 0
                 text: "NÜMA"
-                color: "#f1eee7"
+                objectName: "applicationBrand"
+                color: NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 25
             }
@@ -230,7 +231,7 @@ Item {
                         width: 19
                         height: 19
                         name: nav.modelData.icon
-                        color: root.currentPage === nav.modelData.key ? "#ffffff" : "#c1c7ca"
+                        color: root.currentPage === nav.modelData.key ? NumaAppearance.textColor : NumaAppearance.mutedColor
                     }
 
                     Text {
@@ -238,7 +239,7 @@ Item {
                         opacity: root.labelOpacity
                         visible: opacity > 0
                         text: nav.modelData.title
-                        color: root.currentPage === nav.modelData.key ? "#ffffff" : "#a6adb2"
+                        color: root.currentPage === nav.modelData.key ? NumaAppearance.textColor : NumaAppearance.mutedColor
                         font.weight: root.currentPage === nav.modelData.key ? Font.DemiBold : Font.Normal
 
                         Behavior on color {

@@ -160,7 +160,7 @@ RowLayout {
                 width: parent.width
                 height: volume.hovered || volume.pressed ? 6 : 4
                 radius: height / 2
-                color: "#2effffff"
+                color: bar.trackColor
 
                 Behavior on height {
                     NumberAnimation { duration: 180; easing.type: Easing.OutBack; easing.overshoot: 2 }
@@ -170,7 +170,7 @@ RowLayout {
                     width: volume.visualPosition * parent.width
                     height: parent.height
                     radius: parent.radius
-                    color: Qt.rgba(1, 1, 1, volume.hovered || volume.pressed ? 1 : 0.75)
+                    color: bar.lightTheme ? bar.progressColor : Qt.rgba(1, 1, 1, volume.hovered || volume.pressed ? 1 : 0.75)
                     Behavior on color { ColorAnimation { duration: 120 } }
                 }
             }
@@ -231,7 +231,7 @@ RowLayout {
 
         contentItem: LucideIcon {
             name: "list-music"
-            color: bar.queueOpen ? "#ffffff" : bar.controlColor
+            color: bar.queueOpen ? bar.accentColor : bar.controlColor
             implicitWidth: 17
             implicitHeight: 17
         }

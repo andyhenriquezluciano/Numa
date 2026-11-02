@@ -102,7 +102,7 @@ Item {
             width: parent.width - x - 16
             anchors.verticalCenter: parent.verticalCenter
             text: root.title
-            color: "#f4f3ee"
+            color: NumaAppearance.textColor
             font.family: "Inter"
             font.pixelSize: 16
             font.weight: Font.Bold

@@ -144,6 +144,9 @@ int main(int argc, char *argv[]) {
     import QtQuick
     QtObject {
       property int revision: 0
+      function section(key) { return [] }
+      function visiblePlaylists(items) { return items }
+      function artworkFor(id, fallback) { return fallback }
       property bool saved: false
       property bool automatic: false
       property bool busy: false
@@ -302,9 +305,10 @@ int main(int argc, char *argv[]) {
     QMetaObject::invokeMethod(libraryButton, "clicked");
     if (sync->property("saved").toBool() != expected || libraryButton->property("glyph").toString() != (expected ? "check" : "library-big")) return 1;
   }
+  const QColor neutralIcon(engine.rootContext()->contextProperty("NumaAppearance").toMap().value("textColor").toString());
   if (libraryButton->property("width") != artworkButton->property("width")
-      || libraryButton->property("glyphColor").value<QColor>() != QColor("#f7f5f0")
-      || artworkButton->property("glyphColor").value<QColor>() != QColor("#f7f5f0")) {
+      || libraryButton->property("glyphColor").value<QColor>() != neutralIcon
+      || artworkButton->property("glyphColor").value<QColor>() != neutralIcon) {
     output << "Collection actions must share neutral icon colors and dimensions.\n"; return 1;
   }
   auto *changeEntry = controlsObject->findChild<QObject *>("playlistArtworkChange");
@@ -363,6 +367,64 @@ int main(int argc, char *argv[]) {
   if (!captureDir.isEmpty() && !window->grabWindow().save(captureDir + "/settings-information.png")) return 1;
   QMetaObject::invokeMethod(information, "close");
   window->close();
+  if (!captureDir.isEmpty()) {
+    engine.rootContext()->setContextProperty("NumaAppearance", QVariantMap{
+      {"theme", "rose_pine_dawn"}, {"rosePine", true}, {"performanceMode", true}, {"layoutStyle", "glade"},
+      {"baseColor", "#faf4ed"}, {"surfaceColor", "#fffaf3"}, {"overlayColor", "#f2e9e1"}, {"highlightColor", "#dfdad9"},
+      {"textColor", "#575279"}, {"mutedColor", "#797593"}, {"accentColor", "#907aa9"},
+      {"borderColor", "#dfdad9"}, {"bordersEnabled", false}, {"borderWidth", 0}, {"controlBorderWidth", 0},
+      {"animatedArtworkEnabled", false}, {"animatedCollageEnabled", false}, {"showBitrate", false}});
+    engine.rootContext()->setContextProperty("NumaPlayback", QVariantMap{
+      {"track", QVariantMap{{"id", "preview"}, {"title", "Let It Happen"}, {"artist", "Tame Impala"}, {"thumbnail", ""}}},
+      {"transitionTrack", QVariantMap{{"thumbnail", ""}}}, {"crossfadeActive", false}, {"crossfadeProgress", 0},
+      {"playing", true}, {"loading", false}, {"canGoNext", true}, {"canGoPrevious", true},
+      {"shuffleEnabled", false}, {"repeatMode", "off"}, {"duration", 460}, {"displayDuration", 460}, {"displayPosition", 228}, {"errorMessage", ""}, {"bitrate", 0}});
+    engine.rootContext()->setContextProperty("NumaHome", QVariantMap{{"volume", 0.7}, {"playlists", QVariantList{}}, {"playlistsError", ""}, {"playlistsLoading", false}});
+    engine.rootContext()->setContextProperty("NumaLocal", QVariantMap{{"playlists", QVariantList{}}});
+    engine.rootContext()->setContextProperty("NumaOffline", QVariantMap{{"playlists", QVariantList{}}});
+    engine.rootContext()->setContextProperty("NumaPlaylist", QVariantMap{{"detail", QVariantMap{}}});
+    engine.rootContext()->setContextProperty("NumaAuth", QVariantMap{{"isSignedIn", true}});
+    engine.rootContext()->setContextProperty("NumaLibrary", QVariantMap{{"currentLiked", true}, {"likeBusy", false}});
+    engine.rootContext()->setContextProperty("NumaMusicVideo", QVariantMap{{"status", ""}, {"available", false}});
+    QQmlComponent dawnPreview(&engine);
+    dawnPreview.setData(R"(
+      import QtQuick
+      import QtQuick.Controls
+      import Numa
+      ApplicationWindow {
+        id: preview
+        width: 1160; height: 600; color: NumaAppearance.baseColor
+        Item { id: backdrop; anchors.fill: parent }
+        NavigationSidebar { width: 220; height: 500; currentPage: "library" }
+        SettingsNavItem { x: 540; y: 270; width: 200; current: true; entry: ({key: "general", label: "General", icon: "sliders-horizontal"}) }
+        SettingsNavItem { x: 540; y: 312; width: 200; entry: ({key: "accounts", label: "Cuentas", icon: "circle-user-round"}) }
+        CollectionHero { x: 250; y: 20; width: 260; title: "Música que me gusta"; kind: "Lista de reproducción"; byline: "Edsen"; meta: ["211 canciones", "12 h 21 min"]; gradientCover: true }
+        LibraryHeader { x: 540; y: 26; width: 590 }
+        LibraryPill { x: 550; y: 110; text: "Todo"; checked: true }
+        LibraryPill { x: 620; y: 110; text: "Métricas" }
+        MediaCard { x: 550; y: 170; width: 290; presentation: "songlist"; media: ({id: "other", title: "Let It Happen", artist: "Tame Impala", type: "song"}) }
+        PlayerBar { objectName: "dawnPlayer"; x: 20; y: 520; width: 1120; height: 64; backdrop: backdrop }
+      }
+    )", QUrl());
+    std::unique_ptr<QObject> dawnObject(dawnPreview.create());
+    auto *dawnWindow = qobject_cast<QQuickWindow *>(dawnObject.get());
+    if (!dawnWindow) {
+      for (const auto &error : dawnPreview.errors()) output << error.toString() << '\n';
+      return 1;
+    }
+    dawnWindow->show();
+    for (int i = 0; i < 35; ++i) { application.processEvents(); QThread::msleep(10); }
+    auto *brand = dawnObject->findChild<QObject *>("applicationBrand");
+    auto *dawnPlayer = dawnObject->findChild<QObject *>("dawnPlayer");
+    if (!brand || brand->property("color").value<QColor>() != QColor("#575279")
+        || !dawnPlayer || dawnPlayer->property("controlColor").value<QColor>() != QColor("#575279")
+        || dawnPlayer->property("progressColor") == dawnPlayer->property("trackColor")) {
+      output << "Dawn must provide contrasting branding, player controls and progress.\n";
+      return 1;
+    }
+    if (!dawnWindow->grabWindow().save(captureDir + "/rose-pine-dawn.png")) return 1;
+    dawnWindow->close();
+  }
   output << "Numa QML startup check passed.\n";
   return 0;
 }

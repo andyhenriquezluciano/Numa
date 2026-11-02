@@ -111,7 +111,7 @@ Item {
         anchors.top: parent.top
         width: Math.max(0, parent.width - (controls.visible ? controls.width + 18 : seeAll.visible ? seeAll.width + 18 : 0))
         text: root.section.title ? qsTr(root.section.title) : qsTr("Music")
-        color: "#f2efe7"
+        color: NumaAppearance.textColor
         font.family: "Inter"
         font.pixelSize: 20
         font.weight: root.homeStyle ? Font.Bold : Font.DemiBold
@@ -196,7 +196,7 @@ Item {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: seeAll.text
-                color: seeAll.hovered ? "#f2efe7" : "#a4a9ad"
+                color: seeAll.hovered ? NumaAppearance.textColor : NumaAppearance.mutedColor
                 font.family: "Inter"
                 font.pixelSize: 13
                 font.weight: Font.DemiBold
@@ -208,7 +208,7 @@ Item {
                 width: 14
                 height: 14
                 name: "chevron-right"
-                color: seeAll.hovered ? "#f2efe7" : "#a4a9ad"
+                color: seeAll.hovered ? NumaAppearance.textColor : NumaAppearance.mutedColor
             }
         }
     }

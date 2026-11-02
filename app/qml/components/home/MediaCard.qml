@@ -256,7 +256,7 @@ Item {
             Text {
                 width: parent.width - (explicitBadge.visible ? 20 : 0)
                 text: root.media.title ? qsTr(root.media.title) : qsTr("Untitled")
-                color: root.nowPlaying ? "#e5d8f7" : "#f2f0eb"
+                color: root.landscape ? "#f2f0eb" : root.nowPlaying ? NumaAppearance.accentColor : NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 13
                 font.weight: root.plain ? Font.Medium : Font.DemiBold
@@ -273,7 +273,7 @@ Item {
         Text {
             width: parent.width
             text: root.caption || (root.media.artists || []).join(", ") || root.media.artist || root.media.subtitle || root.media.type || ""
-            color: "#a4a9ad"
+            color: root.landscape ? "#a4a9ad" : NumaAppearance.mutedColor
             font.family: "Inter"
             font.pixelSize: root.plain ? 12 : 11
             elide: Text.ElideRight

@@ -132,7 +132,7 @@ Item {
                 anchors.right: marker.left
                 anchors.verticalCenter: parent.verticalCenter
                 text: entry.text
-                color: entry.active ? root.activeColor : "#f2f0eb"
+                color: entry.active ? root.activeColor : NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 13
                 font.weight: entry.active ? Font.DemiBold : Font.Normal
