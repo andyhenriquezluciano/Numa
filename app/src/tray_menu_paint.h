@@ -18,14 +18,15 @@ inline void paintTrayMenu(QMenu *menu)
     painter.setRenderHint(QPainter::Antialiasing);
     QPainterPath surface;
     const bool nativeBlur = !rose && menu->property("nativeBlur").toBool();
-    const qreal inset = rose ? 1.0 : 0.5;
+    const qreal inset = 1.5;
     if (nativeBlur)
         surface.addRect(QRectF(menu->rect()));
     else
-        surface.addRoundedRect(QRectF(menu->rect()).adjusted(inset, inset, -inset, -inset), 11.5, 11.5);
+        surface.addRoundedRect(QRectF(menu->rect()).adjusted(inset, inset, -inset, -inset), 12.5, 12.5);
     painter.fillPath(surface, dawn ? QColor("#fffaf3") : rose ? QColor("#1f1d2e") : QColor(14, 18, 16, nativeBlur ? 28 : 135));
-    painter.setPen(menu->property("bordersEnabled").toBool() ? QPen(dawn ? QColor("#d7827e") : rose ? QColor("#ebbcba") : QColor(255, 255, 255, 42), rose ? 2 : 1) : QPen(Qt::NoPen));
-    if (!nativeBlur) painter.drawPath(surface);
+    painter.setPen(menu->property("bordersEnabled").toBool() ? QPen(dawn ? QColor("#d7827e") : rose ? QColor("#ebbcba") : QColor(255, 255, 255, 42), rose ? 1.25 : 1.0) : QPen(Qt::NoPen));
+    if (!nativeBlur)
+        painter.drawRoundedRect(QRectF(menu->rect()).adjusted(inset, inset, -inset, -inset), 12.5, 12.5);
     painter.setClipPath(surface);
     QFont font = menu->font();
     font.setPixelSize(13);

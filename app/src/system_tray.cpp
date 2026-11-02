@@ -167,12 +167,9 @@ protected:
 private:
     void updateSurfaceMask()
     {
-        // Clip the native backdrop too, even when Windows falls back from acrylic.
-        // Transparent widget pixels alone do not remove that rectangular surface.
-        QPainterPath shape;
-        const qreal inset = property("rosePine").toBool() ? 1.0 : 0.5;
-        shape.addRoundedRect(QRectF(rect()).adjusted(inset, inset, -inset, -inset), 11.5, 11.5);
-        setMask(QRegion(shape.toFillPolygon().toPolygon()));
+        // DWM rounds acrylic; alpha painting rounds solid themes. A second
+        // region clips their antialiased edges and creates a duplicate outline.
+        clearMask();
     }
 
     std::function<void()> m_onLanguageChanged;
