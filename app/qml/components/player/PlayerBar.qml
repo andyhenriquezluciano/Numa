@@ -230,7 +230,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: root.cornerRadius
-        color: NumaAppearance.rosePine ? NumaAppearance.surfaceColor : root.tint(root.inkColor, 0.52)
+        color: root.lightTheme ? NumaAppearance.overlayColor : NumaAppearance.rosePine ? NumaAppearance.surfaceColor : root.tint(root.inkColor, 0.52)
     }
 
     // Accent wash over the ink, heaviest behind the artwork. Low enough alpha that white text still reads.
