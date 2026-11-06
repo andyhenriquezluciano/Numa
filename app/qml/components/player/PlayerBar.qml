@@ -273,10 +273,10 @@ Item {
         anchors.rightMargin: root.canopy ? 10 : 16
         spacing: root.canopy ? 10 : root.narrow ? 6 : root.compact ? 10 : 18
 
-        // Keep artwork square in both player bar layouts.
+        // Glade uses circular artwork; Canopy keeps its rounded square.
         Item {
             id: artworkSlot
-            readonly property real artRadius: 0
+            readonly property real artRadius: root.canopy ? 6 : width / 2
             Layout.preferredWidth: root.canopy ? 36 : 44
             Layout.preferredHeight: Layout.preferredWidth
             activeFocusOnTab: true
