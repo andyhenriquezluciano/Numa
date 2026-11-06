@@ -17,6 +17,7 @@ import QtQuick.Controls
 
 Item {
     id: root
+    property bool sampleOverlay: true
     property color performanceColor: NumaAppearance.surfaceColor
 
     property color accentColor: "#d8dcde"
@@ -39,9 +40,10 @@ Item {
         }
         return scene;
     }
-    property Item backdrop: backdropBehind(root.Overlay.overlay, root.parent,
-        root.Window.window && root.Window.window.contentItem.children.length > 0
-            ? root.Window.window.contentItem.children[0] : null)
+    readonly property Item sceneBackdrop: root.Window.window && root.Window.window.contentItem.children.length > 0
+        ? root.Window.window.contentItem.children[0] : null
+    property Item backdrop: root.sampleOverlay
+        ? backdropBehind(root.Overlay.overlay, root.parent, root.sceneBackdrop) : root.sceneBackdrop
 
     Rectangle {
         id: bloomCore

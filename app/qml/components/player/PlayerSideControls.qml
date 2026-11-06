@@ -50,7 +50,7 @@ RowLayout {
         GlassToolTip { control: videoButton; text: videoButton.Accessible.name; accentColor: bar.accentColor }
 
         background: Rectangle {
-            radius: width / 2
+            radius: 10
             color: videoButton.hovered ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#1fffffff") : "transparent"
             border.width: 1
             border.color: videoButton.activeFocus ? bar.primaryText : "transparent"
@@ -105,7 +105,7 @@ RowLayout {
         }
 
         background: Rectangle {
-            radius: width / 2
+            radius: 10
             color: volumeButton.hovered ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#1fffffff") : "transparent"
             border.width: 1
             border.color: volumeButton.activeFocus ? bar.primaryText : "transparent"
@@ -155,7 +155,7 @@ RowLayout {
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width
                 height: volume.hovered || volume.pressed ? 6 : 4
-                radius: height / 2
+                radius: 10
                 color: bar.trackColor
 
                 Behavior on height {
@@ -187,7 +187,7 @@ RowLayout {
         GlassToolTip { control: compactButton; text: compactButton.Accessible.name; accentColor: bar.accentColor }
 
         background: Rectangle {
-            radius: width / 2
+            radius: 10
             color: compactButton.hovered ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#1fffffff") : "transparent"
             border.width: 1
             border.color: compactButton.activeFocus ? bar.primaryText : "transparent"
@@ -216,7 +216,7 @@ RowLayout {
         GlassToolTip { control: queueButton; text: queueButton.Accessible.name; accentColor: bar.accentColor }
 
         background: Rectangle {
-            radius: width / 2
+            radius: 10
             color: NumaAppearance.rosePine ? (bar.queueOpen || queueButton.hovered ? NumaAppearance.highlightColor : "transparent") : bar.queueOpen ? (queueButton.hovered ? "#3dffffff" : "#2effffff") : queueButton.hovered ? "#1fffffff" : "transparent"
             border.width: 1
             border.color: queueButton.activeFocus ? bar.primaryText : "transparent"

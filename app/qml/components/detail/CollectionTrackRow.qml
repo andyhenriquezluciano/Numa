@@ -130,7 +130,7 @@ ItemDelegate {
                 name: "play"
                 width: 16
                 height: 16
-                color: "white"
+                color: NumaAppearance.textColor
             }
             // Three dancing bars: the universal sign for "yes, this one".
             Loader {

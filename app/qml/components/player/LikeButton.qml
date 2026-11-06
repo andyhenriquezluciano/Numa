@@ -48,7 +48,7 @@ Button {
     }
 
     background: Rectangle {
-        radius: width / 2
+        radius: 10
         border.width: 1
         border.color: root.activeFocus ? root.iconColor : "transparent"
         color: root.hovered && root.enabled ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#1fffffff") : "transparent"

@@ -92,9 +92,9 @@ Column {
             Rectangle {
                 width: root.width < 720 ? 130 : 190
                 height: 32
-                radius: 16
-                color: filterField.activeFocus ? "#14ffffff" : "#08ffffff"
-                border.color: filterField.activeFocus ? "#b8d4bd" : "#18ffffff"
+                radius: 10
+                color: NumaAppearance.rosePine ? (filterField.activeFocus ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : filterField.activeFocus ? "#14ffffff" : "#08ffffff"
+                border.width: 0
                 Behavior on color { ColorAnimation { duration: Motion.normal } }
 
                 LucideIcon {

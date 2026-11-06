@@ -48,7 +48,7 @@ AbstractButton {
         verticalAlignment: Text.AlignVCenter
     }
     background: Rectangle {
-        radius: height / 2
+        radius: 10
         color: seg.selected ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#2cffffff") : seg.hovered ? "#12ffffff" : "transparent"
         border.color: NumaAppearance.rosePine && (seg.selected || seg.visualFocus) ? NumaAppearance.borderColor : seg.visualFocus ? NumaAppearance.accentColor : seg.selected ? "#1cffffff" : "transparent"
         border.width: NumaAppearance.controlBorderWidth

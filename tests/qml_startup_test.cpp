@@ -146,6 +146,13 @@ int main(int argc, char *argv[]) {
     QtObject {
       property int revision: 0
       function section(key) { return [] }
+      function metricArtistArtwork(name) { return "" }
+      function listeningMetrics(days) {
+        return {listens: 6, heardMs: 180000, songs: 1,
+                tracks: [{id: "test", title: "Song", artist: "Artist", listenCount: 6}],
+                artists: [{title: "Artist", listenCount: 6, songCount: 1}],
+                albums: [{title: "Album", listenCount: 6, songCount: 1}]};
+      }
       function visiblePlaylists(items) { return items }
       function artworkFor(id, fallback) { return fallback }
       property bool saved: false
@@ -436,6 +443,29 @@ int main(int argc, char *argv[]) {
     }
     if (!dawnWindow->grabWindow().save(captureDir + "/rose-pine-dawn.png")) return 1;
     dawnWindow->close();
+  }
+  QQmlComponent metricsComponent(&engine, QUrl(QStringLiteral("qrc:/qt/qml/Numa/app/qml/views/library/ListeningMetrics.qml")));
+  std::unique_ptr<QObject> metricsObject(metricsComponent.create());
+  if (!metricsObject) {
+    for (const auto &error : metricsComponent.errors()) output << error.toString() << '\n';
+    return 1;
+  }
+  metricsObject->setProperty("width", 900);
+  metricsObject->setProperty("height", 650);
+  metricsObject->setProperty("period", 7);
+  application.processEvents();
+  engine.rootContext()->setContextProperty("NumaOffline", QVariantMap{{"songs", QVariantList{}}, {"playlists", QVariantList{}}});
+  QQmlComponent offlineMetrics(&engine, QUrl(QStringLiteral("qrc:/qt/qml/Numa/app/qml/views/offline/OfflineLibraryView.qml")));
+  std::unique_ptr<QObject> offlineMetricsObject(offlineMetrics.create());
+  if (!offlineMetricsObject) {
+    for (const auto &error : offlineMetrics.errors()) output << error.toString() << '\n';
+    return 1;
+  }
+  offlineMetricsObject->setProperty("filter", "metrics");
+  auto *offlineDashboard = offlineMetricsObject->findChild<QObject *>("offlineListeningMetrics");
+  if (!offlineDashboard || !offlineDashboard->property("visible").toBool()) {
+    output << "Listening metrics must remain accessible offline.\n";
+    return 1;
   }
   output << "Numa QML startup check passed.\n";
   return 0;

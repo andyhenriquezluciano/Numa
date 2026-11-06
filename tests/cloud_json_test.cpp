@@ -7,6 +7,23 @@
 class CloudJsonTest : public QObject {
     Q_OBJECT
 private slots:
+    void savedArtistRetainsNavigation() {
+        const auto row = cloud::toDesktop(cloud::fromDesktop({{"title", "Artist"}, {"browsePayload", QVariantMap{{"browseId", "UC-artist"}}}}, "artist"), "artist");
+        QCOMPARE(row.value("title").toString(), QStringLiteral("Artist"));
+        QCOMPARE(row.value("browseId").toString(), QStringLiteral("UC-artist"));
+        QCOMPARE(row.value("browsePayload").toMap().value("browseId").toString(), QStringLiteral("UC-artist"));
+    }
+    void restoredDefaultListsAreAlreadySaved() {
+        QJsonObject local{{"hiddenPlaylistIds", QJsonArray{"VLLM", "SE", "other"}}};
+        QVERIFY(!cloud::isPlaylistSaved(local, "LM"));
+        QVERIFY(!cloud::isPlaylistSaved(local, "SE"));
+        const auto restored = cloud::restoreDefaultPlaylists(local);
+        QVERIFY(cloud::isPlaylistSaved(restored, "VLLM"));
+        QVERIFY(cloud::isPlaylistSaved(restored, "FEmusic_liked_videos"));
+        QVERIFY(cloud::isPlaylistSaved(restored, "SE"));
+        QVERIFY(!cloud::isPlaylistSaved(restored, "other"));
+        QVERIFY(!cloud::isPlaylistSaved(restored, ""));
+    }
     void acknowledgedRemoteOrderDoesNotCreateAnotherUpload() {
         const QJsonArray tracks{QJsonObject{{"id", "z"}}, QJsonObject{{"id", "a"}}};
         const QJsonArray days{QJsonObject{{"date", "2026-10-25"}, {"trackId", "z"}, {"listens", 1}, {"heardMs", 15000}},

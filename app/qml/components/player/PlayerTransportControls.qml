@@ -110,7 +110,7 @@ RowLayout {
             }
 
             background: Rectangle {
-                radius: width / 2
+                radius: 10
                 border.width: 1
                 border.color: transportButton.activeFocus ? (bar.lightTheme ? bar.accentColor : bar.primaryText) : "transparent"
                 color: {

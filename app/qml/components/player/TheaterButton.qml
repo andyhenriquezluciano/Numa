@@ -49,14 +49,14 @@ Button {
     background: Item {
         Rectangle {
             anchors.fill: parent
-            radius: parent.width / 2
+            radius: 10
             color: NumaAppearance.rosePine && (root.hovered || root.down || root.active) ? NumaAppearance.highlightColor : root.fill.a > 0 ? root.fill
                  : root.active ? "#1fffffff"
                  : root.hovered ? "#14ffffff" : "transparent"
         }
         RoundedSurfaceFrame {
             anchors.fill: parent
-            radius: parent.width / 2
+            radius: 10
             softGlow: true
             showBorder: root.activeFocus || root.outlined
             border.width: 1

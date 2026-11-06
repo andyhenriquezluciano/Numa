@@ -58,15 +58,15 @@ ComboBox {
         Rectangle {
             anchors.fill: parent
             radius: 10
-            color: NumaAppearance.rosePine ? (select.tintedBackground ? NumaAppearance.highlightColor : NumaAppearance.surfaceColor) : select.hovered ? "#1cffffff" : "#10ffffff"
+            color: NumaAppearance.rosePine ? (select.tintedBackground ? NumaAppearance.highlightColor : NumaAppearance.surfaceColor) : select.popup.visible ? "#20ffffff" : select.hovered ? "#14ffffff" : "#10ffffff"
             Behavior on color { ColorAnimation { duration: 120 } }
         }
         RoundedSurfaceFrame {
             anchors.fill: parent
             radius: 10
-            softGlow: true
+            softGlow: false
             showBorder: true
-            border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : select.visualFocus || select.popup.visible ? "#d8c2f2" : (select.hovered ? "#45ffffff" : "#30ffffff")
+            border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#30ffffff"
             fillColor: "transparent"
         }
     }
@@ -104,12 +104,16 @@ ComboBox {
             verticalAlignment: Text.AlignVCenter
         }
         background: Rectangle {
-            radius: 7
-            color: (select.hoveredOption >= 0 ? select.hoveredOption === option.index : option.highlighted) ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#20ffffff") : "transparent"
+            radius: 6
+            color: select.currentIndex === option.index
+                ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#20ffffff")
+                : (select.hoveredOption >= 0 ? select.hoveredOption === option.index : option.highlighted)
+                    ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#16ffffff") : "transparent"
         }
     }
 
     popup: Popup {
+        popupType: Popup.Item
         y: select.height + 6
         width: select.width
         padding: 5
@@ -121,6 +125,6 @@ ComboBox {
             model: select.popup.visible ? select.delegateModel : null
             currentIndex: select.highlightedIndex
         }
-        background: PopupBloomSurface { radius: 12; performanceColor: NumaAppearance.surfaceColor }
+        background: PopupBloomSurface { sampleOverlay: false; radius: 12; performanceColor: NumaAppearance.surfaceColor }
     }
 }

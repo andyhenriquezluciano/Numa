@@ -28,13 +28,13 @@ Rectangle {
     width: 14
     height: 14
     radius: 3
-    color: "#30ffffff"
+    color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#30ffffff"
 
     Text {
         id: label
         anchors.centerIn: parent
         text: "E"
-        color: "#f2f0eb"
+        color: NumaAppearance.textColor
         font.family: "Inter"
         font.pixelSize: 9
         font.weight: Font.DemiBold

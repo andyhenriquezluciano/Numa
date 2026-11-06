@@ -37,8 +37,22 @@ function validate(body) {
       throw new HttpError(400, "invalid_counter", "Invalid listening day");
   }
 }
-export async function synchronizeLibrary(request, env, ctx) {
+// Keep the entry Worker below its 10 ms CPU budget. The existing per-user
+// Durable Object handles parsing and merging without changing the D1 format.
+export async function routeLibrarySync(request, env, ctx) {
+  if (!env.CONNECT_HUB) return synchronizeLibrary(request, env, ctx);
   const claims = await requireSession(request, env);
+  const headers = new Headers(request.headers);
+  headers.set("x-numa-sync-claims", JSON.stringify({sub: claims.sub, did: claims.did}));
+  const hub = env.CONNECT_HUB.get(env.CONNECT_HUB.idFromName(claims.sub));
+  const url = new URL(request.url);
+  url.pathname = "/internal/library-sync";
+  return hub.fetch(new Request(url, {method: request.method, headers, duplex: "half",
+    body: request.method === "GET" ? undefined : request.body}));
+}
+
+export async function synchronizeLibrary(request, env, ctx, authenticatedClaims) {
+  const claims = authenticatedClaims || await requireSession(request, env);
   if (request.method === "GET") {
     const row = await env.DB.prepare("SELECT revision, payload FROM library_states WHERE user_id = ?").bind(claims.sub).first();
     return json({ revision: row?.revision || 0, library: row ? JSON.parse(row.payload)?.library || {} : {} });

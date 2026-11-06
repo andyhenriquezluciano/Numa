@@ -48,7 +48,7 @@ Button {
     }
 
     background: Rectangle {
-        radius: width / 2
+        radius: 10
         color: NumaAppearance.rosePine ? (roundButton.active || roundButton.hovered || roundButton.down ? NumaAppearance.highlightColor : "transparent") : roundButton.active
                ? Qt.rgba(roundButton.accentColor.r, roundButton.accentColor.g, roundButton.accentColor.b, roundButton.hovered ? 0.3 : 0.2)
                : roundButton.down ? "#2effffff" : roundButton.hovered ? "#1cffffff" : "transparent"

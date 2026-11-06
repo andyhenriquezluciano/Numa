@@ -34,7 +34,7 @@ namespace {
 // The account client reuses a token until shortly before it expires, so poll
 // often and forward only new tokens; the hub closes sockets past expiry.
 constexpr int kRefreshMs = 30 * 1000;
-constexpr int kMaxRetryMs = 60 * 1000;
+constexpr int kMaxRetryMs = 15 * 60 * 1000;
 
 QUrl hubUrl(QUrl service, const QString &path) {
   service.setScheme(service.scheme() == QStringLiteral("http") ? QStringLiteral("ws") : QStringLiteral("wss"));
@@ -113,7 +113,7 @@ void ConnectHubSocket::open() {
 void ConnectHubSocket::scheduleRetry() {
   if (!m_wanted || m_retry.isActive())
     return;
-  const int delay = std::min(kMaxRetryMs, 2000 << std::min(m_attempt, 5));
+  const int delay = std::min(kMaxRetryMs, 2000 << std::min(m_attempt, 9));
   ++m_attempt;
   m_retry.start(delay);
 }

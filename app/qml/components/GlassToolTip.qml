@@ -8,6 +8,8 @@ import QtQuick.Controls
 ToolTip {
     id: tip
 
+    popupType: Popup.Item
+
     required property Item control
     property color accentColor: "#b79bed"
 
@@ -28,7 +30,11 @@ ToolTip {
         font.weight: Font.Medium
     }
 
-    background: PopupBloomSurface {
-        radius: 10
+    background: Rectangle {
+        radius: 8
+        color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#20ffffff"
+        border.width: NumaAppearance.controlBorderWidth
+        border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#30ffffff"
+        antialiasing: true
     }
 }

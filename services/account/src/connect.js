@@ -1,3 +1,4 @@
+import { synchronizeLibrary } from "./library_sync.js";
 /*
  * Copyright (C) 2026 SFG545
  *
@@ -22,7 +23,7 @@
 // WebRTC signaling. Playback traffic never passes through here.
 
 import { base64url } from "./crypto.js";
-import { HttpError, issuer, nowSeconds } from "./http.js";
+import { HttpError, json, issuer, nowSeconds } from "./http.js";
 import { verifyJwt } from "./jwt.js";
 
 export const HUB_SUBPROTOCOL = "numa-connect.2";
@@ -147,6 +148,17 @@ export class ConnectHub {
   }
 
   async fetch(request) {
+    if (new URL(request.url).pathname === "/internal/library-sync") {
+      const claims = JSON.parse(request.headers.get("x-numa-sync-claims") || "null");
+      if (!claims?.sub || !claims?.did) return new Response(null, {status: 401});
+      try { return await synchronizeLibrary(request, this.env, this.ctx, claims); }
+      catch (error) {
+        if (error instanceof HttpError) return json({error: error.code, error_description: error.message}, error.status, error.headers);
+        console.error("library_sync_failed", error?.message);
+        return json({error: "server_error", error_description: "Something went wrong"}, 500);
+      }
+    }
+
     if (request.method === "POST" && new URL(request.url).pathname === "/internal/library-changed") {
       const { user, device, revision } = await request.json();
       for (const socket of this.ctx.getWebSockets("library")) {

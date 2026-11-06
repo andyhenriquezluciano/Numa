@@ -32,7 +32,7 @@ Rectangle {
 
     implicitWidth: row.implicitWidth + 6
     implicitHeight: 36
-    radius: height / 2
+    radius: 10
     color: "#12ffffff"
     border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#10ffffff"
     border.width: NumaAppearance.controlBorderWidth

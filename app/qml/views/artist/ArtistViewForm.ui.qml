@@ -181,7 +181,7 @@ Item {
                     Text {
                         bottomPadding: 10
                         text: qsTr("Latest release")
-                        color: "#f2efe7"
+                        color: NumaAppearance.textColor
                         font.family: "Inter"
                         font.pixelSize: 20
                         font.weight: Font.DemiBold
@@ -211,7 +211,7 @@ Item {
                         x: 12
                         bottomPadding: 10
                         text: qsTr("Popular")
-                        color: "#f2efe7"
+                        color: NumaAppearance.textColor
                         font.family: "Inter"
                         font.pixelSize: 20
                         font.weight: Font.DemiBold
@@ -284,7 +284,7 @@ Item {
 
                     Text {
                         text: qsTr("About")
-                        color: "#f2efe7"
+                        color: NumaAppearance.textColor
                         font.family: "Inter"
                         font.pixelSize: 20
                         font.weight: Font.DemiBold
@@ -297,7 +297,7 @@ Item {
 
                         width: Math.min(parent.width, 820)
                         text: root.detail.description || ""
-                        color: "#bcc3bc"
+                        color: NumaAppearance.mutedColor
                         font.family: "Inter"
                         font.pixelSize: 14
                         lineHeight: 1.5

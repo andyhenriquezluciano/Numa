@@ -57,7 +57,7 @@ Button {
     onClicked: NumaPlayback.toggleBestMix()
 
     background: Rectangle {
-        radius: height / 2
+        radius: 10
         clip: true
         color: bestMix.tint(panel.accentColor, !bestMix.enabled ? 0.06 : bestMix.down ? 0.3 : bestMix.hovered ? 0.24 : 0.16)
         border.width: 1

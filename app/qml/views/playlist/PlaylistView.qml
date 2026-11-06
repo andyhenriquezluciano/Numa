@@ -115,6 +115,9 @@ Item {
 
     function localizedSystemText(value) {
         const text = String(value || "");
+        if (text === "Episodes for Later") return qsTr("Episodes for Later");
+        if (text === "Episodes you've saved to listen to next. They'll be removed when finished.")
+            return qsTr("Episodes you've saved to listen to next. They'll be removed when finished.");
         if (text === "Liked Music")
             return qsTr("Liked Music");
         if (text === "Only the music you like in YouTube Music will show here. If you want liked music from YouTube to show, you can change this in Settings.")

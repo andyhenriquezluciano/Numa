@@ -57,15 +57,15 @@ ComboBox {
         Rectangle {
             anchors.fill: parent
             radius: 10
-            color: NumaAppearance.rosePine ? NumaAppearance.surfaceColor : control.hovered ? "#1cffffff" : "#10ffffff"
+            color: NumaAppearance.rosePine ? NumaAppearance.surfaceColor : control.popup.visible ? "#20ffffff" : control.hovered ? "#14ffffff" : "#10ffffff"
             Behavior on color { ColorAnimation { duration: 120 } }
         }
         RoundedSurfaceFrame {
             anchors.fill: parent
             radius: 10
-            softGlow: true
+            softGlow: false
             showBorder: true
-            border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : control.visualFocus ? "#d8c2f2" : (control.hovered ? "#45ffffff" : "#30ffffff")
+            border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#30ffffff"
             fillColor: "transparent"
         }
     }
@@ -106,15 +106,19 @@ ComboBox {
         }
         background: Rectangle {
             radius: 10
-            color: (control.hoveredOption >= 0 ? control.hoveredOption === option.index : option.highlighted) ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#20ffffff") : "transparent"
+            color: control.currentIndex === option.index
+                ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#20ffffff")
+                : (control.hoveredOption >= 0 ? control.hoveredOption === option.index : option.highlighted)
+                    ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#16ffffff") : "transparent"
         }
     }
 
     popup: Popup {
+        popupType: Popup.Item
         y: control.height + 6
         width: Math.max(control.width, 220)
         implicitHeight: Math.min(contentItem.implicitHeight + 12, 280)
-        padding: 6
+        padding: 5
 
         contentItem: ListView {
             clip: true
@@ -123,6 +127,6 @@ ComboBox {
             currentIndex: control.highlightedIndex
             ScrollIndicator.vertical: ScrollIndicator {}
         }
-        background: PopupBloomSurface { radius: 14; performanceColor: NumaAppearance.surfaceColor }
+        background: PopupBloomSurface { sampleOverlay: false; radius: 12; performanceColor: NumaAppearance.surfaceColor }
     }
 }

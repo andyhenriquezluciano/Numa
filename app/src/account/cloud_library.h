@@ -7,6 +7,7 @@
 #include <QElapsedTimer>
 #include <QVariantList>
 #include <QRectF>
+#include <QSet>
 #include <functional>
 #include "connect/connect_hub_socket.h"
 
@@ -32,6 +33,8 @@ public:
     bool busy() const { return m_busy; }
     QString coverError() const { return m_coverError; }
     int revision() const { return m_revision; }
+    Q_INVOKABLE QVariantMap listeningMetrics(int days = 0) const;
+    Q_INVOKABLE QString metricArtistArtwork(const QString &name);
     Q_INVOKABLE void retry();
     Q_INVOKABLE void syncNow();
     void cacheCollection(const QVariantMap &detail);
@@ -77,13 +80,16 @@ private:
     ConnectHubSocket m_events;
     QNetworkAccessManager m_network;
     QPointer<QNetworkReply> m_reply;
-    QTimer m_poll, m_debounce, m_flush, m_sample;
+    QTimer m_poll, m_debounce, m_flush, m_sample, m_metricSync;
     QElapsedTimer m_elapsed;
     QJsonObject m_data;
     QString m_root, m_owner, m_client, m_status, m_lastSynced, m_coverError;
     QVariantMap m_lastTrack;
+    QJsonObject m_metricArtistImages;
+    QSet<QString> m_metricArtistRequests;
     qint64 m_heard{0};
     bool m_counted{false}, m_wasPlaying{false}, m_busy{false};
     quint64 m_generation{0};
-    int m_revision{0};
+    int m_revision{0}, m_syncFailures{0};
+    qint64 m_retryAfterMs{0};
 };

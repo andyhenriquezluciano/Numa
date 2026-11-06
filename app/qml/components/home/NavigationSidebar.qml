@@ -73,48 +73,16 @@ Item {
         NumberAnimation { duration: Motion.normal; easing.type: Motion.enter }
     }
 
-    component GlassCapsule: Item {
+    component GlassCapsule: Rectangle {
         id: capsule
 
-        property real radius: 9
+        radius: 10
+        color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#20ffffff"
 
-        // Base translucent glass fill with gentle vertical curvature gradient
-        Rectangle {
-            anchors.fill: parent
-            radius: capsule.radius
-            color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#14ffffff"
-            gradient: NumaAppearance.performanceMode ? null : vertGrad
-
-            Gradient {
-                id: vertGrad
-                orientation: Gradient.Vertical
-                GradientStop { position: 0.0; color: "#24ffffff" }
-                GradientStop { position: 0.45; color: "#16ffffff" }
-                GradientStop { position: 1.0; color: "#0cffffff" }
-            }
-        }
-
-        // Inner horizontal sheen for depth
-        Rectangle {
-            anchors.fill: parent
-            anchors.margins: 1
-            radius: Math.max(0, capsule.radius - 1)
-            color: "transparent"
-            visible: !NumaAppearance.performanceMode
-
-            gradient: Gradient {
-                orientation: Gradient.Horizontal
-                GradientStop { position: 0.0; color: "#14ffffff" }
-                GradientStop { position: 0.5; color: "#04ffffff" }
-                GradientStop { position: 1.0; color: "#10ffffff" }
-            }
-        }
-
-        // Frosted glass rim border with soft glow
         RoundedSurfaceFrame {
             anchors.fill: parent
             radius: capsule.radius
-            softGlow: true
+            softGlow: false
             showBorder: true
             border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#30ffffff"
             fillColor: "transparent"
@@ -177,7 +145,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 opacity: root.labelOpacity
                 visible: opacity > 0
-                text: "NÜMA"
+                text: "N\u00dcMA"
                 objectName: "applicationBrand"
                 color: NumaAppearance.textColor
                 font.family: "Inter"
@@ -474,7 +442,7 @@ Item {
                 width: parent.width
                 visible: !root.compact && playlistList.count === 0
                 text: NumaNetwork.offline ? qsTr("Downloaded playlists will appear here.")
-                    : NumaHome.playlistsLoading ? qsTr("Loading playlists…") : NumaHome.playlistsError || qsTr("Your saved playlists will appear here.")
+                    : NumaHome.playlistsLoading ? qsTr("Loading playlistsâ€¦") : NumaHome.playlistsError || qsTr("Your saved playlists will appear here.")
                 wrapMode: Text.Wrap
                 color: "#919b9f"
                 font.pixelSize: 11

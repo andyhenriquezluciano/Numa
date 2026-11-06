@@ -273,10 +273,10 @@ Item {
         anchors.rightMargin: root.canopy ? 10 : 16
         spacing: root.canopy ? 10 : root.narrow ? 6 : root.compact ? 10 : 18
 
-        // Glade: concentric with the pill (64px tall, 10px inset, 44px circle). Canopy: 36px rounded square.
+        // Keep artwork square in both player bar layouts.
         Item {
             id: artworkSlot
-            readonly property real artRadius: root.canopy ? 6 : width / 2
+            readonly property real artRadius: 0
             Layout.preferredWidth: root.canopy ? 36 : 44
             Layout.preferredHeight: Layout.preferredWidth
             activeFocusOnTab: true

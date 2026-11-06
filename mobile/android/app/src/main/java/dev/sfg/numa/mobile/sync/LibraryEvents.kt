@@ -19,7 +19,7 @@ internal class LibraryEvents(http: OkHttpClient, private val account: NumaAccoun
             var socket: WebSocket? = null
             try {
                 val token = account.accessToken()
-                if (token.isNullOrBlank()) { delay(backoff); continue }
+                if (token.isNullOrBlank()) throw java.io.IOException("Account token unavailable")
                 if (account.state.value.userId != owner) return
                 val ended = CompletableDeferred<Unit>()
                 val connected = java.util.concurrent.atomic.AtomicBoolean(false)
@@ -35,11 +35,21 @@ internal class LibraryEvents(http: OkHttpClient, private val account: NumaAccoun
                     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) { ended.complete(Unit) }
                     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) { webSocket.close(code, reason) }
                 })
-                // Reconnect before expiry with a refreshed token, and reconcile any missed event.
-                withTimeoutOrNull(10 * 60_000L) { ended.await() }
-                backoff = if (connected.get()) 2_000L else (backoff * 2).coerceAtMost(60_000L)
+                // Keep the existing connection; token checks normally reuse the cached token.
+                var currentToken = token
+                while (currentCoroutineContext().isActive && !ended.isCompleted) {
+                    withTimeoutOrNull(30_000L) { ended.await() }
+                    if (connected.get() && !ended.isCompleted) {
+                        val refreshed = account.accessToken()
+                        if (!refreshed.isNullOrBlank() && refreshed != currentToken) {
+                            currentToken = refreshed
+                            socket?.send(JSONObject().put("type", "refresh").put("token", refreshed).toString())
+                        }
+                    }
+                }
+                backoff = if (connected.get()) 2_000L else (backoff * 2).coerceAtMost(15 * 60_000L)
             } catch (cancelled: CancellationException) { throw cancelled }
-            catch (_: Exception) { backoff = (backoff * 2).coerceAtMost(60_000L) }
+            catch (_: Exception) { backoff = (backoff * 2).coerceAtMost(15 * 60_000L) }
             finally { socket?.cancel() }
             delay(backoff)
         }

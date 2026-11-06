@@ -44,10 +44,10 @@ Button {
     }
 
     background: Rectangle {
-        radius: width / 2
-        color: root.hovered ? "#f2303430" : "#e01c1e1c"
+        radius: 10
+        color: NumaAppearance.rosePine ? (root.hovered ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : root.hovered ? "#f2303430" : "#e01c1e1c"
         border.width: 1
-        border.color: "#1affffff"
+        border.color: NumaAppearance.rosePine ? NumaAppearance.accentColor : "#1affffff"
 
         Behavior on color {
             ColorAnimation { duration: 140 }

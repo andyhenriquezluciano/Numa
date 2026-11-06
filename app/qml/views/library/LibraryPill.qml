@@ -39,19 +39,11 @@ Button {
         opacity: root.enabled ? 1 : 0.5
         Rectangle {
             anchors.fill: parent
-            radius: root.height / 2
-            color: NumaAppearance.rosePine ? (root.checked ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : root.checked ? "#f1f0ec" : root.hovered ? "#20ffffff" : "#08ffffff"
+            radius: 10
+            color: NumaAppearance.rosePine ? (root.checked ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : root.checked ? "#20ffffff" : root.hovered ? "#14ffffff" : "#08ffffff"
             Behavior on color { ColorAnimation { duration: Motion.normal } }
         }
-        RoundedSurfaceFrame {
-            anchors.fill: parent
-            radius: root.height / 2
-            softGlow: true
-            showBorder: !root.checked
-            border.width: 1
-            border.color: root.activeFocus ? "#b8d4bd" : (root.hovered ? "#45ffffff" : "#30ffffff")
-            fillColor: "transparent"
-        }
+
     }
 
     contentItem: Item {
@@ -66,7 +58,7 @@ Button {
                 width: 14
                 height: 14
                 name: root.iconName
-                color: NumaAppearance.rosePine ? NumaAppearance.textColor : root.checked ? "#171b17" : "#d2d1cc"
+                color: root.checked ? NumaAppearance.textColor : NumaAppearance.rosePine ? NumaAppearance.textColor : "#d2d1cc"
 
                 // Finishes the turn it is on, so the icon never freezes crooked.
                 RotationAnimator on rotation {
@@ -81,16 +73,17 @@ Button {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.text
-                color: NumaAppearance.rosePine ? NumaAppearance.textColor : root.checked ? "#171b17" : "#d2d1cc"
+                color: root.checked ? NumaAppearance.textColor : NumaAppearance.rosePine ? NumaAppearance.textColor : "#d2d1cc"
                 font.family: "Inter"
                 font.pixelSize: 13
+                font.weight: root.checked ? Font.DemiBold : Font.Normal
                 Behavior on color { ColorAnimation { duration: Motion.normal } }
             }
             Text {
                 visible: root.detail !== ""
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.detail
-                color: root.checked ? "#5b635a" : NumaAppearance.mutedColor
+                color: NumaAppearance.mutedColor
                 font.family: "Inter"
                 font.pixelSize: 12
                 font.features: { "tnum": 1 }

@@ -69,7 +69,7 @@ Button {
     }
 
     background: Rectangle {
-        radius: width / 2
+        radius: 10
         border.width: 1
         border.color: transport.activeFocus ? transport.primaryText : "transparent"
         color: NumaAppearance.rosePine && transport.main ? (transport.hovered || transport.down ? Qt.darker(NumaAppearance.accentColor, 1.08) : NumaAppearance.accentColor) : transport.main ? (transport.hovered ? Qt.lighter(transport.primaryText, 1.05) : transport.primaryText)

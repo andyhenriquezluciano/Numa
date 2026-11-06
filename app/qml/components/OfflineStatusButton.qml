@@ -47,7 +47,7 @@ Button {
     GlassToolTip { control: root; text: root.Accessible.name }
 
     background: Rectangle {
-        radius: height / 2
+        radius: 10
         color: root.down ? "#26ffffff" : root.hovered ? "#1fffffff" : "#14ffffff"
         border.color: root.activeFocus ? "#ffffff" : "#2effffff"
         border.width: 1

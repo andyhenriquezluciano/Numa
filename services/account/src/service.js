@@ -28,7 +28,7 @@ import { createReport, getReport, isScreenshotPath, listReports, markReportRead,
 import { githubWebhook } from "./support_sync.js";
 import { translateSong, purgeTranslations } from "./translation.js";
 import { libraryState } from "./library_state.js";
-import { synchronizeLibrary } from "./library_sync.js";
+import { routeLibrarySync } from "./library_sync.js";
 import { libraryCover } from "./library_covers.js";
 
 export const ACCESS_TOKEN_SECONDS = 15 * 60;
@@ -311,7 +311,7 @@ async function route(request, env, ctx) {
   const { pathname } = new URL(request.url);
   const method = request.method;
   if (pathname === "/sync/events" && method === "GET") return openHub(request, env, true);
-  if (pathname === "/sync/library" && ["POST", "GET"].includes(method)) return synchronizeLibrary(request, env, ctx);
+  if (pathname === "/sync/library" && ["POST", "GET"].includes(method)) return routeLibrarySync(request, env, ctx);
   const cover = pathname.match(/^\/sync\/covers\/([a-f0-9]{64})$/);
   if (cover && ["GET", "HEAD", "PUT"].includes(method)) return libraryCover(request, env, cover[1]);
   if (pathname === "/library/state" && ["GET", "PUT", "DELETE"].includes(method)) return libraryState(request, env);

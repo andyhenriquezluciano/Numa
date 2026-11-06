@@ -5,6 +5,20 @@
 
 void loadSpanishTranslations4(QHash<QString, QString> &map) {
   static const QPair<QString, QString> entries[] = {
+    {QStringLiteral("Episodes you've saved to listen to next. They'll be removed when finished."), QStringLiteral("Episodios guardados para escuchar después. Se quitarán al terminarlos.")},
+    {QStringLiteral("All time"), QStringLiteral("Todo")},
+    {QStringLiteral("%1 days"), QStringLiteral("%1 días")},
+    {QStringLiteral("Listens"), QStringLiteral("Escuchas")},
+    {QStringLiteral("Listening time"), QStringLiteral("Tiempo escuchado")},
+    {QStringLiteral("Songs heard"), QStringLiteral("Canciones escuchadas")},
+    {QStringLiteral("Most played songs"), QStringLiteral("Canciones más escuchadas")},
+    {QStringLiteral("Most played artists"), QStringLiteral("Artistas más escuchados")},
+    {QStringLiteral("Most played albums"), QStringLiteral("Álbumes más escuchados")},
+    {QStringLiteral("%1 songs"), QStringLiteral("%1 canciones")},
+    {QStringLiteral("%1 listens"), QStringLiteral("%1 escuchas")},
+    {QStringLiteral("Show less"), QStringLiteral("Mostrar menos")},
+    {QStringLiteral("Show more"), QStringLiteral("Mostrar más")},
+
     {QStringLiteral("The connection to the room timed out."), QStringLiteral("La conexión a la sala agotó el tiempo de espera.")},
     {QStringLiteral("Room created. Share the code %1."), QStringLiteral("Sala creada. Comparte el código %1.")},
     {QStringLiteral("You joined the shared room."), QStringLiteral("Te has unido a la sala compartida.")},

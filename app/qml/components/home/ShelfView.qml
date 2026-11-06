@@ -160,7 +160,7 @@ Item {
                 onClicked: root.moveRail(modelData.direction)
 
                 background: Rectangle {
-                    radius: width / 2
+                    radius: 10
                     color: shelfButton.hovered && shelfButton.enabled ? "#34362f" : "#252720"
                     border.color: "#34362f"
                     opacity: shelfButton.enabled ? 1 : 0.42

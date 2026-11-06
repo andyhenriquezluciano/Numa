@@ -272,23 +272,6 @@ Item {
             width: root.avatarSize
             height: root.avatarSize
 
-            Rectangle {
-                id: avatarShadowSource
-                anchors.fill: parent
-                radius: width / 2
-                color: "black"
-                visible: false
-            }
-            MultiEffect {
-                anchors.fill: parent
-                source: avatarShadowSource
-                autoPaddingEnabled: true
-                shadowEnabled: true
-                shadowBlur: 1
-                shadowOpacity: 0.5
-                shadowVerticalOffset: 14
-                shadowColor: "black"
-            }
             RoundedArtwork {
                 anchors.fill: parent
                 radius: width / 2
@@ -335,7 +318,7 @@ Item {
             Text {
                 width: parent.width
                 text: root.title
-                color: "#f7f5f0"
+                color: NumaAppearance.rosePine && !root.bleeding ? NumaAppearance.textColor : "#f7f5f0"
                 font.family: "Inter"
                 font.pixelSize: root.nameSize
                 font.weight: root.creditMode ? Font.ExtraBold : Font.Black
@@ -359,7 +342,7 @@ Item {
                 width: parent.width
                 visible: !root.creditMode && text.length > 0
                 text: root.subtitle
-                color: "#d4d8d2"
+                color: NumaAppearance.rosePine && !root.bleeding ? NumaAppearance.mutedColor : "#d4d8d2"
                 font.family: "Inter"
                 font.pixelSize: 13
                 font.weight: Font.Medium

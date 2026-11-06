@@ -96,15 +96,8 @@ RowLayout {
                 width: parent.width
                 height: 40
                 radius: 10
-                color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "transparent"
-                // Translucent so the glass shows through the selection.
-                gradient: NumaAppearance.rosePine ? null : selectionGradient
-                Gradient {
-                    id: selectionGradient
-                    GradientStop { position: 0.0; color: NumaAppearance.rosePine ? "#33ebbcba" : "#33c4a7e7" }
-                    GradientStop { position: 1.0; color: NumaAppearance.rosePine ? "#1aebbcba" : "#1ac4a7e7" }
-                }
-                border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#38c4a7e7"
+                color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#20ffffff"
+                border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#30ffffff"
                 border.width: NumaAppearance.controlBorderWidth
                 y: root.currentIndex * (height + navColumn.spacing)
                 Behavior on y { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }

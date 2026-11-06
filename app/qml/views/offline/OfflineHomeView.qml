@@ -60,7 +60,7 @@ Item {
                 id: homeTitle
 
                 text: qsTr("Home")
-                color: "#f2eee7"
+                color: NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 32
                 font.weight: Font.Bold
@@ -117,14 +117,14 @@ Item {
             width: 34
             height: 34
             name: "download"
-            color: "#a4adb1"
+            color: NumaAppearance.mutedColor
         }
         Text {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.Wrap
             text: qsTr("Nothing is saved for offline listening yet. While you are online, open a song's menu and choose Download, or download a whole playlist or album from its page.")
-            color: "#a4adb1"
+            color: NumaAppearance.mutedColor
             font.family: "Inter"
             font.pixelSize: 13
         }

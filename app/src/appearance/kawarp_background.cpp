@@ -100,6 +100,15 @@ void KawarpBackground::setSource(const QUrl &source) {
         update();
         return;
     }
+    if (source.scheme() == QStringLiteral("data")) {
+        const auto encoded = source.toEncoded();
+        const auto comma = encoded.indexOf(',');
+        if (comma < 0 || encoded.size() > 8 * 1024 * 1024) return;
+        const auto header = encoded.left(comma);
+        const auto payload = QByteArray::fromPercentEncoding(encoded.mid(comma + 1));
+        prepare(header.endsWith(";base64") ? QByteArray::fromBase64(payload) : payload, {}, generation);
+        return;
+    }
     if (source.isLocalFile() || source.scheme() == QStringLiteral("qrc")) {
         prepare({}, source.isLocalFile() ? source.toLocalFile() : QStringLiteral(":") + source.path(), generation);
         return;

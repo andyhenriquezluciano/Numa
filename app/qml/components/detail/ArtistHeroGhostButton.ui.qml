@@ -46,13 +46,13 @@ Button {
     background: Item {
         Rectangle {
             anchors.fill: parent
-            radius: ghost.width / 2
+            radius: 10
             color: ghost.down ? "#38ffffff" : ghost.hovered ? "#28ffffff" : "#14ffffff"
             Behavior on color { ColorAnimation { duration: 120 } }
         }
         RoundedSurfaceFrame {
             anchors.fill: parent
-            radius: ghost.width / 2
+            radius: 10
             softGlow: true
             showBorder: true
             border.width: 1

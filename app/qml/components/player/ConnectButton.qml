@@ -42,7 +42,7 @@ Button {
     GlassToolTip { control: root; text: qsTr("Salas Compartidas"); accentColor: root.accentColor }
 
     background: Rectangle {
-        radius: width / 2
+        radius: 10
         color: NumaAppearance.rosePine ? (root.linked || root.hovered || root.down ? NumaAppearance.highlightColor : "transparent") : root.linked ? Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, root.hovered ? 0.3 : 0.2)
                            : root.hovered ? "#1fffffff" : "transparent"
         border.width: 1

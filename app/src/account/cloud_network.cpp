@@ -35,6 +35,7 @@ void CloudLibrary::request(const QString &path, const QByteArray &method, const 
 }
 void CloudLibrary::synchronize() {
     if (!m_account->isSignedIn() || m_owner != m_account->userId()) return;
+    if (QDateTime::currentMSecsSinceEpoch() < m_retryAfterMs) { retry(); return; }
     if (m_busy) { retry(); return; }
     m_busy = true; m_status = QStringLiteral("Sincronizando biblioteca…"); emit changed(); if (!save()) return;
     auto uploads = m_data.value("uploads").toObject();
@@ -53,9 +54,8 @@ void CloudLibrary::synchronize() {
         }, true); return;
     }
     m_data.insert("uploads", uploads); if (!save()) return;
-    request("/sync/library", "GET", {}, [this](QByteArray bytes) {
-        const auto document = QJsonDocument::fromJson(bytes).object();
-        if (!document.value("library").isObject()) { fail(QStringLiteral("La respuesta de sincronización no es válida.")); return; }
+    m_metricSync.stop();
+    {
         const auto base = m_data.value("base").toObject(), counters = m_data.value("counters").toObject();
         auto sent = m_data.value("local").toObject(), styles = sent.value("coverStyles").toObject();
         const auto baseStyles = base.value("coverStyles").toObject(), pending = m_data.value("uploads").toObject();
@@ -66,7 +66,13 @@ void CloudLibrary::synchronize() {
             else it = styles.erase(it);
         }
         sent.insert("coverStyles", styles);
-        if (sent == base && counters == m_data.value("acknowledged").toObject()) { finishSync(document.value("library").toObject(), sent, counters); return; }
+        if (sent == base && counters == m_data.value("acknowledged").toObject()) {
+            request("/sync/library", "GET", {}, [this, sent, counters](QByteArray bytes) {
+                const auto document = QJsonDocument::fromJson(bytes).object();
+                if (!document.value("library").isObject()) { fail(QStringLiteral("La respuesta de sincronizaci\u00f3n no es v\u00e1lida.")); return; }
+                finishSync(document.value("library").toObject(), sent, counters);
+            }); return;
+        }
         const auto seq = m_data.value("seq").toInteger() + 1; m_data.insert("seq", seq); if (!save()) return;
         const QJsonObject body{{"client", m_client}, {"seq", seq}, {"base", base}, {"local", sent}, {"counters", counters}};
         request("/sync/library", "POST", QJsonDocument(body).toJson(QJsonDocument::Compact), [this, sent, counters](QByteArray bytes) {
@@ -74,7 +80,7 @@ void CloudLibrary::synchronize() {
             if (!result.value("library").isObject()) { fail(QStringLiteral("No se pudo validar la copia de la nube.")); return; }
             finishSync(result.value("library").toObject(), sent, counters);
         });
-    });
+    }
 }
 void CloudLibrary::finishSync(const QJsonObject &remote, const QJsonObject &sent, const QJsonObject &counters) {
     const auto merged = cloud::reconcile(sent, m_data.value("local").toObject(), remote);
@@ -94,6 +100,7 @@ void CloudLibrary::fetchCovers() {
             ++m_revision; emit changed(); fetchCovers();
         }); return;
     }
+    m_syncFailures = 0; m_retryAfterMs = 0; m_poll.start(15 * 60 * 1000);
     m_busy = false; m_lastSynced = QDateTime::currentDateTime().toString(Qt::ISODate); m_status = m_data.value("uploads").toObject().isEmpty() ? QStringLiteral("Biblioteca sincronizada con tu cuenta NÜMA.")
         : QStringLiteral("Biblioteca sincronizada. Falta una imagen local: vuelve a elegir la carátula para enviarla."); emit changed();
 }

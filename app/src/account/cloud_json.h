@@ -12,6 +12,7 @@ QJsonObject countersDelta(const QJsonObject &local, const QJsonObject &sent);
 QJsonObject addPending(const QJsonObject &snapshot, const QJsonObject &pending);
 QJsonObject fromDesktop(const QVariantMap &media, const QString &kind);
 QVariantMap toDesktop(const QJsonObject &media, const QString &kind);
+bool isPlaylistSaved(const QJsonObject &library, const QString &id);
 QJsonObject restoreDefaultPlaylists(const QJsonObject &library);
 QJsonObject automaticArtwork(const QJsonObject &automatic, const QVariantMap &track);
 QVariantList visibleMedia(const QVariantList &items, const QJsonArray &hidden, bool playlists = false);

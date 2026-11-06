@@ -155,6 +155,7 @@ Item {
         shelves.positionViewAtBeginning();
         grid.positionViewAtBeginning();
         songs.positionViewAtBeginning();
+        metrics.positionViewAtBeginning();
     }
 
     function activate(media, section) {
@@ -197,7 +198,7 @@ Item {
     }
     onFilterChanged: {
         resetScroll();
-        filterEntrance.target = filter === "all" ? shelves : isSongs(filter) ? songs : grid;
+        filterEntrance.target = filter === "all" ? shelves : filter === "metrics" ? metrics : isSongs(filter) ? songs : grid;
         filterEntrance.restart();
     }
 
@@ -316,6 +317,18 @@ Item {
         }
     }
 
+    ListeningMetrics {
+        id: metrics
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: headerColumn.bottom
+        anchors.topMargin: 24
+        anchors.bottom: parent.bottom
+        visible: root.filter === "metrics"
+        query: root.query
+        onTrackRequested: (track, tracks) => root.activate(track, {items: tracks})
+    }
+
     LibrarySongList {
         id: songs
         anchors.left: parent.left
@@ -323,7 +336,7 @@ Item {
         anchors.top: headerColumn.bottom
         anchors.topMargin: 24
         anchors.bottom: parent.bottom
-        visible: root.isSongs(root.filter)
+        visible: root.isSongs(root.filter) && root.filter !== "metrics"
         tracks: root.isSongs(root.filter) ? root.selectedSection.items : []
         sortKey: root.sortKey
         sortDescending: root.sortDescending

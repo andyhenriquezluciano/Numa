@@ -31,7 +31,9 @@ CloudLibrary::CloudLibrary(NumaAccount *account, PlaybackController *playback, H
     m_client = m_data.value("client").toString(QUuid::createUuid().toString(QUuid::WithoutBraces)); m_data.insert("client", m_client);
     write(m_root + "/install.json", {{"owner", m_owner}, {"client", m_client}});
     m_status = QStringLiteral("Inicia sesión en NÜMA para sincronizar tu biblioteca.");
-    m_debounce.setSingleShot(true); m_debounce.setInterval(2000); m_poll.setInterval(60000);
+    m_debounce.setSingleShot(true); m_debounce.setInterval(2000); m_poll.setInterval(15 * 60 * 1000);
+    m_metricSync.setSingleShot(true); m_metricSync.setInterval(5 * 60 * 1000);
+    connect(&m_metricSync, &QTimer::timeout, this, &CloudLibrary::retry);
     m_flush.setSingleShot(true); m_flush.setInterval(1000); m_sample.setInterval(1000); m_elapsed.start();
     connect(&m_debounce, &QTimer::timeout, this, &CloudLibrary::synchronize);
     connect(&m_poll, &QTimer::timeout, this, &CloudLibrary::synchronize);
@@ -39,7 +41,7 @@ CloudLibrary::CloudLibrary(NumaAccount *account, PlaybackController *playback, H
     connect(&m_sample, &QTimer::timeout, this, &CloudLibrary::sample);
     connect(account, &NumaAccount::statusChanged, this, &CloudLibrary::bind);
     connect(account, &NumaAccount::userChanged, this, &CloudLibrary::bind);
-    connect(&m_events, &ConnectHubSocket::opened, this, &CloudLibrary::retry);
+    connect(&m_events, &ConnectHubSocket::opened, this, [this] { m_retryAfterMs = 0; retry(); });
     connect(&m_events, &ConnectHubSocket::message, this, [this](const QString &text) {
         if (QJsonDocument::fromJson(text.toUtf8()).object().value("type") == "library.changed") retry();
     });
@@ -58,12 +60,12 @@ QString CloudLibrary::coverKey(const QString &id) const { return hash(cloud::pla
 void CloudLibrary::bind() {
     const auto owner = m_account->isSignedIn() ? m_account->userId() : QString();
     if (owner.isEmpty()) {
-        m_events.stop();
+        m_events.stop(); m_debounce.stop(); m_metricSync.stop();
         ++m_generation; if (m_reply) m_reply->abort(); m_busy = false;
         m_status = QStringLiteral("Inicia sesión en NÜMA para sincronizar tu biblioteca."); emit changed(); return;
     }
     if (owner != m_owner) {
-        m_events.stop();
+        m_events.stop(); m_debounce.stop(); m_metricSync.stop();
         ++m_generation; if (m_reply) m_reply->abort(); save();
         const bool adopt = m_owner.isEmpty(); m_owner = owner;
         if (!adopt) m_data = read(accountPath());
@@ -78,15 +80,27 @@ void CloudLibrary::bind() {
     m_events.start(); retry();
 }
 bool CloudLibrary::save() { const bool ok = write(accountPath(), m_data); if (!ok) fail(QStringLiteral("No se pudo guardar la copia local. Tus cambios no se subirán todavía.")); return ok; }
-void CloudLibrary::retry() { m_debounce.start(); }
+void CloudLibrary::retry() {
+    if (!m_account->isSignedIn()) return;
+    const int delay = int(qMax<qint64>(2000, m_retryAfterMs - QDateTime::currentMSecsSinceEpoch()));
+    if (!m_debounce.isActive() || m_debounce.remainingTime() > delay) m_debounce.start(delay);
+}
 void CloudLibrary::syncNow() {
     if (m_busy) return;
     if (!m_account->isSignedIn()) { fail(QStringLiteral("Inicia sesión en tu cuenta NÜMA para sincronizar. La sesión de YouTube Music es independiente.")); return; }
     if (m_owner != m_account->userId()) bind();
-    m_debounce.stop();
+    m_debounce.stop(); m_retryAfterMs = 0;
     synchronize();
 }
-void CloudLibrary::fail(const QString &message) { m_busy = false; m_status = message; emit changed(); }
+void CloudLibrary::fail(const QString &message) {
+    m_busy = false; m_status = message;
+    if (m_account->isSignedIn()) {
+        const int delay = qMin(15 * 60 * 1000, 30000 << qMin(m_syncFailures++, 5));
+        m_retryAfterMs = QDateTime::currentMSecsSinceEpoch() + delay;
+        m_poll.stop(); m_debounce.start(delay);
+    }
+    emit changed();
+}
 void CloudLibrary::setSaved(const QString &kind, const QVariantMap &media, bool saved) {
     auto local = m_data.value("local").toObject(), row = cloud::fromDesktop(media, kind); const auto id = row.value("id").toString(); if (id.isEmpty()) return;
     QJsonArray rows; for (auto value : local.value(cloud::field(kind)).toArray()) if ((kind == "playlist" ? cloud::playlistId(value.toObject().value("id").toString()) : value.toObject().value("id").toString()) != id) rows.append(value);
@@ -103,6 +117,7 @@ void CloudLibrary::toggleSaved(const QString &kind, const QVariantMap &media) {
     const auto id = cloud::fromDesktop(media, kind).value("id").toString(); setSaved(kind, media, !isSaved(kind, id));
 }
 bool CloudLibrary::isSaved(const QString &kind, const QString &id) const {
+    if (kind == "playlist") return cloud::isPlaylistSaved(m_data.value("local").toObject(), id);
     for (auto value : m_data.value("local").toObject().value(cloud::field(kind)).toArray()) if ((kind == "playlist" ? cloud::playlistId(value.toObject().value("id").toString()) : value.toObject().value("id").toString()) == (kind == "playlist" ? cloud::playlistId(id) : id)) return kind != "playlist" || !isHiddenPlaylist(id); return false;
 }
 QVariantList CloudLibrary::visiblePlaylists(const QVariantList &items) const {
@@ -134,7 +149,9 @@ void CloudLibrary::observeLibrary() {
         const auto rows = cloud::mergeRows(previous, current, local.value(cloud::field(kind)).toArray());
         local.insert(cloud::field(kind), rows); observed.insert(key, current);
     }
-    m_data.insert("local", local); m_data.insert("nativeObserved", observed); save(); ++m_revision; emit changed(); retry();
+    m_data.insert("nativeObserved", observed);
+    if (local == m_data.value("local").toObject()) { save(); return; }
+    m_data.insert("local", local); save(); ++m_revision; emit changed(); retry();
 }
 void CloudLibrary::observePlaylists() {
     if (m_home->playlistsLoading() || !m_home->playlistsError().isEmpty()) return;

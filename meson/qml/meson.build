@@ -189,6 +189,7 @@ qml_sources = [
   'app/qml/views/home/HomeView.qml',
   'app/qml/views/home/PageMemory.qml',
   'app/qml/views/library/LibraryView.qml',
+  'app/qml/views/library/ListeningMetrics.qml',
   'app/qml/views/library/LibraryHeader.qml',
   'app/qml/views/library/LibraryPill.qml',
   'app/qml/views/library/LibrarySongList.qml',

@@ -2,6 +2,7 @@
 #include <QFile>
 #include <QQmlComponent>
 #include <QQmlEngine>
+#include <QQmlContext>
 #include <QQuickItem>
 #include <QTemporaryDir>
 #include <QTest>
@@ -9,6 +10,22 @@
 class FullscreenBackdropTest : public QObject {
   Q_OBJECT
 private slots:
+  void loadsInlinePlaylistArtwork_data() {
+    QTest::addColumn<bool>("base64");
+    QTest::newRow("base64-svg") << true;
+    QTest::newRow("percent-encoded-svg") << false;
+  }
+  void loadsInlinePlaylistArtwork() {
+    QFETCH(bool, base64);
+    const QByteArray svg = R"(<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="#9464ee"/></svg>)";
+    const QByteArray url = base64 ? QByteArray("data:image/svg+xml;base64,") + svg.toBase64()
+                                : QByteArray("data:image/svg+xml,") + svg.toPercentEncoding();
+    KawarpBackground backdrop;
+    backdrop.setSource(QUrl::fromEncoded(url));
+    QTRY_VERIFY_WITH_TIMEOUT(backdrop.ready(), 3000);
+    backdrop.setSource(QUrl());
+    QVERIFY(!backdrop.ready());
+  }
   void preservesFallbackAnimationState() {
     qmlRegisterType<KawarpBackground>("Numa", 1, 0, "KawarpBackground");
     QTemporaryDir directory;
@@ -18,6 +35,8 @@ private slots:
     const QString path = directory.filePath("art.png");
     QVERIFY(artwork.save(path));
     QQmlEngine engine;
+    engine.rootContext()->setContextProperty("NumaAppearance", QVariantMap{
+        {"rosePine", false}, {"performanceMode", false}, {"bordersEnabled", false}});
     QQmlComponent component(&engine);
     const QByteArray qml = QByteArrayLiteral("import QtQuick\nimport \"")
         + QUrl::fromLocalFile(QStringLiteral(NUMA_SOURCE_DIR "/app/qml/components/player")).toEncoded()

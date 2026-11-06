@@ -29,7 +29,7 @@ Button {
     }
 
     background: Rectangle {
-        radius: height / 2
+        radius: 10
         color: NumaAppearance.rosePine ? (control.down || control.hovered || control.activeFocus ? NumaAppearance.highlightColor : "transparent") : control.down ? "#26ffffff"
                             : control.hovered || control.activeFocus ? "#1affffff"
                                                                      : "transparent"

@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { syncFixture, packet } from "./sync_fixture.js";
+import { ConnectHub } from "../src/connect.js";
 
 test("library commits notify the account hub and both clients retain edits and covers", async () => {
   const { call, env } = await syncFixture();
   const notices = [];
+  const hub = new ConnectHub({getWebSockets: () => []}, env);
   env.CONNECT_HUB = { idFromName: name => name, get: user => ({ fetch: async request => {
+    if (new URL(request.url).pathname === "/internal/library-sync") return hub.fetch(request);
     notices.push({ user, ...await request.json() }); return new Response(null, { status: 204 });
   } }) };
   const playlist = { id: "PL-shared", title: "Compartida", tracks: [{ id: "song", title: "Song" }] };
@@ -33,7 +36,11 @@ test("library commits notify the account hub and both clients retain edits and c
 
 test("notification outages preserve committed library changes", async () => {
   const { call, env } = await syncFixture();
-  env.CONNECT_HUB = { idFromName: name => name, get: () => ({ fetch: async () => { throw new Error("offline"); } }) };
+  const hub = new ConnectHub({getWebSockets: () => []}, env);
+  env.CONNECT_HUB = { idFromName: name => name, get: () => ({ fetch: async request => {
+    if (new URL(request.url).pathname === "/internal/library-sync") return hub.fetch(request);
+    throw new Error("offline");
+  } }) };
   assert.equal((await call("/sync/library", "POST", packet("windows", 1, { savedPlaylists: [{ id: "list" }] }))).status, 200);
   assert.equal((await (await call("/sync/library")).json()).library.savedPlaylists[0].id, "list");
 });
@@ -100,4 +107,18 @@ test("cover quota is enforced per account without blocking existing assets", asy
     .bind("a", "overflow", new Uint8Array([0]), 1).run(), /cover_quota/);
   await env.DB.prepare("INSERT INTO library_covers (user_id,digest,bytes,size) VALUES (?,?,?,?)")
     .bind("b", "own", new Uint8Array([0]), 1).run();
+});
+
+test("sync delegation rejects forged claims and preserves validation errors", async () => {
+  const {call, env} = await syncFixture();
+  const objects = new Map();
+  env.CONNECT_HUB = {idFromName: name => name, get: user => ({fetch: request => {
+    if (!objects.has(user)) objects.set(user, new ConnectHub({getWebSockets: () => [], waitUntil: promise => promise}, env));
+    return objects.get(user).fetch(request);
+  }})};
+  assert.equal((await call("/sync/library", "GET", undefined, "unknown", {"x-numa-sync-claims": JSON.stringify({sub:"a",did:"device-a"})})).status, 401);
+  const response = await call("/sync/library", "POST", {bad:true});
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).error, "invalid_client");
+  assert.equal((await call("/internal/library-sync", "GET")).status, 404);
 });

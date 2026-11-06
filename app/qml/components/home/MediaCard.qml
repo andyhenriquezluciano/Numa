@@ -128,9 +128,14 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: root.songlist ? 6 : 12
-        color: hover.hovered && (root.songlist || !root.plain) ? (root.songlist ? "#0dffffff" : "#16ffffff") : "transparent"
-        border.color: root.activeFocus ? "#c4a7e7" : "transparent"
+        anchors.leftMargin: root.songlist ? art.x + art.width + 6 : 0
+        anchors.topMargin: root.songlist ? 3 : 0
+        anchors.bottomMargin: root.songlist ? 3 : 0
+        radius: 10
+        color: root.songlist
+            ? (NumaAppearance.rosePine ? (hover.hovered ? Qt.rgba(NumaAppearance.textColor.r, NumaAppearance.textColor.g, NumaAppearance.textColor.b, 0.08) : NumaAppearance.overlayColor) : hover.hovered ? "#16ffffff" : "#0cffffff")
+            : hover.hovered && !root.plain ? "#16ffffff" : "transparent"
+        border.color: root.activeFocus ? NumaAppearance.accentColor : "transparent"
 
         Behavior on color {
             ColorAnimation {
@@ -315,7 +320,7 @@ Item {
         anchors.bottom: parent.bottom
         width: parent.width - 8
         height: 1
-        color: "#14ffffff"
-        visible: root.songlist && root.separator
+        color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#14ffffff"
+        visible: false
     }
 }

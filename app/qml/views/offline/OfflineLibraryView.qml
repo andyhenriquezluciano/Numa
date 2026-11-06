@@ -35,16 +35,17 @@ Item {
     property bool sortDescending: false
     readonly property string query: header.query.trim().toLowerCase()
     readonly property var categories: [
+        { key: "metrics", title: qsTr("Listening metrics"), empty: qsTr("Songs appear here after 15 seconds of listening.") },
         { key: "songs", title: qsTr("Songs"), empty: qsTr("Songs you download or add from this computer appear here.") },
         { key: "playlists", title: qsTr("Playlists"), empty: qsTr("Downloaded playlists and playlists made from local files appear here.") }
     ]
     readonly property var loadedSections: categories.map(category => ({
         key: category.key, title: category.title, empty: category.empty,
-        items: category.key === "songs" ? NumaOffline.songs : (typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.visiblePlaylists(NumaOffline.playlists) : NumaOffline.playlists)
+        items: category.key === "metrics" ? (NumaSync.revision >= 0 ? NumaSync.section("metrics") : []) : category.key === "songs" ? NumaOffline.songs : (typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.visiblePlaylists(NumaOffline.playlists) : NumaOffline.playlists)
     }))
     readonly property var sections: loadedSections.map(section => visibleSection(section))
     readonly property var selectedSection: sections.find(section => section.key === filter) || ({ items: [] })
-    readonly property var counts: ({ songs: loadedSections[0].items.length, playlists: loadedSections[1].items.length })
+    readonly property var counts: Object.fromEntries(loadedSections.map(section => [section.key, section.items.length]))
 
     signal playlistRequested(var playlist)
     signal albumRequested(var album)
@@ -111,13 +112,14 @@ Item {
         shelves.positionViewAtBeginning();
         grid.positionViewAtBeginning();
         songs.positionViewAtBeginning();
+        metrics.positionViewAtBeginning();
     }
 
     onQueryChanged: resetScroll()
     onFilterChanged: resetScroll()
 
     component Caption: Text {
-        color: "#f2eee7"
+        color: NumaAppearance.textColor
         font.family: "Inter"
         font.pixelSize: 13
     }
@@ -156,7 +158,7 @@ Item {
         delegate: Column {
             id: sectionColumn
             required property var modelData
-            readonly property bool songList: modelData.key === "songs"
+            readonly property bool songList: modelData.key === "songs" || modelData.key === "metrics"
             readonly property var shelfSection: ({ key: modelData.key, title: modelData.title,
                                                     items: modelData.items.slice(0, songList ? 24 : 20) })
             width: shelves.width
@@ -189,7 +191,7 @@ Item {
                 width: parent.width
                 visible: sectionColumn.modelData.items.length === 0
                 text: root.sectionStatus(sectionColumn.modelData)
-                color: "#a4adb1"
+                color: NumaAppearance.mutedColor
                 wrapMode: Text.Wrap
                 bottomPadding: 12
             }
@@ -204,7 +206,24 @@ Item {
             text: qsTr("Nothing downloaded matches \"%1\".").arg(header.query.trim())
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.Wrap
-            color: "#a4adb1"
+            color: NumaAppearance.mutedColor
+        }
+    }
+
+    ListeningMetrics {
+        id: metrics
+        objectName: "offlineListeningMetrics"
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: headerColumn.bottom
+        anchors.topMargin: 24
+        anchors.bottom: parent.bottom
+        visible: root.filter === "metrics"
+        query: root.query
+        onTrackRequested: (track, tracks) => {
+            const downloaded = NumaOffline.songs || [];
+            const playable = tracks.map(item => downloaded.find(song => song.id === item.id)).filter(Boolean);
+            root.activate(track, {items: playable});
         }
     }
 
@@ -266,7 +285,7 @@ Item {
             text: root.sectionStatus(root.selectedSection)
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.Wrap
-            color: "#a4adb1"
+            color: NumaAppearance.mutedColor
         }
 
         footer: Item { width: 1; height: 28 }

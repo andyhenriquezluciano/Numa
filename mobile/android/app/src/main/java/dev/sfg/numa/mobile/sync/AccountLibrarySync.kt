@@ -21,12 +21,14 @@ class AccountLibrarySync(context: Context, private val graph: NumaGraph) {
     private val covers = CloudCoverStore(context, graph, transport)
     private val wake = Channel<Unit>(Channel.CONFLATED)
     private val mutable = MutableStateFlow(AccountSyncState())
-    private var lastMetricWake = 0L
+    private val metricWake = Channel<Unit>(Channel.CONFLATED)
+    private val manualRequested = java.util.concurrent.atomic.AtomicBoolean(false)
     val state = mutable.asStateFlow()
     fun retry() { wake.trySend(Unit) }
     fun syncNow() {
         if (!account.state.value.signedIn || mutable.value.busy) return
         mutable.update { it.copy(busy = true, failed = false, message = "Sincronización solicitada…") }
+        manualRequested.set(true)
         retry()
     }
 
@@ -41,8 +43,14 @@ class AccountLibrarySync(context: Context, private val graph: NumaGraph) {
             runCatching { journal.record(track.id, ms, listen) }.onFailure {
                 mutable.value = AccountSyncState(message = "No se pudo guardar el registro de sincronización.", failed = true)
             }
-            val elapsed = android.os.SystemClock.elapsedRealtime()
-            if (listen || elapsed - lastMetricWake >= 30_000) { lastMetricWake = elapsed; retry() }
+            metricWake.trySend(Unit)
+        }
+        graph.applicationScope.launch {
+            for (ignored in metricWake) {
+                delay(5 * 60_000L)
+                while (metricWake.tryReceive().isSuccess) { /* Include all samples in this batch. */ }
+                retry()
+            }
         }
         graph.applicationScope.launch {
             graph.library.library.map { it.copy(playCounts = emptyMap(), listeningTotalMs = 0,
@@ -51,10 +59,17 @@ class AccountLibrarySync(context: Context, private val graph: NumaGraph) {
         }
         graph.applicationScope.launch { graph.playlistCovers.covers.collect { retry() } }
         graph.applicationScope.launch { graph.automaticPlaylistCovers.state.collect { retry() } }
-        graph.applicationScope.launch { graph.networkMonitor.isOnline.collect { retry() } }
+        graph.applicationScope.launch {
+            graph.networkMonitor.isOnline.drop(1).collect { online ->
+                if (online) manualRequested.set(true)
+                retry()
+            }
+        }
         graph.applicationScope.launch(Dispatchers.IO) {
             account.state.map { it.userId }.distinctUntilChanged().collectLatest { owner ->
-                if (owner.isNotBlank()) LibraryEvents(graph.http, account).observe(owner, ::retry)
+                if (owner.isNotBlank()) graph.networkMonitor.isOnline.collectLatest { online ->
+                    if (online) LibraryEvents(graph.http, account).observe(owner, ::retry)
+                }
             }
         }
         graph.applicationScope.launch(Dispatchers.IO) {
@@ -74,12 +89,18 @@ class AccountLibrarySync(context: Context, private val graph: NumaGraph) {
                     return@collectLatest
                 }
                 var waitMs = 0L
+                var failures = 0
+                var retryAt = 0L
                 while (currentCoroutineContext().isActive && account.state.value.userId == owner) {
                     if (waitMs > 0) withTimeoutOrNull(waitMs) { wake.receive() }
-                    delay(1_500)
+                    val manual = manualRequested.getAndSet(false)
+                    val remaining = retryAt - android.os.SystemClock.elapsedRealtime()
+                    if (!manual && remaining > 0) { waitMs = remaining; continue }
+                    if (!manual) delay(1_500)
+                    while (wake.tryReceive().isSuccess) { /* Reconcile one snapshot for coalesced changes. */ }
                     if (!graph.networkMonitor.isOnline.value) {
                         mutable.update { it.copy(busy = false, message = "Sin conexión. Los cambios se guardarán al reconectar.", failed = false) }
-                        waitMs = 60_000; continue
+                        waitMs = 15 * 60_000L; continue
                     }
                     mutable.update { it.copy(busy = true, message = "Sincronizando biblioteca…", failed = false) }
                     try {
@@ -87,12 +108,14 @@ class AccountLibrarySync(context: Context, private val graph: NumaGraph) {
                         mutable.value = AccountSyncState(message = if (covers.incomplete)
                             "Biblioteca sincronizada. No se pudo enviar una carátula; vuelve a elegirla."
                             else "Biblioteca sincronizada con tu cuenta NÜMA.", lastSynced = System.currentTimeMillis(), failed = covers.incomplete)
-                        waitMs = 60_000
+                        failures = 0; retryAt = 0L
+                        waitMs = 15 * 60_000L
                     } catch (cancelled: CancellationException) { throw cancelled }
                     catch (error: Exception) {
                         mutable.update { it.copy(busy = false, failed = true, message = connectionFailureMessage(error) ?: error.message ?: "No se pudo sincronizar. Tus datos siguen en este dispositivo.") }
-                        waitMs = 60_000
-                        delay(8_500)
+                        waitMs = (30_000L shl failures.coerceAtMost(5)).coerceAtMost(15 * 60_000L)
+                        failures++
+                        retryAt = android.os.SystemClock.elapsedRealtime() + waitMs
                     }
                 }
             }
@@ -107,8 +130,9 @@ class AccountLibrarySync(context: Context, private val graph: NumaGraph) {
         val local = LibraryBackupCodec.encode(sent).apply { remove("version") }
         val sentStyles = covers.styles(base.optJSONObject("coverStyles") ?: JSONObject()); val sentAutomatic = covers.automaticJson()
         local.put("coverStyles", sentStyles).put("automaticCovers", sentAutomatic)
-        val latest = JSONObject(transport.exchange("/sync/library").toString(Charsets.UTF_8)).getJSONObject("library")
-        val response = if (canonicalSyncJson(local) == canonicalSyncJson(base) && counters == journal.acknowledged() && !journal.migrationPending()) latest else {
+        val response = if (canonicalSyncJson(local) == canonicalSyncJson(base) && counters == journal.acknowledged() && !journal.migrationPending()) {
+            JSONObject(transport.exchange("/sync/library").toString(Charsets.UTF_8)).getJSONObject("library")
+        } else {
             val request = JSONObject().put("client", journal.client).put("seq", journal.sequence()).put("base", base)
                 .put("local", local).put("counters", counters.json())
                 .put("migrateLegacy", journal.migrationPending())

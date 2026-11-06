@@ -179,7 +179,7 @@ Item {
                 radius: root.radius
                 topLeftRadius: 0
                 topRightRadius: 0
-                color: card.footerColor
+                color: NumaAppearance.rosePine ? NumaAppearance.surfaceColor : Qt.lighter(card.footerColor, 1.3)
 
                 Behavior on color {
                     ColorAnimation { duration: Motion.normal }
@@ -196,7 +196,7 @@ Item {
                     Text {
                         width: parent.width
                         text: card.modelData.eyebrow || ""
-                        color: "#a6ffffff"
+                        color: NumaAppearance.rosePine ? NumaAppearance.mutedColor : "#d9ffffff"
                         font.family: "Inter"
                         font.pixelSize: 11
                         elide: Text.ElideRight
@@ -215,7 +215,7 @@ Item {
                     Text {
                         width: parent.width
                         text: root.subtitleFor(card.media)
-                        color: "#b8ffffff"
+                        color: NumaAppearance.rosePine ? NumaAppearance.mutedColor : "#e6ffffff"
                         font.family: "Inter"
                         font.pixelSize: 12
                         elide: Text.ElideRight

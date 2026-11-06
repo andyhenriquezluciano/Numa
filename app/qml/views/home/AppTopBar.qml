@@ -69,11 +69,11 @@ Item {
         width: root.canopy ? (root.searchOpen ? Math.min(300, Math.max(38, root.buttonsLeft - 24 - 360)) : 38)
                       : Math.max(120, Math.min(660, root.buttonsLeft - 28))
         height: root.canopy ? 38 : 42
-        radius: height / 2
+        radius: 10
         clip: true
         color: NumaAppearance.rosePine ? (search.activeFocus ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : search.activeFocus ? "#1effffff" : "#15ffffff"
-        border.color: search.activeFocus ? NumaAppearance.accentColor : "#70ffffff"
-        border.width: NumaAppearance.controlBorderWidth
+        border.color: NumaAppearance.accentColor
+        border.width: NumaAppearance.rosePine ? 2 : 0
 
         Behavior on width {
             enabled: root.canopy

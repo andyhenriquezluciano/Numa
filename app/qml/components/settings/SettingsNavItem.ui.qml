@@ -42,7 +42,7 @@ ItemDelegate {
             Layout.preferredWidth: 17
             Layout.preferredHeight: 17
             name: navItem.entry.icon
-            color: NumaAppearance.rosePine ? (navItem.current ? NumaAppearance.accentColor : NumaAppearance.mutedColor) : navItem.current ? "#e5d8f7" : "#a4aaa1"
+            color: NumaAppearance.rosePine ? (navItem.current ? NumaAppearance.accentColor : NumaAppearance.mutedColor) : navItem.current ? NumaAppearance.textColor : "#a4aaa1"
             scale: navItem.current ? 1.1 : 1.0
             Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
         }
@@ -61,7 +61,7 @@ ItemDelegate {
     // Hover tint only; the selection pill sits underneath.
     background: Rectangle {
         radius: 10
-        color: navItem.current ? "transparent" : NumaAppearance.rosePine ? (navItem.hovered || navItem.down ? NumaAppearance.highlightColor : "transparent") : navItem.down ? "#22ffffff" : navItem.hovered ? "#14ffffff" : "transparent"
+        color: navItem.current ? "transparent" : NumaAppearance.rosePine ? (navItem.hovered || navItem.down ? NumaAppearance.highlightColor : "transparent") : (navItem.down || navItem.hovered) ? "#14ffffff" : "transparent"
         border.color: navItem.visualFocus ? "#d8c2f2" : "transparent"
 
     }

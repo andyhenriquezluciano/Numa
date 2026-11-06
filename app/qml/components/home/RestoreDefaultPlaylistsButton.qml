@@ -19,16 +19,12 @@ Button {
         sync.restoreDefaultPlaylists()
         if (!NumaNetwork.offline) { NumaHome.refreshLibrary(); NumaHome.refresh() }
     }
-    background: Item {
-        Rectangle { anchors.fill: parent; radius: 8; color: NumaAppearance.rosePine ? (root.hovered ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : root.hovered ? "#1cffffff" : "#10ffffff" }
-        RoundedSurfaceFrame {
-            anchors.fill: parent
-            radius: 8
-            softGlow: true
-            showBorder: true
-            border.color: root.activeFocus ? NumaAppearance.accentColor : root.hovered ? "#45ffffff" : "#30ffffff"
-            fillColor: "transparent"
-        }
+    background: Rectangle {
+        radius: 10
+        color: NumaAppearance.rosePine ? (root.hovered || root.down ? NumaAppearance.highlightColor : NumaAppearance.overlayColor)
+            : root.hovered || root.down ? "#14ffffff" : "#10ffffff"
+        border.width: NumaAppearance.controlBorderWidth
+        border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#30ffffff"
     }
     contentItem: Row {
         spacing: 10

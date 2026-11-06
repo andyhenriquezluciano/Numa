@@ -54,13 +54,13 @@ Button {
     background: Item {
         Rectangle {
             anchors.fill: parent
-            radius: root.height / 2
+            radius: 10
             color: root.hovered ? Qt.lighter(root.fillColor, 1.4) : root.fillColor
             Behavior on color { ColorAnimation { duration: 90 } }
         }
         RoundedSurfaceFrame {
             anchors.fill: parent
-            radius: root.height / 2
+            radius: 10
             softGlow: true
             showBorder: true
             border.width: 1

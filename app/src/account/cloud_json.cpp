@@ -54,6 +54,17 @@ QVariantList visibleSections(const QVariantList &sections, const QJsonArray &hid
     }
     return out;
 }
+bool isPlaylistSaved(const QJsonObject &library, const QString &id) {
+    const auto key = playlistId(id);
+    if (key.isEmpty()) return false;
+    for (const auto &value : library.value("hiddenPlaylistIds").toArray())
+        if (playlistId(value.toString()) == key) return false;
+    // System lists are present by default, including immediately after restore.
+    if (key == "FEmusic_liked_videos" || key == "SE") return true;
+    for (const auto &value : library.value("savedPlaylists").toArray())
+        if (playlistId(value.toObject().value("id").toString()) == key) return true;
+    return false;
+}
 QJsonObject restoreDefaultPlaylists(const QJsonObject &library) {
     auto out = library;
     QJsonArray hidden;
@@ -141,7 +152,7 @@ QJsonObject addPending(const QJsonObject &snapshot, const QJsonObject &pending) 
 QJsonObject fromDesktop(const QVariantMap &media, const QString &kind) {
     QJsonObject out;
     auto text = [&media](const char *key) { return media.value(QString::fromLatin1(key)).toString(); };
-    auto id = text("id"); if (id.isEmpty()) id = text("browseId"); if (id.isEmpty()) id = text("playlistId");
+    auto id = text("id"); if (id.isEmpty()) id = text("browseId"); if (id.isEmpty()) id = text("playlistId"); if (id.isEmpty()) id = media.value("browsePayload").toMap().value("browseId").toString();
     out.insert("id", kind == "playlist" ? playlistId(id) : id);
     out.insert("title", text("title")); out.insert("artworkUrl", text("thumbnail").isEmpty() ? text("artworkUrl") : text("thumbnail"));
     if (kind == "artist") { out.insert("name", text("title").isEmpty() ? text("name") : text("title")); out.remove("title"); out.insert("subtitle", text("subtitle")); }
@@ -154,7 +165,12 @@ QJsonObject fromDesktop(const QVariantMap &media, const QString &kind) {
 }
 QVariantMap toDesktop(const QJsonObject &media, const QString &kind) {
     auto out = media.toVariantMap(); out.insert("type", kind); out.insert("thumbnail", media.value("artworkUrl").toString());
-    if (kind == "artist") out.insert("title", media.value("name").toString());
+    if (kind == "artist") {
+        out.insert("title", media.value("name").toString());
+        const auto id = media.value("id").toString();
+        out.insert("browseId", id);
+        out.insert("browsePayload", QVariantMap{{"browseId", id}});
+    }
     out.insert("subtitle", media.value("artist").toString(media.value("author").toString(media.value("subtitle").toString())));
     out.insert("durationSeconds", media.value("durationMs").toDouble() / 1000.);
     QVariantList artists; for (auto value : media.value("artists").toArray()) artists.append(value.isObject() ? value.toObject().value("name").toString() : value.toString());
