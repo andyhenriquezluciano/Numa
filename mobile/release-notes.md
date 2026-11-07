@@ -3,7 +3,7 @@
 ### Novedades
 
 - **Busca actualizaciones desde Ajustes.** Un nuevo acceso en la pantalla principal, integrado con el tema que uses.
-- **Sigue el estado de la búsqueda.** La app indica si está buscando, si tienes la última versión o si hubo un problema y necesitas reintentar.
+- **Estado de la búsqueda de actualizaciones.** Al pulsar «Buscar actualizaciones», la app muestra si está comprobando una nueva versión, si ya tienes la más reciente o si la consulta falló y debes reintentar.
 
 ### Mejoras del reproductor
 
