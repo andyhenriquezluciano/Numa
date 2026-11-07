@@ -69,7 +69,7 @@ jobs:
       - name: Install Qt 6.12.0
         shell: bash
         run: |
-          python -m aqt install-qt linux desktop 6.12.0 linux_gcc_64 -m qtmultimedia qtshadertools qtwebengine qtwebview qtwebchannel qtpositioning qtwebsockets -O "$RUNNER_TEMP/Qt"
+          python -m aqt install-qt linux desktop 6.12.0 linux_gcc_64 -m qtmultimedia qtshadertools qtwebengine qtwebview qtwebchannel qtpositioning qtwebsockets qtimageformats -O "$RUNNER_TEMP/Qt"
           qt_config="$(find "$RUNNER_TEMP/Qt/6.12.0" -path '*/lib/cmake/Qt6/Qt6Config.cmake' -type f -print -quit)"
           test -n "$qt_config"
           qt_root="${qt_config%/lib/cmake/Qt6/Qt6Config.cmake}"

@@ -44,12 +44,12 @@ if a.platform == "windows-x86_64-msvc" and dxc != {"dxil.dll", "dxcompiler.dll"}
     raise SystemExit("ort's DXC libraries were not found in Cargo's linker output")
 # Static FFmpeg for Windows, where no system decoder is on PATH.
 FFMPEG = {
-    "windows-x86_64-msvc": ("autobuild-2026-10-11-13-04", "ffmpeg-n9.0.2-25-g67b60c310b-win64-gpl-9.0",
-                            "b1860fbeb14e87d1de44aecc5eb9e25dfecc7ee8efa8d54250995a9acfbe6070"),
+    "windows-x86_64-msvc": ("autobuild-2026-11-03-12-50", "ffmpeg-n9.0.2-45-g1e65c6cd5d-win64-gpl-9.0",
+                            "ab9939af65bea84c161b4f80056511aa346d65315e8bec87ea2b8fc675839711"),
 }
 FFMPEG["windows-x86_64-gnu"] = FFMPEG["windows-x86_64-msvc"]
 if a.platform in FFMPEG:
-    ffmpeg_dir = a.ffmpeg_dir or Path.home() / "AppData/Local/Programs/Numa/components/ffmpeg/8.0.2-4"
+    ffmpeg_dir = a.ffmpeg_dir or Path.home() / "AppData/Local/Programs/Numa/components/ffmpeg/8.0.2-5"
     installed_ffmpeg = ffmpeg_dir / "ffmpeg.exe"
     installed_probe = installed_ffmpeg.with_name("ffprobe.exe")
     if a.ffmpeg_dir and not (installed_ffmpeg.is_file() and installed_probe.is_file()):
