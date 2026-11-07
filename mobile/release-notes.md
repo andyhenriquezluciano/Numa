@@ -1,15 +1,10 @@
-# NÜMA 2.5 — Android (compilación 20056)
+# Android 2.5
 
-## Corregido
+Unos ajustes para que escuchar y mantener NÜMA al día sea más cómodo.
 
-- **Carátulas animadas completas:** restaurado el ancho completo, sin los márgenes de tarjeta, con el degradado inferior detrás de los controles. El ajuste se aplica al reproductor y al reproductor de bloqueo.
-- **Capas de carátula:** ajustado el tratamiento de la imagen estática de respaldo y el vídeo para evitar franjas con imágenes duplicadas.
+- **Carátulas a pantalla completa:** vuelven a ocupar todo el ancho, con un degradado suave detrás de los controles, tanto en el reproductor como en la pantalla de bloqueo.
+- **Imágenes de respaldo:** ajustamos cómo se combinan con el vídeo para evitar franjas con carátulas duplicadas.
 
-## Añadido
+- **Actualizaciones a mano:** ya puedes buscarlas desde la pantalla principal de Ajustes, con el estilo de tu tema.
+- **Resultados más claros:** sabrás cuándo está buscando, si ya tienes la última versión o si necesitas reintentar.
 
-- **Buscar actualizaciones:** acceso visible en la pantalla principal de Ajustes, integrado con los paneles y colores del tema seleccionado.
-- **Resultado de la búsqueda:** indica cuándo está buscando, cuándo tienes la versión más reciente y cuándo falló la consulta, con opción de reintentar. Evita consultas simultáneas y búsquedas durante la descarga o instalación.
-
-## Actualización
-
-- Instala sobre la versión anterior para conservar tu sesión, biblioteca y ajustes.
