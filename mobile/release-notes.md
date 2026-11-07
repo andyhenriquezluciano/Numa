@@ -7,4 +7,3 @@ Unos ajustes para que escuchar y mantener NÜMA al día sea más cómodo.
 
 - **Actualizaciones a mano:** ya puedes buscarlas desde la pantalla principal de Ajustes, con el estilo de tu tema.
 - **Resultados más claros:** sabrás cuándo está buscando, si ya tienes la última versión o si necesitas reintentar.
-
