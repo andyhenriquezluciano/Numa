@@ -1,9 +1,11 @@
 # Android 2.5
 
-Unos ajustes para que escuchar y mantener NÜMA al día sea más cómodo.
+### Novedades
 
-- **Carátulas a pantalla completa:** vuelven a ocupar todo el ancho, con un degradado suave detrás de los controles, tanto en el reproductor como en la pantalla de bloqueo.
-- **Imágenes de respaldo:** ajustamos cómo se combinan con el vídeo para evitar franjas con carátulas duplicadas.
+- **Busca actualizaciones desde Ajustes.** Un nuevo acceso en la pantalla principal, integrado con el tema que uses.
+- **Sigue el estado de la búsqueda.** La app indica si está buscando, si tienes la última versión o si hubo un problema y necesitas reintentar.
 
-- **Actualizaciones a mano:** ya puedes buscarlas desde la pantalla principal de Ajustes, con el estilo de tu tema.
-- **Resultados más claros:** sabrás cuándo está buscando, si ya tienes la última versión o si necesitas reintentar.
+### Mejoras del reproductor
+
+- **Carátulas animadas de borde a borde.** Recuperan el ancho completo y el degradado detrás de los controles, también en el reproductor de bloqueo.
+- **Mejor transición entre imagen y vídeo.** Ajustamos la carátula de respaldo para evitar franjas con imágenes duplicadas.

@@ -1,9 +1,7 @@
 # Windows 2.5.1
 
-Ahora es más fácil saber cuándo hay una nueva versión para tu PC.
+### Novedades
 
-- **Un botón en Ajustes:** busca actualizaciones desde General, con el mismo estilo del tema que uses.
-- **Avisos al abrir NÜMA:** esta versión puede avisarte cuando se publique una actualización para Windows.
-- **Resultados claros:** la app indica si está buscando, si ya estás al día o si hubo un problema y necesitas reintentar.
-- **Descarga desde la app:** abre el instalador desde el aviso o desde Ajustes. Después, ejecútalo para completar la actualización.
-- **Notas de Windows:** el aviso muestra los cambios de PC, sin mezclar las novedades de Android.
+- **Busca actualizaciones desde Ajustes → General.** El nuevo botón respeta el estilo de cada tema y muestra el resultado de la consulta.
+- **Recibe un aviso al abrir NÜMA.** Cuando haya una nueva versión para Windows, podrás consultar sus cambios y abrir la descarga del instalador. Ejecútalo para completar la actualización.
+- **Consulta solo las novedades de tu PC.** El aviso muestra las notas de Windows, separadas de las de Android.
