@@ -18,7 +18,11 @@ fun rememberGlassAnimationClock(active: Boolean): State<Long> {
             val settleUntil = if (!active && wasActive.value) SystemClock.uptimeMillis() + 3_000L else 0L
             wasActive.value = active
             while (isActive && (active || SystemClock.uptimeMillis() < settleUntil)) {
-                withFrameNanos { frame.longValue = it }
+                withFrameNanos { now ->
+                    if (frame.longValue == 0L || now - frame.longValue >= 32_000_000L) {
+                        frame.longValue = now
+                    }
+                }
             }
         }
     }

@@ -71,6 +71,25 @@ import dev.sfg.numa.mobile.download.AnimatedArtworkCache
 import dev.sfg.numa.mobile.ui.theme.NumaColors
 import androidx.media3.common.util.UnstableApi
 import kotlinx.coroutines.delay
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+
+@Composable
+internal fun rememberArtworkForeground(): Boolean {
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    var foreground by remember(lifecycle) {
+        mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED))
+    }
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, _ ->
+            foreground = lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+    return foreground
+}
 
 @Composable
 fun RemoteArtwork(
@@ -153,12 +172,15 @@ fun AnimatedArtworkVideo(
     fitContent: Boolean = false,
 ) {
     if (url.isBlank()) return
+    val foreground = rememberArtworkForeground()
+    val playing = active && foreground
     // GIF covers chosen by the user are not video; the platform decoder animates them.
     if (isGifArtwork(url)) {
-        AnimatedGifArtwork(url, active, modifier, fitContent)
+        AnimatedGifArtwork(url, playing, modifier, fitContent)
         return
     }
     val currentOnVideoAspect by rememberUpdatedState(onVideoAspect)
+    val currentOnFrame by rememberUpdatedState(onFrame)
     val context = LocalContext.current
     var failed by remember(url) { mutableStateOf(false) }
     var firstFrameReady by remember(url) { mutableStateOf(false) }
@@ -168,25 +190,20 @@ fun AnimatedArtworkVideo(
         val mediaSourceFactory = androidx.media3.exoplayer.source.DefaultMediaSourceFactory(context)
             .setDataSourceFactory(AnimatedArtworkCache.dataSourceFactory(context))
 
-        // Motion covers are short silent loops, so the stock buffering targets (which hold
-        // playback until seconds of video are ready) just delay the first frame. Start as soon
-        // as there is anything to show, but let the buffer run past the 10s that adaptive
-        // selection demands before it will step up a rendition: capped shorter, an HLS cover
-        // stayed pinned to the lowest variant for the entire loop.
+        // Bound decorative buffering independently of music playback.
         val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
-            .setBufferDurationsMs(1_000, 30_000, 120, 240)
-            .setPrioritizeTimeOverSizeThresholds(true)
+            .setBufferDurationsMs(1_000, 10_000, 120, 240)
+            .setTargetBufferBytes(12 * 1024 * 1024)
+            .setPrioritizeTimeOverSizeThresholds(false)
             .build()
 
-        // A cover loop is a few seconds long, so there is nothing to gain by easing into it at a
-        // low bitrate the way ABR would for a full track: take the best rendition immediately.
-        // The viewport constraint goes too, since it is sized for the display while the artwork
-        // is drawn zoom-cropped and can use detail beyond it.
+        // Avoid decoding 4K/high-frame-rate artwork on a phone.
         val trackSelector = androidx.media3.exoplayer.trackselection.DefaultTrackSelector(context).apply {
             setParameters(
                 buildUponParameters()
-                    .setForceHighestSupportedBitrate(true)
-                    .clearViewportSizeConstraints(),
+                    .setMaxVideoSize(1920, 1920)
+                    .setMaxVideoFrameRate(30)
+                    .setMaxVideoBitrate(6_000_000),
             )
         }
 
@@ -203,7 +220,7 @@ fun AnimatedArtworkVideo(
             }
     }
 
-    LaunchedEffect(url, active) {
+    LaunchedEffect(url, playing) {
         if (player.currentMediaItem?.localConfiguration?.uri?.toString() != url) {
             val mediaItem = MediaItem.Builder()
                 .setUri(url)
@@ -218,19 +235,13 @@ fun AnimatedArtworkVideo(
             player.setMediaItem(mediaItem)
             player.prepare()
         }
-        player.playWhenReady = active
+        player.playWhenReady = playing
     }
 
     DisposableEffect(player, url) {
         val listener = object : Player.Listener {
             override fun onRenderedFirstFrame() {
                 firstFrameReady = true
-            }
-
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                if (playbackState == Player.STATE_READY) {
-                    firstFrameReady = true
-                }
             }
 
             override fun onVideoSizeChanged(videoSize: VideoSize) {
@@ -262,13 +273,13 @@ fun AnimatedArtworkVideo(
     // The texture is the zoom-cropped frame as drawn, so a caller tinting the screen
     // around the video can sample it directly without replaying the crop.
     if (onFrame != null) {
-        LaunchedEffect(playerView, firstFrameReady, url) {
+        LaunchedEffect(playerView, firstFrameReady, url, playing) {
             val texture = playerView?.videoSurfaceView as? TextureView ?: return@LaunchedEffect
-            if (!firstFrameReady) return@LaunchedEffect
+            if (!firstFrameReady || !playing) return@LaunchedEffect
             while (true) {
                 if (texture.isAvailable && texture.width > 0 && texture.height > 0) {
                     val height = (FRAME_SAMPLE_WIDTH * texture.height / texture.width).coerceAtLeast(1)
-                    texture.getBitmap(FRAME_SAMPLE_WIDTH, height)?.let(onFrame)
+                    texture.getBitmap(FRAME_SAMPLE_WIDTH, height)?.let { currentOnFrame?.invoke(it) }
                 }
                 delay(FRAME_SAMPLE_INTERVAL_MS)
             }
@@ -296,7 +307,7 @@ fun AnimatedArtworkVideo(
             view.resizeMode = if (fitContent) androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
                 else androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
             view.setVideoSurfaceAlignment(alignment)
-            view.alpha = animatedAlpha
+            view.alpha = 1f
             // Reassert after player state changes in case Media3 refreshed the surface flags.
             view.keepScreenOn = false
             view.videoSurfaceView?.keepScreenOn = false

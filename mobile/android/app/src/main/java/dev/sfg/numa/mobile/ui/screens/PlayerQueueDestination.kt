@@ -1,10 +1,12 @@
 package dev.sfg.numa.mobile.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import dev.sfg.numa.mobile.ui.glass.GlassTone
+import dev.sfg.numa.mobile.ui.glass.glassPane
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,9 +29,9 @@ internal fun PlayerQueueDestination(count: Int, active: Boolean, onClick: () -> 
         }
         if (count > 0) {
             Box(Modifier.align(Alignment.TopEnd).defaultMinSize(minWidth = 22.dp, minHeight = 20.dp)
-                .background(Color(0xFF3A3A3C), CircleShape).padding(horizontal = 4.dp),
+                .glassPane(CircleShape, GlassTone.CONTROL).padding(horizontal = 4.dp),
                 contentAlignment = Alignment.Center) {
-                Text(if (count > 99) "99+" else count.toString(), color = Color.White,
+                Text(if (count > 99) "99+" else count.toString(), color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
             }
         }

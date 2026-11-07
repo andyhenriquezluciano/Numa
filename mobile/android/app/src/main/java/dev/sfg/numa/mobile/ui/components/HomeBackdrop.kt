@@ -55,8 +55,8 @@ fun HomeBackdrop(
                 artworkUrl = artworkUrl,
                 isPlaying = isPlaying,
                 renderScale = HOME_WARP_SCALE,
-                // Rails scroll at display rate; a 30 fps backdrop behind them reads as stutter.
-                fullFrameRate = true,
+                // Ambient motion is capped independently of scrolling content.
+                fullFrameRate = false,
                 modifier = Modifier.fillMaxSize(),
             )
             // Desktop's uniform backing tint preserves the cover's colour across the screen.

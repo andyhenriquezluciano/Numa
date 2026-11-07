@@ -24,6 +24,7 @@ data class MobileUpdateMetadata(
     val sha256: String = "",
     val publishedAt: String = "",
     val releaseNotes: String = "",
+    val isPreview: Boolean = false,
 )
 
 /** What the update flow is currently doing, for the in-app prompt to render. */
@@ -129,12 +130,25 @@ class UpdateManager(
         mutableState.value = UpdateState.Idle
     }
 
+    fun previewUpdate() {
+        mutableState.value = UpdateState.Available(MobileUpdateMetadata(
+            version = BuildConfig.VERSION_NAME,
+            codename = "Vista previa",
+            releaseNotes = MobileChangelog.CURRENT_RELEASE_NOTES,
+            isPreview = true,
+        ))
+    }
+
     companion object {
         private const val TAG = "UpdateManager"
 
         fun isNewerUpdate(metadata: MobileUpdateMetadata, installedVersion: String?, installedCode: Long): Boolean {
+            if (metadata.isPreview) return false
+            if (metadata.versionCode > 0 && installedCode > 0) {
+                return metadata.versionCode.toLong() > installedCode
+            }
             val comparison = compareVersions(metadata.version, installedVersion)
-            return comparison > 0 || (comparison == 0 && metadata.versionCode.toLong() > installedCode)
+            return comparison > 0
         }
 
 
@@ -174,6 +188,7 @@ class UpdateManager(
                 val assets = releaseObj.optJSONArray("assets") ?: JSONArray()
                 var manifestUrl: String? = null
                 var apkUrl: String? = null
+                var apkVersion: String? = null
                 var apkDigest = ""
 
                 for (j in 0 until assets.length()) {
@@ -184,6 +199,8 @@ class UpdateManager(
                         manifestUrl = downloadUrl
                     } else if (name.endsWith(".apk", ignoreCase = true) && apkUrl == null) {
                         apkUrl = downloadUrl
+                        apkVersion = Regex("^Numa-(?:Android-)?(\\d+(?:\\.\\d+)+(?:-[A-Za-z0-9.]+)?)\\.apk$", RegexOption.IGNORE_CASE)
+                            .matchEntire(name)?.groupValues?.get(1)
                         apkDigest = asset.optString("digest", "").removePrefix("sha256:")
                     }
                 }
@@ -201,7 +218,7 @@ class UpdateManager(
                     val buildMarker = Regex("<!--\\s*android-version-code:\\s*(\\d+)\\s*-->")
                     val versionCode = buildMarker.find(body)?.groupValues?.get(1)?.toIntOrNull() ?: 0
                     return MobileUpdateMetadata(
-                        version = tagName,
+                        version = apkVersion ?: tagName.substringBefore('+'),
                         versionCode = versionCode,
                         apkUrl = apkUrl,
                         sha256 = apkDigest.takeIf { it.matches(Regex("[a-fA-F0-9]{64}")) }.orEmpty(),
@@ -217,7 +234,7 @@ class UpdateManager(
             if (current == null) return 1
 
             fun parseSemver(value: String): Pair<List<Int>, String?> {
-                val clean = value.trim().removePrefix("v").removePrefix("V")
+                val clean = value.trim().removePrefix("v").removePrefix("V").substringBefore('+')
                 val dashIndex = clean.indexOf('-')
                 val (base, pre) = if (dashIndex >= 0) {
                     clean.substring(0, dashIndex) to clean.substring(dashIndex + 1)
@@ -280,6 +297,10 @@ class UpdateManager(
     private var activeDownload: UpdateDownload? = null
 
     fun downloadAndInstallUpdate(metadata: MobileUpdateMetadata) {
+        if (metadata.isPreview) {
+            dismiss()
+            return
+        }
         activeDownload?.cancel()
         activeDownload = UpdateDownload(context, metadata, baseUrl,
             { mutableState.value = it }, ::installApk).also { it.start() }

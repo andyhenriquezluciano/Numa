@@ -269,6 +269,7 @@ fun FullBleedPlayerBackdrop(
             ) {
                 AnimatedContent(
                     targetState = track,
+                    contentKey = { it.id },
                     transitionSpec = {
                         fadeIn(animationSpec = tween(500)) togetherWith fadeOut(animationSpec = tween(560))
                     },
@@ -316,9 +317,10 @@ fun FullBleedPlayerBackdrop(
                         if (rich) {
                             AnimatedArtworkVideo(
                                 url = videoUrl,
-                                active = isPlaying,
+                                active = isPlaying && currentTrack.id == track.id,
                                 modifier = Modifier.fillMaxSize(),
-                                onFrame = onVideoFrame,
+                                fitContent = true,
+                                onFrame = if (currentTrack.id == track.id) onVideoFrame else null,
                                 onVideoAspect = if (currentTrack.id == track.id) {
                                     { videoAspect = it }
                                 } else null,

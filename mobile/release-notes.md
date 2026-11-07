@@ -1,6 +1,10 @@
-# NÜMA 2.2
+# NÜMA 2.5
 
 Una puesta a punto para seguir escuchando desde el móvil.
+
+- Carátulas recuperadas desde la biblioteca con reintento de fuentes alternativas.
+- Aviso de actualización más compacto, traducido y con botones legibles.
+- Ajustes visuales de biblioteca, carátulas completas y cola para los temas.
 
 - Letras y traducción en español e inglés, según el idioma que elijas.
 - Mejor detección del idioma en canciones con coros repetidos.

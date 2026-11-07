@@ -24,6 +24,27 @@ import org.junit.Test
 
 class UpdateManagerTest {
 
+    @Test fun previewIsNeverOfferedAsARealUpdate() {
+        val preview = MobileUpdateMetadata(version = "9.0", versionCode = 99999, isPreview = true)
+        assertEquals(false, UpdateManager.isNewerUpdate(preview, "2.2", 20054))
+    }
+
+    @Test fun desktopReleaseMetadataDoesNotUpgradeTheSameAndroidBuild() {
+        assertEquals(0, UpdateManager.compareVersions("2.2+desktop20261106.2", "2.2"))
+        val json = """[{"tag_name":"v2.2+desktop20261106.2",
+            "assets":[{"name":"Numa-Android-2.2.apk","browser_download_url":"https://example.com/app.apk"}]}]"""
+        val metadata = requireNotNull(UpdateManager.parseGitHubReleasesMetadata(json))
+        assertEquals("2.2", metadata.version)
+        assertEquals(false, UpdateManager.isNewerUpdate(metadata, "2.2", 20054))
+    }
+
+    @Test fun androidBuildCodeTakesPrecedenceOverSharedReleaseLabel() {
+        val metadata = MobileUpdateMetadata(version = "2.3+desktop20261106.2", versionCode = 20054)
+        assertEquals(false, UpdateManager.isNewerUpdate(metadata, "2.2", 20054))
+        assertEquals(false, UpdateManager.isNewerUpdate(metadata, "2.2", 20055))
+        assertEquals(true, UpdateManager.isNewerUpdate(metadata.copy(versionCode = 20056), "2.2", 20055))
+    }
+
     @Test
     fun releaseWithOnlyApkRetainsBuildNumberAndChecksum() {
         val digest = "a".repeat(64)

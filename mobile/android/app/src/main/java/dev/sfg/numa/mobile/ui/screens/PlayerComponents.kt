@@ -227,6 +227,7 @@ fun TrackInfoRow(
         // Track Title & Artist with smooth transition animation when song changes
         androidx.compose.animation.AnimatedContent(
             targetState = track,
+            contentKey = { it.id },
             transitionSpec = {
                 (androidx.compose.animation.fadeIn(
                         androidx.compose.animation.core.tween(400, delayMillis = 60)

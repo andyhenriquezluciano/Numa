@@ -104,9 +104,7 @@ ScrollView {
                         width: group.width
                         height: 64
                         radius: 10
-                        color: pointer.containsMouse
-                            ? (NumaAppearance.rosePine ? Qt.rgba(NumaAppearance.textColor.r, NumaAppearance.textColor.g, NumaAppearance.textColor.b, 0.08) : "#16ffffff")
-                            : "transparent"
+                        color: pointer.containsMouse ? "#16ffffff" : "transparent"
                         Text { x: 12; anchors.verticalCenter: parent.verticalCenter; text: entry.index + 1; color: NumaAppearance.accentColor; font.bold: true }
                         RoundedArtwork {
                             id: portrait
@@ -114,9 +112,14 @@ ScrollView {
                             width: 46; height: 46; radius: group.modelData.key === "artists" ? 23 : 8
                             source: {
                                 const revision = NumaSync.revision;
-                                return group.modelData.key === "artists"
-                                    ? NumaSync.metricArtistArtwork(entry.modelData.title || "")
-                                    : (entry.modelData.thumbnail || "");
+                                if (group.modelData.key === "artists")
+                                    return NumaSync.metricArtistArtwork(entry.modelData.title || "");
+                                const artwork = entry.modelData.thumbnail || entry.modelData.artworkUrl || entry.modelData.coverUrl || "";
+                                if (artwork)
+                                    return artwork;
+                                const id = String(entry.modelData.id || "");
+                                return group.modelData.key === "tracks" && /^[A-Za-z0-9_-]{11}$/.test(id)
+                                    ? "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg" : "";
                             }
                         }
                         Text {

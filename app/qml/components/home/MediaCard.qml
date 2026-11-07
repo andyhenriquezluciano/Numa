@@ -112,6 +112,15 @@ Item {
         return String(item.playlistId || item.browseId || (item.browsePayload || {}).browseId || item.id || "").replace(/^VL/, "");
     }
 
+    function artworkSource() {
+        const source = root.customPlaylistArtwork || root.media.thumbnail || root.media.artworkUrl || root.media.coverUrl || "";
+        if (source)
+            return source;
+        const id = String(root.media.id || "");
+        return (root.media.type === "song" || root.media.type === "track") && /^[A-Za-z0-9_-]{11}$/.test(id)
+            ? "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg" : "";
+    }
+
     width: songlist || presentation === "album" ? preferredWidth : compact ? 290 : presentation === "editorial" ? 310 : landscape ? 238 : video ? 258 : presentation === "playlist" ? 178 : 158
     // Square art plus two text lines; video art stays 16:9 so grids can stretch cards.
     height: songlist ? 60 : compact ? 76 : landscape ? 162 : video ? Math.round(width * 9 / 16) + 57 : presentation === "playlist" ? 242 : width + 52
@@ -154,7 +163,7 @@ Item {
 
         RoundedArtwork {
             anchors.fill: parent
-            source: root.playlistBadge ? "" : root.customPlaylistArtwork || root.media.thumbnail || ""
+            source: root.playlistBadge ? "" : root.artworkSource()
             visible: !root.playlistBadge
             radius: root.songlist ? 4 : root.media.type === "artist" ? (root.plain ? width / 2 : 18) : root.presentation === "playlist" ? 12 : root.plain ? 8 : 10
         }

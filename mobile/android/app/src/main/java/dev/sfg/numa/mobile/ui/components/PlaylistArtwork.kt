@@ -15,14 +15,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import coil3.request.crossfade
 import dev.sfg.numa.mobile.local.isLocalPlaylistId
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 
 @Composable
 internal fun PlaylistArtwork(id: String, title: String, url: String, modifier: Modifier = Modifier, fullView: Boolean = false) {
@@ -51,19 +56,26 @@ internal fun PlaylistArtwork(id: String, title: String, url: String, modifier: M
     val shape = if (fullView) RoundedCornerShape(0.dp) else RoundedCornerShape(14.dp)
     if (showArtwork) {
         val source = dev.sfg.numa.mobile.artwork.highResolutionArtworkUrl(artwork, if (fullView) 1200 else 600)
-        val request = coil3.request.ImageRequest.Builder(context).data(source).crossfade(150).apply {
-            if (automaticCover.isNotBlank()) {
-                decoderFactory(coil3.decode.BitmapFactoryDecoder.Factory())
-                memoryCacheKey("playlist-still:$source")
-            }
-        }.build()
+        val candidates = remember(source) { dev.sfg.numa.mobile.artwork.artworkCandidates(source, if (fullView) 1200 else 600) }
+        var attempt by remember(source) { mutableIntStateOf(0) }
+        val candidate = candidates.getOrNull(attempt).orEmpty()
         Box(modifier.clip(shape).background(Color(0xFF14171A)), contentAlignment = Alignment.Center) {
-            coil3.compose.AsyncImage(
-                model = request,
-                contentDescription = title,
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
+            NumaMark(Modifier.fillMaxSize(0.46f))
+            if (candidate.isNotBlank()) {
+                val request = ImageRequest.Builder(context).data(candidate).crossfade(150).apply {
+                    if (automaticCover.isNotBlank()) {
+                        decoderFactory(coil3.decode.BitmapFactoryDecoder.Factory())
+                        memoryCacheKey("playlist-still:$candidate")
+                    }
+                }.build()
+                AsyncImage(
+                    model = request,
+                    contentDescription = title,
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    onError = { attempt += 1 },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         }
     } else {
         val colors = when {

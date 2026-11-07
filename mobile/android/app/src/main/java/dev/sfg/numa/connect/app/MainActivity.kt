@@ -80,6 +80,10 @@ class MainActivity : FragmentActivity() {
 
     private fun handleIntent(intent: Intent?) {
         if (intent == null) return
+        if (intent.action == "dev.sfg.numa.mobile.PREVIEW_UPDATE") {
+            dev.sfg.numa.mobile.NumaGraph.from(this).updates.previewUpdate()
+            return
+        }
         if (intent.action == MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH) {
             // Assistant sends the spoken words as the query, and narrows them into the focus
             // extras when it recognised a specific artist or album. An empty query is the

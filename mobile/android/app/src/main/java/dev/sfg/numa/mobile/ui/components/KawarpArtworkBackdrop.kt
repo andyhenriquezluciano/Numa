@@ -63,7 +63,8 @@ fun KawarpArtworkBackdrop(
     fullFrameRate: Boolean = false,
 ) {
     val context = LocalContext.current
-    val engine = remember(artworkUrl) {
+    val foreground = rememberArtworkForeground()
+    val engine = remember {
         if (!KawarpEngine.isSupported()) {
             null
         } else {
@@ -96,7 +97,11 @@ fun KawarpArtworkBackdrop(
     }
 
     var frame by remember { mutableLongStateOf(0L) }
-    LaunchedEffect(engine, coverRevision, isPlaying, fullFrameRate) {
+    LaunchedEffect(engine, coverRevision, isPlaying, fullFrameRate, foreground) {
+        if (!foreground) {
+            engine.setPlaying(false)
+            return@LaunchedEffect
+        }
         engine.setPlaying(isPlaying)
         // Keep a short grace period for the background-thread blur and the cover crossfade. Once
         // paused and settled, isAnimating becomes false and the shader consumes no more frames.

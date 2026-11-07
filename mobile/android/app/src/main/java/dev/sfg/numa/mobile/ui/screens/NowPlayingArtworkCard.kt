@@ -219,12 +219,13 @@ fun NowPlayingArtworkCard(
         // Standard single-deck state (outside of transition, or during manual skip)
         AnimatedContent(
             targetState = track,
+            contentKey = { it.id },
             transitionSpec = {
                 if (instantTrackChange) {
                     EnterTransition.None togetherWith ExitTransition.None
                 } else {
-                    (fadeIn(tween(500)) + scaleIn(initialScale = 0.92f, animationSpec = tween(500)))
-                        .togetherWith(fadeOut(tween(400)) + scaleOut(targetScale = 1.05f, animationSpec = tween(400)))
+                    (fadeIn(tween(420)) + scaleIn(initialScale = 0.98f, animationSpec = tween(420, easing = FastOutSlowInEasing)))
+                        .togetherWith(fadeOut(tween(420)) + scaleOut(targetScale = 1.02f, animationSpec = tween(420, easing = FastOutSlowInEasing)))
                 }
             },
             label = "NowPlayingArtworkCardTransition",
@@ -252,17 +253,16 @@ fun NowPlayingArtworkCard(
                 )
                 SquareAnimatedArtwork(
                     track = currentTrack,
-                    // AnimatedContent keeps the departing item composed during its fade. Only
-                    // the current identity may own a decoder, so that fade uses its still cover.
-                    enabled = animatedArtworkEnabled && currentTrack.id == track.id,
-                    isPlaying = isPlaying,
+                    // Preserve the departing frame while fading, but only play the current cover.
+                    enabled = animatedArtworkEnabled,
+                    isPlaying = isPlaying && currentTrack.id == track.id,
                 )
             }
         }
     }
 }
 
-/** Exactly one square motion-cover decoder is alive, including during a dual-deck handoff. */
+/** The departing surface can remain paused briefly during a visual handoff. */
 @Composable
 private fun SquareAnimatedArtwork(
     track: Track,
@@ -270,7 +270,7 @@ private fun SquareAnimatedArtwork(
     isPlaying: Boolean,
 ) {
     if (!enabled) return
-    val url = track.playerMotionArtwork()
+    val url = track.playerMotionArtwork(square = true)
     if (url.isBlank()) return
     AnimatedArtworkVideo(
         url = url,

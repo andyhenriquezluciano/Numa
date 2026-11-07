@@ -91,9 +91,9 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
         Surface(
             shape = RoundedCornerShape(20.dp),
             color = androidx.compose.ui.graphics.Color.Transparent,
-            modifier = Modifier.glassPane(RoundedCornerShape(20.dp), GlassTone.OVERLAY)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 24.dp)
+                .glassPane(RoundedCornerShape(20.dp), GlassTone.OVERLAY)
                 .widthIn(max = 440.dp)
                 .heightIn(max = 680.dp),
         ) {
@@ -193,7 +193,7 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
 
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
-                                "AVAILABLE",
+                                uiText("AVAILABLE", "DISPONIBLE"),
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
@@ -305,7 +305,7 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
                         onClick = onDismiss,
                         shape = CircleShape,
                         modifier = Modifier
-                            .weight(1f)
+                            .weight(0.85f)
                             .height(46.dp),
                     ) {
                         Text(
@@ -323,7 +323,7 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
                             contentColor = Color.Black,
                         ),
                         modifier = Modifier
-                            .weight(1.3f)
+                            .weight(1.5f)
                             .height(46.dp),
                     ) {
                         Icon(
@@ -335,6 +335,9 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
                         Text(
                             uiText("Update now", "Actualizar ahora"),
                             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }

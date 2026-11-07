@@ -8,9 +8,18 @@ import org.junit.Test
 class PlayerArtworkSourceTest {
     private val track = Track("song", "Title", "Artist")
 
-    @Test fun bothPlayerSizesPreferThePortraitCover() {
+    @Test fun fullBleedPrefersThePortraitCover() {
         assertEquals("portrait.mp4", track.copy(animatedArtworkUrl = "square.mp4",
             animatedArtworkVerticalUrl = "portrait.mp4").playerMotionArtwork())
+    }
+
+    @Test fun squarePlayerPrefersSquareAndFallsBackToPortrait() {
+        assertEquals("square.mp4", track.copy(animatedArtworkUrl = "square.mp4",
+            animatedArtworkVerticalUrl = "portrait.mp4").playerMotionArtwork(square = true))
+        assertEquals("portrait.mp4", track.copy(animatedArtworkVerticalUrl = "portrait.mp4")
+            .playerMotionArtwork(square = true))
+        assertEquals("file:///cover.gif", track.copy(animatedArtworkUrl = "file:///cover.gif")
+            .playerMotionArtwork(square = true))
     }
 
     @Test fun offlineGifAndSquareOnlyCoversKeepTheirSource() {

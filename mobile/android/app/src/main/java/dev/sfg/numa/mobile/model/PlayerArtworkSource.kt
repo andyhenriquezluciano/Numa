@@ -1,4 +1,8 @@
 package dev.sfg.numa.mobile.model
 
-/** Both player sizes use the same motion cover, including offline files and GIFs. */
-fun Track.playerMotionArtwork(): String = animatedArtworkVerticalUrl.ifBlank { animatedArtworkUrl }
+/** Prefer the rendition composed for the visible player, preserving offline fallbacks. */
+fun Track.playerMotionArtwork(square: Boolean = false): String = if (square) {
+    animatedArtworkUrl.ifBlank { animatedArtworkVerticalUrl }
+} else {
+    animatedArtworkVerticalUrl.ifBlank { animatedArtworkUrl }
+}
