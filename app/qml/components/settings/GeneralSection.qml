@@ -18,6 +18,7 @@
  */
 
 import QtQuick
+import QtQuick.Layouts
 
 // Launch behavior.
 GeneralSectionForm {
@@ -33,5 +34,35 @@ GeneralSectionForm {
 
     traySwitch.checked: NumaTray.closeToTray
     traySwitch.onToggled: NumaTray.closeToTray = traySwitch.checked
+
+    SettingsSection {
+        Layout.fillWidth: true
+        title: qsTr("Updates")
+        SettingsRow {
+            iconName: "refresh-cw"
+            title: qsTr("Check for updates")
+            description: NumaUpdates.state === "checking" ? qsTr("Checking for updates…")
+                : NumaUpdates.state === "error" ? NumaUpdates.error
+                : NumaUpdates.state === "up-to-date" ? qsTr("You have the latest version.")
+                : NumaUpdates.state === "available" ? qsTr("Version %1 is available.").arg(NumaUpdates.latestVersion)
+                : NumaUpdates.state === "ready" ? qsTr("Update ready. Restart Numa to install.")
+                : qsTr("Installed version: %1").arg(NumaUpdates.currentVersion)
+            SettingsButton {
+                text: qsTr("Check for updates")
+                enabled: NumaUpdates.available && ["checking", "downloading", "staging"].indexOf(NumaUpdates.state) < 0
+                onClicked: NumaUpdates.checkForUpdates()
+            }
+        }
+        SettingsRow {
+            visible: NumaUpdates.state === "available" || NumaUpdates.state === "ready"
+            title: qsTr("Update NÜMA")
+            description: qsTr("Download the Windows installer, then run it to update NÜMA.")
+            SettingsButton {
+                prominent: true
+                text: NumaUpdates.state === "ready" ? qsTr("Restart to update") : qsTr("Download installer")
+                onClicked: NumaUpdates.state === "ready" ? NumaUpdates.restartToUpdate() : NumaUpdates.downloadInstaller()
+            }
+        }
+    }
 
 }

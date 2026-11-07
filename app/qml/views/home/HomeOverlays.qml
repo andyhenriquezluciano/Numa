@@ -24,6 +24,8 @@ import "../../components/settings"
 import "../../components/support"
 import Numa
 import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
 // Settings, docs, release notes, spotlight and support popups plus the shell keyboard shortcuts.
 Item {
@@ -39,6 +41,71 @@ Item {
 
     anchors.fill: parent
     z: 200
+
+    Connections {
+        target: NumaUpdates
+        function onChanged() {
+            if (NumaUpdates.state === "available" || NumaUpdates.state === "ready")
+                updatePrompt.open();
+        }
+    }
+
+    GlassPopup {
+        id: updatePrompt
+        backdrop: overlays.stage
+        width: Math.min(620, parent.width - 48)
+        height: Math.min(520, parent.height - 48)
+        contentItem: ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 24
+            spacing: 16
+            Text {
+                Layout.fillWidth: true
+                text: qsTr("NÜMA update")
+                color: NumaAppearance.textColor
+                font.family: "Inter"
+                font.pixelSize: 23
+                font.bold: true
+            }
+            Text {
+                Layout.fillWidth: true
+                text: qsTr("Version %1 is available.").arg(NumaUpdates.latestVersion)
+                color: NumaAppearance.mutedColor
+                wrapMode: Text.WordWrap
+            }
+            ScrollView {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                contentWidth: availableWidth
+                Text {
+                    width: parent.width
+                    text: NumaUpdates.releaseNotes
+                    textFormat: Text.MarkdownText
+                    color: NumaAppearance.textColor
+                    wrapMode: Text.WordWrap
+                    font.family: "Inter"
+                    font.pixelSize: 14
+                }
+            }
+            RowLayout {
+                Layout.alignment: Qt.AlignRight
+                SettingsButton {
+                    text: qsTr("Later")
+                    onClicked: updatePrompt.close()
+                }
+                SettingsButton {
+                    prominent: true
+                    text: NumaUpdates.state === "ready" ? qsTr("Restart to update") : qsTr("Download installer")
+                    onClicked: {
+                        if (NumaUpdates.state === "ready") NumaUpdates.restartToUpdate();
+                        else NumaUpdates.downloadInstaller();
+                        updatePrompt.close();
+                    }
+                }
+            }
+        }
+    }
 
     // Shows the notes once after an update. A first run only records the newest release.
     function maybeOpenReleases() {

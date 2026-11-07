@@ -372,9 +372,18 @@ jobs:
           version="$(sed -n "s/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*['\"]\([^'\"]*\)['\"].*/\1/p" mobile/android/app/build.gradle)"
           test -n "$version"
           RELEASE_TAG="v${version}-mobile"
+          desktop_version="$(sed -n "s/^project('Numa', .*], version: '\([^']*\)'.*/\1/p" meson.build)"
+          test -n "$desktop_version"
+          cp app/release-notes/windows.md release-assets/release-notes-windows.md
+          python scripts/generate-windows-update-metadata.py \
+            --version "$desktop_version" \
+            --installer "release-assets/Numa-Setup-$desktop_version.exe" \
+            --url "https://github.com/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG/Numa-Setup-$desktop_version.exe" \
+            --notes release-assets/release-notes-windows.md \
+            --output release-assets/latest-windows.json
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" release-assets/Numa-Windows-x86_64.7z release-assets/Numa-Setup-*.exe --repo "$GITHUB_REPOSITORY" --clobber
+            gh release upload "$RELEASE_TAG" release-assets/Numa-Windows-x86_64.7z release-assets/Numa-Setup-*.exe release-assets/latest-windows.json release-assets/release-notes-windows.md --repo "$GITHUB_REPOSITORY" --clobber
           else
-            gh release create "$RELEASE_TAG" release-assets/Numa-Windows-x86_64.7z release-assets/Numa-Setup-*.exe --repo "$GITHUB_REPOSITORY" \
-              --title "NÜMA $version" --notes-file mobile/release-notes.md
+            gh release create "$RELEASE_TAG" release-assets/Numa-Windows-x86_64.7z release-assets/Numa-Setup-*.exe release-assets/latest-windows.json release-assets/release-notes-windows.md --repo "$GITHUB_REPOSITORY" \
+              --title "NÜMA Windows $desktop_version" --notes-file app/release-notes/windows.md
           fi

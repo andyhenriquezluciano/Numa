@@ -27,6 +27,11 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcess>
+#include <QDesktopServices>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QVersionNumber>
 
 namespace {
 
@@ -50,8 +55,13 @@ BootstrapperClient::BootstrapperClient(QObject *parent) : QObject(parent)
 {
     const QString bootstrapper = qEnvironmentVariable("NUMA_BOOTSTRAPPER");
     m_root = qEnvironmentVariable("NUMA_INSTALL_ROOT");
-    if (bootstrapper.isEmpty() || m_root.isEmpty() || !QFileInfo::exists(bootstrapper))
+    if (bootstrapper.isEmpty() || m_root.isEmpty() || !QFileInfo::exists(bootstrapper)) {
+        m_current = QCoreApplication::applicationVersion();
+#ifdef Q_OS_WIN
+        QTimer::singleShot(3000, this, &BootstrapperClient::checkForUpdates);
+#endif
         return;
+    }
     m_bootstrapper = bootstrapper;
     m_current = qEnvironmentVariable("NUMA_INSTALLED_VERSION");
     // Two small file reads; the background updater can finish while we run.
@@ -93,7 +103,7 @@ void BootstrapperClient::refresh()
 
 void BootstrapperClient::run(const QStringList &arguments, bool detached)
 {
-    if (!available())
+    if (m_bootstrapper.isEmpty())
         return;
     if (detached) {
         QProcess::startDetached(m_bootstrapper, arguments);
@@ -117,7 +127,49 @@ void BootstrapperClient::checkForUpdates()
     m_state = QStringLiteral("checking");
     m_error.clear();
     emit changed();
+    if (m_bootstrapper.isEmpty()) {
+        checkStandalone();
+        return;
+    }
     run({QStringLiteral("--update")}, true);
+}
+
+void BootstrapperClient::checkStandalone()
+{
+    auto *network = new QNetworkAccessManager(this);
+    QNetworkRequest request(QUrl(QStringLiteral("https://github.com/andyhenriquezluciano/Numa/releases/latest/download/latest-windows.json")));
+    request.setTransferTimeout(20000);
+    request.setRawHeader("User-Agent", "Numa-Windows");
+    request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
+    auto *reply = network->get(request);
+    connect(reply, &QNetworkReply::finished, this, [this, network, reply] {
+        const QJsonObject metadata = QJsonDocument::fromJson(reply->read(512 * 1024)).object();
+        const QString version = metadata.value(QStringLiteral("version")).toString();
+        const QString installer = metadata.value(QStringLiteral("installerUrl")).toString();
+        const QVersionNumber parsed = QVersionNumber::fromString(version);
+        const bool valid = reply->error() == QNetworkReply::NoError && !parsed.isNull() &&
+            metadata.value(QStringLiteral("platform")).toString() == QLatin1String("windows") &&
+            installer.startsWith(QLatin1String("https://github.com/andyhenriquezluciano/Numa/releases/download/")) &&
+            QUrl(installer).path().endsWith(QLatin1String(".exe"));
+        if (!valid) {
+            m_state = QStringLiteral("error");
+            m_error = tr("Could not check for updates. Please try again.");
+        } else {
+            m_latest = version;
+            m_installerUrl = installer;
+            m_releaseNotes = metadata.value(QStringLiteral("releaseNotes")).toString();
+            m_state = QVersionNumber::compare(parsed, QVersionNumber::fromString(m_current)) > 0
+                ? QStringLiteral("available") : QStringLiteral("up-to-date");
+        }
+        emit changed();
+        network->deleteLater();
+    });
+}
+
+void BootstrapperClient::downloadInstaller()
+{
+    if (m_state == QLatin1String("available") && !m_installerUrl.isEmpty())
+        QDesktopServices::openUrl(QUrl(m_installerUrl));
 }
 
 void BootstrapperClient::cancelDownload()
@@ -127,7 +179,7 @@ void BootstrapperClient::cancelDownload()
 
 void BootstrapperClient::restartToUpdate()
 {
-    if (!available())
+    if (m_bootstrapper.isEmpty())
         return;
     QProcess::startDetached(m_bootstrapper, {QStringLiteral("--update-on-exit"), QStringLiteral("--wait-pid"),
                                              QString::number(QCoreApplication::applicationPid())});
@@ -136,7 +188,7 @@ void BootstrapperClient::restartToUpdate()
 
 void BootstrapperClient::setChannel(const QString &channel)
 {
-    if (!available() || channel == m_channel)
+    if (m_bootstrapper.isEmpty() || channel == m_channel)
         return;
     m_channel = channel;
     emit changed();

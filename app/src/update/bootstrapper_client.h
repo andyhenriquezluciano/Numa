@@ -39,11 +39,19 @@ class BootstrapperClient final : public QObject
     Q_PROPERTY(qint64 downloaded READ downloaded NOTIFY changed)
     Q_PROPERTY(qint64 total READ total NOTIFY changed)
     Q_PROPERTY(bool autoUpdate READ autoUpdate NOTIFY changed)
+    Q_PROPERTY(QString releaseNotes READ releaseNotes NOTIFY changed)
 
 public:
     explicit BootstrapperClient(QObject *parent = nullptr);
 
-    [[nodiscard]] bool available() const { return !m_bootstrapper.isEmpty(); }
+    [[nodiscard]] bool available() const {
+#ifdef Q_OS_WIN
+        return true;
+#else
+        return !m_bootstrapper.isEmpty();
+#endif
+    }
+    [[nodiscard]] QString releaseNotes() const { return m_releaseNotes; }
     // idle | checking | up-to-date | downloading | staging | ready | error | cancelled
     [[nodiscard]] QString state() const { return m_state; }
     [[nodiscard]] QString currentVersion() const { return m_current; }
@@ -56,6 +64,7 @@ public:
 
     // Check, download and stage in a detached bootstrapper; survives quitting.
     Q_INVOKABLE void checkForUpdates();
+    Q_INVOKABLE void downloadInstaller();
     Q_INVOKABLE void cancelDownload();
     // Quit; the bootstrapper waits for us, activates the staged release and relaunches.
     Q_INVOKABLE void restartToUpdate();
@@ -67,6 +76,7 @@ signals:
 
 private:
     void refresh();
+    void checkStandalone();
     void run(const QStringList &arguments, bool detached);
 
     QString m_bootstrapper;
@@ -77,6 +87,8 @@ private:
     QString m_latest;
     QString m_channel;
     QString m_error;
+    QString m_releaseNotes;
+    QString m_installerUrl;
     qint64 m_downloaded{0};
     qint64 m_total{0};
     bool m_autoUpdate{true};

@@ -429,6 +429,18 @@ void loadSpanishTranslations4(QHash<QString, QString> &map) {
     {QStringLiteral("Sync now"), QStringLiteral("Sincronizar ahora")},
     {QStringLiteral("Syncing…"), QStringLiteral("Sincronizando…")},
     {QStringLiteral("Your NÜMA account saves favorites, artists, albums, playlists, artwork and listening metrics. Audio files stay on each device."), QStringLiteral("Tu cuenta NÜMA sincroniza favoritos, artistas, álbumes, listas, carátulas y métricas. Los archivos de audio permanecen en cada dispositivo.")},
+    {QStringLiteral("Check for updates"), QStringLiteral("Buscar actualizaciones")},
+    {QStringLiteral("Checking for updates…"), QStringLiteral("Buscando actualizaciones…")},
+    {QStringLiteral("You have the latest version."), QStringLiteral("Tienes la versión más reciente.")},
+    {QStringLiteral("Version %1 is available."), QStringLiteral("La versión %1 está disponible.")},
+    {QStringLiteral("Installed version: %1"), QStringLiteral("Versión instalada: %1")},
+    {QStringLiteral("Update NÜMA"), QStringLiteral("Actualizar NÜMA")},
+    {QStringLiteral("Download the Windows installer, then run it to update NÜMA."), QStringLiteral("Descarga el instalador de Windows y ejecútalo para actualizar NÜMA.")},
+    {QStringLiteral("Download installer"), QStringLiteral("Descargar instalador")},
+    {QStringLiteral("Restart to update"), QStringLiteral("Reiniciar para actualizar")},
+    {QStringLiteral("NÜMA update"), QStringLiteral("Actualización de NÜMA")},
+    {QStringLiteral("Later"), QStringLiteral("Más tarde")},
+    {QStringLiteral("Could not check for updates. Please try again."), QStringLiteral("No se pudieron comprobar las actualizaciones. Inténtalo de nuevo.")},
   };
   for (const auto &entry : entries) {
     map.insert(entry.first, entry.second);
