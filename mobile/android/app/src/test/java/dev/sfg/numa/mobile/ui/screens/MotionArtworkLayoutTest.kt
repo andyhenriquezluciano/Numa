@@ -5,26 +5,25 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MotionArtworkLayoutTest {
-    @Test fun squareAndPortraitVersionsMeetTheSameControls() {
-        val square = motionArtworkAspect(1f, 0.46f, 1080f, 1400f)
-        val portrait = motionArtworkAspect(0.75f, 0.46f, 1080f, 1400f)
-        assertEquals(square, portrait, 0.0001f)
-        assertEquals(1400f, 1080f / square * 0.88f, 0.01f)
+    @Test fun portraitAndSquareCoversRemainEdgeToEdge() {
+        for (aspect in listOf(0.4f, 0.75f, 1f, 2f)) {
+            val frame = motionArtworkFrame(aspect, 1080f, 2400f, 220f, 1500f)
+            assertEquals(0f, frame.left, 0f)
+            assertEquals(0f, frame.top, 0f)
+            assertEquals(1080f, frame.width, 0f)
+            assertTrue(frame.height >= 1500f && frame.height <= 2400f)
+        }
     }
 
-    @Test fun scaledScreensKeepTheSameProportions() {
-        assertEquals(motionArtworkAspect(1f, 0.46f, 1080f, 1400f),
-            motionArtworkAspect(1f, 0.46f, 720f, 1400f * 720f / 1080f), 0.0001f)
+    @Test fun controlsOverlapTheFadeInsteadOfCreatingAMargin() {
+        val frame = motionArtworkFrame(0.75f, 1080f, 2400f, 220f, 1500f)
+        assertEquals(1500f, frame.height * 0.88f, 0.001f)
     }
 
-    @Test fun measurementBeforeLayoutUsesNaturalAspect() {
-        assertEquals(1f, motionArtworkAspect(1f, 0.46f, 1080f, null), 0f)
-        assertEquals(0.75f, motionArtworkAspect(0.75f, 0.46f, 1080f, 0f), 0f)
-    }
-
-    @Test fun tallArtworkAndSmallScreensStayWithinBounds() {
-        assertEquals(0.46f, motionArtworkAspect(0.4f, 0.46f, 1080f, 1400f), 0f)
-        val aspect = motionArtworkAspect(1f, 0.46f, 1080f, 3000f)
-        assertTrue(aspect >= 0.46f && aspect <= 1f)
+    @Test fun tallArtAndLandscapeStayInsideTheScreen() {
+        assertEquals(2400f, motionArtworkFrame(0.3f, 1080f, 2400f, 220f, 1500f).height, 0f)
+        val landscape = motionArtworkFrame(0.75f, 2400f, 1080f, 100f, 700f)
+        assertEquals(2400f, landscape.width, 0f)
+        assertEquals(1080f, landscape.height, 0f)
     }
 }

@@ -33,7 +33,7 @@ fun UpdateDialog(
     onDismiss: () -> Unit,
 ) {
     when (state) {
-        UpdateState.Idle -> Unit
+        UpdateState.Idle, UpdateState.Checking, UpdateState.UpToDate, UpdateState.CheckFailed -> Unit
 
         is UpdateState.Available -> UpdateAvailableDialog(state, onInstall, onDismiss)
 

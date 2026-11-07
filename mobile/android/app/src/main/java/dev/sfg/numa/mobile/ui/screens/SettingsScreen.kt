@@ -143,7 +143,10 @@ fun SettingsScreen(
         storage = "${CacheManager.formatStorageSize(cacheSizeBytes)} cached · " + when {
             availableUpdate != null -> uiText("Update available", "Actualización disponible")
             !BuildConfig.UPDATER_ENABLED -> uiText("Updates disabled", "Actualizaciones desactivadas")
-            else -> uiText("Up to date", "Actualizado")
+            updateState == UpdateState.Checking -> uiText("Checking for updates", "Buscando actualizaciones")
+            updateState == UpdateState.CheckFailed -> uiText("Could not check for updates", "No se pudieron comprobar las actualizaciones")
+            updateState == UpdateState.UpToDate -> uiText("Up to date", "Actualizado")
+            else -> uiText("Updates", "Actualizaciones")
         },
     )
 
@@ -190,6 +193,8 @@ fun SettingsScreen(
                             onSignIn = onSignIn,
                             onSwitchAccount = onSwitchAccount,
                             onSignOut = onSignOut,
+                            updateState = updateState,
+                            onCheckForUpdates = onCheckForUpdates,
                         )
                         SettingsPage.Accounts -> AccountSettingsPage(settings, auth, onSettings, onSignIn, onSwitchAccount, onSignOut)
                         SettingsPage.Lyrics -> LyricTranslationSection(settings, onSettings, labelIndex = 1)

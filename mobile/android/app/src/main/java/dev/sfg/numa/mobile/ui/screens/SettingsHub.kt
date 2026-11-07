@@ -98,6 +98,8 @@ internal fun SettingsHub(
     onSignIn: () -> Unit,
     onSwitchAccount: () -> Unit,
     onSignOut: () -> Unit,
+    updateState: dev.sfg.numa.mobile.UpdateState,
+    onCheckForUpdates: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     SettingsSearchField(query) { query = it }
@@ -108,6 +110,10 @@ internal fun SettingsHub(
     }
 
     SettingsLanguageRow()
+    SectionLabel(uiText("Updates", "Actualizaciones"))
+    SettingsPanel {
+        SettingsUpdateRow(updateState, onCheckForUpdates)
+    }
     SectionLabel(uiText("Settings", "Configuración"), 1)
     SettingsPanel(index = 5) {
         ActionRow(title = SettingsPage.Accounts.displayTitle(), subtitle = SettingsPage.Accounts.displayBlurb(),

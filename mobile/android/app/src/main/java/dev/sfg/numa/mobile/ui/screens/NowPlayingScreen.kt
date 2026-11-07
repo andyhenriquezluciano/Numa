@@ -258,6 +258,7 @@ fun NowPlayingScreen(
             var videoFrame by remember(verticalVideo) { mutableStateOf<Bitmap?>(null) }
             var artworkSeam by remember { mutableStateOf<Float?>(null) }
             var artworkRoom by remember { mutableStateOf<Float?>(null) }
+            var artworkTop by remember { mutableStateOf(0f) }
             val palette = rememberFullBleedPalette(track, videoFrame)
             val lyricAccent = palette.accent.lyricAccent()
             PlayerBackdropLayer(
@@ -281,6 +282,7 @@ fun NowPlayingScreen(
                 swipe = swipe.takeIf { !wideLayout && !isFoldable },
                 onArtworkSeam = { artworkSeam = it },
                 artworkRoom = artworkRoom,
+                artworkTop = artworkTop,
             )
 
             if (isFoldable) {
@@ -452,6 +454,7 @@ fun NowPlayingScreen(
                 onBestMixUpcoming = onBestMixUpcoming,
                 artworkSeam = artworkSeam,
                 onArtworkRoom = { artworkRoom = it },
+                onArtworkTop = { artworkTop = it },
             )
         }
 

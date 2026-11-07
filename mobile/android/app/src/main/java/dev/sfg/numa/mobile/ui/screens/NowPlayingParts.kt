@@ -314,6 +314,7 @@ internal fun PlayerBackdropLayer(
     swipe: ArtworkSwipe? = null,
     onArtworkSeam: (Float?) -> Unit = {},
     artworkRoom: Float? = null,
+    artworkTop: Float = 0f,
 ) {
     // Full-bleed artwork background. Lyrics push it out of focus rather than
     // replacing it, so the song's colour still carries the screen.
@@ -368,6 +369,7 @@ internal fun PlayerBackdropLayer(
         swipe = swipe,
         onArtworkSeam = onArtworkSeam,
         artworkRoom = artworkRoom,
+        artworkTop = artworkTop,
         modifier = Modifier
             .blur(backdropBlur)
             .then(if (isSplitModeFoldable) Modifier.fillMaxWidth(0.512f) else Modifier.fillMaxWidth()),

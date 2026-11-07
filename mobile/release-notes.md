@@ -1,17 +1,15 @@
-# NÜMA 2.5
+# NÜMA 2.5 — Android (compilación 20056)
 
-Una puesta a punto para seguir escuchando desde el móvil.
+## Corregido
 
-- Carátulas recuperadas desde la biblioteca con reintento de fuentes alternativas.
-- Aviso de actualización más compacto, traducido y con botones legibles.
-- Ajustes visuales de biblioteca, carátulas completas y cola para los temas.
+- **Carátulas animadas completas:** restaurado el ancho completo, sin los márgenes de tarjeta, con el degradado inferior detrás de los controles. El ajuste se aplica al reproductor y al reproductor de bloqueo.
+- **Capas de carátula:** ajustado el tratamiento de la imagen estática de respaldo y el vídeo para evitar franjas con imágenes duplicadas.
 
-- Letras y traducción en español e inglés, según el idioma que elijas.
-- Mejor detección del idioma en canciones con coros repetidos.
-- Actualizaciones más sencillas, sin archivos extra en los releases.
+## Añadido
 
-## Tu biblioteca, en ambos dispositivos
+- **Buscar actualizaciones:** acceso visible en la pantalla principal de Ajustes, integrado con los paneles y colores del tema seleccionado.
+- **Resultado de la búsqueda:** indica cuándo está buscando, cuándo tienes la versión más reciente y cuándo falló la consulta, con opción de reintentar. Evita consultas simultáneas y búsquedas durante la descarga o instalación.
 
-Entra con la misma cuenta NÜMA de Google en PC y Android para compartir listas, favoritos, carátulas, artistas, álbumes y métricas. Las descargas se quedan en cada dispositivo.
+## Actualización
 
-Instala el APK sobre la versión que ya tienes para conservar tus datos.
+- Instala sobre la versión anterior para conservar tu sesión, biblioteca y ajustes.

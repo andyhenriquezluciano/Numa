@@ -90,7 +90,9 @@ internal fun LockScreenContent(
     val warped = warpSupported && animatedBackground && (framed || !animatedArtwork || !hasMotion)
     var videoFrame by remember(renderedTrack?.id) { mutableStateOf<Bitmap?>(null) }
     var controlsTop by remember { mutableStateOf<Float?>(null) }
-    BoxWithConstraints(Modifier.fillMaxSize()) {
+    var headerBottom by remember { mutableStateOf(0f) }
+    var backdropTop by remember { mutableStateOf(0f) }
+    BoxWithConstraints(Modifier.fillMaxSize().onGloballyPositioned { backdropTop = it.positionInRoot().y }) {
         val footerSpace = (maxHeight * 0.10f).coerceAtLeast(40.dp)
         if (renderedTrack != null) {
             val palette = if (framed || !hasMotion) rememberArtworkPalette(cover)
@@ -103,7 +105,8 @@ internal fun LockScreenContent(
                 warpedArtworkEnabled = warped,
                 ambientGlowEnabled = !warped,
                 onVideoFrame = { videoFrame = it },
-                artworkRoom = controlsTop,
+                artworkRoom = controlsTop?.minus(backdropTop),
+                artworkTop = (headerBottom - backdropTop).coerceAtLeast(0f),
                 fullBleedStaticArtwork = !framed,
             )
         } else {
@@ -122,7 +125,8 @@ internal fun LockScreenContent(
                 )
             }
         }
-        Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp),
+        Row(Modifier.fillMaxWidth().onGloballyPositioned { headerBottom = it.positionInRoot().y + it.size.height }
+            .statusBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween) {
             IconButton(onClick = onOpenApp) {
                 NumaMark(Modifier.size(22.dp))

@@ -15,6 +15,7 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.concurrent.thread
+import java.util.concurrent.atomic.AtomicBoolean
 
 data class MobileUpdateMetadata(
     val version: String,
@@ -30,6 +31,9 @@ data class MobileUpdateMetadata(
 /** What the update flow is currently doing, for the in-app prompt to render. */
 sealed interface UpdateState {
     data object Idle : UpdateState
+    data object Checking : UpdateState
+    data object UpToDate : UpdateState
+    data object CheckFailed : UpdateState
     data class Available(val metadata: MobileUpdateMetadata) : UpdateState
     data class Downloading(val version: String) : UpdateState
     data class Failed(val version: String, val reason: String) : UpdateState
@@ -47,11 +51,15 @@ class UpdateManager(
 
     private val mutableState = MutableStateFlow<UpdateState>(UpdateState.Idle)
     val state: StateFlow<UpdateState> = mutableState.asStateFlow()
+    private val checking = AtomicBoolean(false)
 
     fun checkForUpdates() {
         // Debug and canary builds carry their own versionNameSuffix and applicationId; the
         // published release APK is neither an upgrade nor installable over them.
         if (!BuildConfig.UPDATER_ENABLED) return
+        if (mutableState.value is UpdateState.Downloading || mutableState.value is UpdateState.ReadyToInstall) return
+        if (!checking.compareAndSet(false, true)) return
+        mutableState.value = UpdateState.Checking
 
         thread {
             try {
@@ -68,9 +76,14 @@ class UpdateManager(
                     // Surface it and let the user decide; downloading and firing the system
                     // installer unprompted is what made this feel like a random intrusion.
                     mutableState.value = UpdateState.Available(metadata)
+                } else {
+                    mutableState.value = if (metadata == null) UpdateState.CheckFailed else UpdateState.UpToDate
                 }
             } catch (e: Exception) {
                 Log.w(TAG, "Update check failed: ${e.message}")
+                mutableState.value = UpdateState.CheckFailed
+            } finally {
+                checking.set(false)
             }
         }
     }

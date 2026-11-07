@@ -43,7 +43,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,14 +58,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
@@ -79,11 +84,7 @@ import dev.sfg.numa.mobile.ui.components.rememberArtworkPalette
 import dev.sfg.numa.mobile.ui.components.smoothScrimBrush
 
 /**
- * Full-bleed player backdrop. Motion art sits at the top in a frame of its own shape (a
- * 9:16 canvas fills the screen), and a smoothstep scrim settles the lower part
- * into the cover's own deep tone so controls sit on the image without a visible seam
- * (after SimpMusic's canvas player). Without motion art, a palette wash with a slow
- * ambient glow carries the screen.
+ * Full-width motion canvas with a faded lower edge behind the playback controls.
  */
 @Composable
 fun FullBleedPlayerBackdrop(
@@ -107,8 +108,9 @@ fun FullBleedPlayerBackdrop(
     artworkAlpha: Float = 1f,
     /** Where the controls start over short art, in this layer's px; null when art fills the screen. */
     onArtworkSeam: (Float?) -> Unit = {},
-    /** Height in px above the controls; short art grows toward it, cropping its sides. */
+    /** Controls and header bounds in this layer's local coordinates. */
     artworkRoom: Float? = null,
+    artworkTop: Float = 0f,
     onNext: () -> Unit = {},
     onPrevious: () -> Unit = {},
     onLiked: () -> Unit = {},
@@ -153,7 +155,7 @@ fun FullBleedPlayerBackdrop(
         ((animatedArtworkEnabled && currentVideo.isNotBlank()) || fullBleedStaticArtwork)
     LaunchedEffect(currentRich) { if (!currentRich) onArtworkSeam(null) }
 
-    Box(
+    BoxWithConstraints(
         modifier
             .fillMaxSize()
             .glassArtworkSource(priority = 100)
@@ -229,23 +231,26 @@ fun FullBleedPlayerBackdrop(
                     .graphicsLayer { alpha = artworkAlpha },
             )
         } else if (currentRich) {
-            // The frame takes the video's own shape, so nothing is cropped unless the video
-            // is taller than the screen (9:16 canvas), which then fills it edge to edge.
-            val screenAspect = screenAspect()
-            val screenWidth = LocalWindowInfo.current.containerSize.width
+            val density = LocalDensity.current
             var videoAspect by remember(currentVideo) { mutableStateOf<Float?>(null) }
-            val naturalFrame = maxOf(videoAspect ?: guessedVideoAspect(track), screenAspect)
-            // Seam lands on the controls' top edge, so the art fills the gap above them.
-            val targetFrame = motionArtworkAspect(
-                naturalFrame, screenAspect, screenWidth.toFloat(), artworkRoom, FRAME_OVERLAP,
+            val frame = motionArtworkFrame(
+                videoAspect ?: guessedVideoAspect(track),
+                constraints.maxWidth.toFloat(), constraints.maxHeight.toFloat(),
+                artworkTop, artworkRoom,
             )
-            val frameAspect by animateFloatAsState(targetFrame, tween(420), label = "ArtworkFrameAspect")
-            val fillsScreen = naturalFrame <= screenAspect + FULL_SCREEN_SLACK
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(frameAspect)
-                    .align(Alignment.TopCenter)
+                    .offset { IntOffset(frame.left.roundToInt(), frame.top.roundToInt()) }
+                    .size(with(density) { frame.width.toDp() }, with(density) { frame.height.toDp() })
+                    .align(Alignment.TopStart)
+                    .clipToBounds()
+                    .drawWithContent {
+                        drawContent()
+                        drawRect(smoothScrimBrush(
+                            from = animatedDeep.copy(alpha = 0f), to = animatedDeep,
+                            startFraction = 0.62f, endFraction = 1f,
+                        ))
+                    }
                     .graphicsLayer {
                         val shift = swipe?.offset ?: 0f
                         translationX = shift
@@ -253,18 +258,8 @@ fun FullBleedPlayerBackdrop(
                         alpha = artworkAlpha * (1f - abs(shift) / size.width.coerceAtLeast(1f)).coerceIn(0f, 1f)
                     }
                     .onGloballyPositioned { onArtworkBounds?.invoke(it.boundsInRoot()) }
-                    .onSizeChanged { onArtworkSeam(if (fillsScreen) null else it.height * (1f - FRAME_OVERLAP)) }
-                    .drawWithContent {
-                        drawContent()
-                        // Full-screen art goes opaque before the gesture bar; short art by its own bottom edge.
-                        drawRect(
-                            smoothScrimBrush(
-                                from = animatedDeep.copy(alpha = 0f),
-                                to = animatedDeep,
-                                startFraction = if (fillsScreen) SCRIM_START else SHORT_SCRIM_START,
-                                endFraction = if (fillsScreen) SCRIM_END else 1f,
-                            ),
-                        )
+                    .onGloballyPositioned {
+                        onArtworkSeam(it.positionInRoot().y + it.size.height)
                     },
             ) {
                 AnimatedContent(
@@ -312,6 +307,7 @@ fun FullBleedPlayerBackdrop(
                             url = currentTrack.artworkUrl,
                             description = uiText("Artwork for ${currentTrack.title}", "Carátula de ${currentTrack.title}"),
                             modifier = Modifier.fillMaxSize(),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                         )
 
                         if (rich) {
@@ -319,7 +315,8 @@ fun FullBleedPlayerBackdrop(
                                 url = videoUrl,
                                 active = isPlaying && currentTrack.id == track.id,
                                 modifier = Modifier.fillMaxSize(),
-                                fitContent = true,
+                                fitContent = false,
+                                letterboxColor = palette.top,
                                 onFrame = if (currentTrack.id == track.id) onVideoFrame else null,
                                 onVideoAspect = if (currentTrack.id == track.id) {
                                     { videoAspect = it }
@@ -358,20 +355,8 @@ private fun guessedVideoAspect(track: Track): Float =
 /** Where the palette wash starts ramping from the cover tone to the deep tone. */
 private const val WASH_START = 0.45f
 
-/** Art scrim ramp, as fractions of screen height. Opaque before the gesture bar. */
-private const val SCRIM_START = 0.38f
-private const val SCRIM_END = 0.94f
-
-/** Short art fades over its lower part; the title sits on the fade, the controls on solid deep. */
-private const val SHORT_SCRIM_START = 0.62f
-
-/** Bottom share of short art that the controls overlap. */
-private const val FRAME_OVERLAP = 0.12f
-
 private const val TALL_ART_ASPECT = 0.75f
 
-/** Within this of the screen's shape, a frame counts as full screen. */
-private const val FULL_SCREEN_SLACK = 0.01f
 private const val AMBIENCE_RADIUS = 1400f
 
 /** How far the cover has drawn back by the moment the two tracks hand over. */

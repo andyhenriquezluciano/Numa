@@ -74,6 +74,8 @@ import kotlinx.coroutines.delay
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 
 @Composable
 internal fun rememberArtworkForeground(): Boolean {
@@ -170,13 +172,14 @@ fun AnimatedArtworkVideo(
     /** Display width over height, reported once the stream's size is known. */
     onVideoAspect: ((Float) -> Unit)? = null,
     fitContent: Boolean = false,
+    letterboxColor: Color = Color.Transparent,
 ) {
     if (url.isBlank()) return
     val foreground = rememberArtworkForeground()
     val playing = active && foreground
     // GIF covers chosen by the user are not video; the platform decoder animates them.
     if (isGifArtwork(url)) {
-        AnimatedGifArtwork(url, playing, modifier, fitContent)
+        AnimatedGifArtwork(url, playing, modifier.background(letterboxColor), fitContent)
         return
     }
     val currentOnVideoAspect by rememberUpdatedState(onVideoAspect)
@@ -291,6 +294,7 @@ fun AnimatedArtworkVideo(
             val layoutParent = android.widget.FrameLayout(targetContext)
             (LayoutInflater.from(targetContext).inflate(R.layout.animated_artwork_player, layoutParent, false) as PlayerView).apply {
                 setVideoSurfaceAlignment(alignment)
+                setBackgroundColor(letterboxColor.toArgb())
                 resizeMode = if (fitContent) androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
                     else androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                 this.player = player
@@ -304,6 +308,7 @@ fun AnimatedArtworkVideo(
             }
         },
         update = { view ->
+            view.setBackgroundColor(letterboxColor.toArgb())
             view.resizeMode = if (fitContent) androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
                 else androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
             view.setVideoSurfaceAlignment(alignment)

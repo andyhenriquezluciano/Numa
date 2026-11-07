@@ -133,6 +133,7 @@ internal fun PhonePlayerBody(
     artworkSeam: Float? = null,
     /** Reports the px above the controls at their natural height, for the art to grow into. */
     onArtworkRoom: (Float?) -> Unit = {},
+    onArtworkTop: (Float) -> Unit = {},
 ) {
     val queueOpen = panel == PlayerPanel.QUEUE
     val isDownloaded = downloadedTrackIds.contains(track.id)
@@ -157,7 +158,9 @@ internal fun PhonePlayerBody(
             track = track,
             playingFrom = playback.playingFromLabel(),
             onCollapse = onBack,
-            modifier = modifier,
+            modifier = modifier.onGloballyPositioned {
+                onArtworkTop(it.positionInRoot().y + it.size.height - bodyTop)
+            },
             onViewQueue = onQueuePanel,
             onAddToPlaylist = onAddToPlaylist?.let { action -> { action(track) } },
             onShare = onShare,
