@@ -341,7 +341,7 @@ jobs:
             --windows-setup dist/windows/NumaSetup.exe
 
   publish-windows-github:
-    name: Publish Windows installer to GitHub Releases
+    name: Publish Windows package to GitHub Releases
     needs: windows
     if: github.ref == 'refs/heads/main' && !inputs.build_linux && needs.windows.result == 'success'
     runs-on: ubuntu-24.04
@@ -357,8 +357,8 @@ jobs:
           RELEASE_TAG: v2.5-mobile
         run: |
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" release-assets/NumaSetup.exe --repo "$GITHUB_REPOSITORY" --clobber
+            gh release upload "$RELEASE_TAG" release-assets/Numa-Windows-x86_64.7z --repo "$GITHUB_REPOSITORY" --clobber
           else
-            gh release create "$RELEASE_TAG" release-assets/NumaSetup.exe --repo "$GITHUB_REPOSITORY" \
+            gh release create "$RELEASE_TAG" release-assets/Numa-Windows-x86_64.7z --repo "$GITHUB_REPOSITORY" \
               --title "NÜMA 2.5" --notes-file mobile/release-notes.md
           fi
