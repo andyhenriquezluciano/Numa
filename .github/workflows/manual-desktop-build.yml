@@ -267,6 +267,19 @@ jobs:
           & $env:NSIS_EXE "-DBOOTSTRAPPER_EXE=$output\numa-bootstrapper.exe" "-DOUTPUT_FILE=$output\NumaSetup.exe" "-DNUMA_VERSION=$appVersion" "-DNUMA_FILE_VERSION=$fileVersion" "-DDEFAULT_CHANNEL=$env:RELEASE_CHANNEL" bootstrapper/NumaSetup.nsi
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (!(Test-Path "$output\NumaSetup.exe")) { throw 'NSIS setup was not created' }
+      - name: Build standalone Windows installer
+        shell: pwsh
+        run: |
+          $output = "$env:RUNNER_TEMP\numa-windows"
+          $appVersion = (meson introspect --projectinfo build/desktop | ConvertFrom-Json).version
+          $versionParts = [regex]::Match($appVersion, '^(\d+\.\d+\.\d+)(?:-canary\.(\d+))?$')
+          if (!$versionParts.Success) { throw "Unsupported setup version: $appVersion" }
+          $revision = if ($versionParts.Groups[2].Success) { $versionParts.Groups[2].Value } else { '0' }
+          $fileVersion = "$($versionParts.Groups[1].Value).$revision"
+          7z x -y "$output\Numa-Windows-x86_64.7z" "-o$output\standalone"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $env:NSIS_EXE "-DNUMA_VERSION=$appVersion" "-DNUMA_FILE_VERSION=$fileVersion" "-DSTAGE_DIR=$output\standalone\Numa" "-DOUTPUT_FILE=$output\Numa-Setup-$appVersion.exe" packaging/NumaInstaller.nsi
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@v4
         with:
           name: numa-windows-publish
@@ -274,6 +287,7 @@ jobs:
             ${{ runner.temp }}/numa-windows/Numa-Windows-x86_64.7z
             ${{ runner.temp }}/numa-windows/numa-bootstrapper.exe
             ${{ runner.temp }}/numa-windows/NumaSetup.exe
+            ${{ runner.temp }}/numa-windows/Numa-Setup-*.exe
           if-no-files-found: error
           retention-days: 14
       - name: Windows compiler cache stats
@@ -354,11 +368,13 @@ jobs:
       - name: Create or update the 2.5 GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: v2.5-mobile
         run: |
+          version="$(sed -n "s/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*['\"]\([^'\"]*\)['\"].*/\1/p" mobile/android/app/build.gradle)"
+          test -n "$version"
+          RELEASE_TAG="v${version}-mobile"
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" release-assets/Numa-Windows-x86_64.7z --repo "$GITHUB_REPOSITORY" --clobber
+            gh release upload "$RELEASE_TAG" release-assets/Numa-Windows-x86_64.7z release-assets/Numa-Setup-*.exe --repo "$GITHUB_REPOSITORY" --clobber
           else
-            gh release create "$RELEASE_TAG" release-assets/Numa-Windows-x86_64.7z --repo "$GITHUB_REPOSITORY" \
-              --title "NÜMA 2.5" --notes-file mobile/release-notes.md
+            gh release create "$RELEASE_TAG" release-assets/Numa-Windows-x86_64.7z release-assets/Numa-Setup-*.exe --repo "$GITHUB_REPOSITORY" \
+              --title "NÜMA $version" --notes-file mobile/release-notes.md
           fi
