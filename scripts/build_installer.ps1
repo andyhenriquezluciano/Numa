@@ -1,7 +1,9 @@
 param(
     [string]$Version = "2.0.2",
     [string]$StageDir = "dist/release-2.0.2/Numa",
-    [string]$OutputFile = "dist/release-2.0.2/Numa-Setup-2.0.2.exe"
+    [string]$OutputFile = "dist/release-2.0.2/Numa-Setup-2.0.2.exe",
+    [ValidateSet('lzma', 'zlib', 'bzip2')]
+    [string]$Compression = 'lzma'
 )
 $ErrorActionPreference = "Stop"
 if ($Version -notmatch '^\d+\.\d+(\.\d+){0,2}$') { throw "Invalid version: $Version" }
@@ -12,5 +14,5 @@ $stage = (Resolve-Path -LiteralPath $StageDir).Path
 $output = [System.IO.Path]::GetFullPath($OutputFile)
 if (Test-Path -LiteralPath $output) { throw "Output already exists: $output" }
 $script = (Resolve-Path "packaging\NumaInstaller.nsi").Path
-& "C:\Program Files (x86)\NSIS\Bin\makensis.exe" /V3 "-DNUMA_VERSION=$Version" "-DNUMA_FILE_VERSION=$fileVersion" "-DSTAGE_DIR=$stage" "-DOUTPUT_FILE=$output" "$script"
+& "C:\Program Files (x86)\NSIS\Bin\makensis.exe" /V3 "-DNUMA_VERSION=$Version" "-DNUMA_FILE_VERSION=$fileVersion" "-DNUMA_COMPRESSOR=$Compression" "-DSTAGE_DIR=$stage" "-DOUTPUT_FILE=$output" "$script"
 if ($LASTEXITCODE -ne 0) { throw "NSIS failed with exit code $LASTEXITCODE" }

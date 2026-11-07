@@ -21,12 +21,15 @@
 !endif
 
 Unicode true
+!ifndef NUMA_COMPRESSOR
+  !define NUMA_COMPRESSOR "lzma"
+!endif
 Name "NÜMA"
 OutFile "${OUTPUT_FILE}"
 InstallDir "$PROGRAMFILES64\Numa"
 InstallDirRegKey HKLM "Software\Numa" "Install_Dir"
 RequestExecutionLevel admin
-SetCompressor /SOLID lzma
+SetCompressor /SOLID ${NUMA_COMPRESSOR}
 ShowInstDetails show
 ShowUnInstDetails show
 
