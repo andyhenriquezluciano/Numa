@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify-tag:
@@ -154,4 +154,11 @@ jobs:
           release_args=("$GITHUB_REF_NAME" release-assets/*.apk --repo "$GITHUB_REPOSITORY" \
             --title "Numa Mobile $VERSION" --notes-file release-assets/notes.md)
           if [[ "$VERSION" == *-* ]]; then release_args+=(--prerelease); fi
-          gh release create "${release_args[@]}"
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" release-assets/*.apk release-assets/*.mapping.txt --repo "$GITHUB_REPOSITORY" --clobber
+            gh release upload "$GITHUB_REF_NAME" release-assets/latest-android.json release-assets/notes.md --repo "$GITHUB_REPOSITORY" --clobber
+            gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+              --title "Numa Mobile $VERSION" --notes-file release-assets/notes.md
+          else
+            gh release create "${release_args[@]}"
+          fi
