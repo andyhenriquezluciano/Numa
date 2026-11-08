@@ -23,6 +23,7 @@ import QtQuick.Controls
 
 // Top bar button for offline status and manual reconnect check.
 Button {
+    HandCursor {}
     id: root
 
     readonly property bool shown: NumaNetwork.offline || NumaNetwork.retrying

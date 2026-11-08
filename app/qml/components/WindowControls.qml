@@ -18,159 +18,115 @@
  */
 
 import QtQuick
+import QtQuick.Controls
+import QtQuick.Window
 
 Row {
     id: root
-
     required property Window targetWindow
-    // Fade out after the pointer goes idle; wake() brings them back.
     property bool autoHide: false
     property bool awake: true
-    readonly property bool hovered: minArea.containsMouse || maxArea.containsMouse || closeArea.containsMouse
+    readonly property bool hovered: minimizeButton.hovered || maximizeButton.hovered || closeButton.hovered
+    readonly property bool maximized: targetWindow && targetWindow.visibility === Window.Maximized
+    readonly property bool fullscreen: targetWindow && targetWindow.visibility === Window.FullScreen
     readonly property real shown: !autoHide || awake || hovered ? 1 : 0
+    property real reveal: shown
 
-    function wake() {
-        awake = true;
-        idleTimer.restart();
-    }
-
-    spacing: 0
+    spacing: 4
     height: 38
     opacity: reveal
-    // Invisible buttons shouldn't still close the app. Ghosts don't get a close button.
     visible: reveal > 0.01
     transform: Translate { y: -10 * (1 - root.reveal) }
     onAutoHideChanged: wake()
+    Behavior on reveal { NumberAnimation { duration: 420; easing.type: Easing.OutCubic } }
+    function wake() { awake = true; idleTimer.restart(); }
+    Timer { id: idleTimer; interval: 2200; onTriggered: root.awake = false }
 
-    property real reveal: shown
-    Behavior on reveal {
-        NumberAnimation { duration: 420; easing.type: Easing.OutCubic }
-    }
-
-    Timer {
-        id: idleTimer
-        interval: 2200
-        onTriggered: root.awake = false
-    }
-
-    // Minimize Button
-    Rectangle {
-        width: 44
-        height: parent.height
-        radius: (root.targetWindow && root.targetWindow.visibility === Window.Windowed) ? 6 : 0
-        color: minArea.containsPress ? "#25282e" : (minArea.containsMouse ? "#1e2126" : "transparent")
-
-        Item {
-            anchors.centerIn: parent
-            width: 11
-            height: 1
-
-            Rectangle {
-                anchors.fill: parent
-                color: minArea.containsMouse ? "#ffffff" : "#9ba1ad"
-            }
+    component CaptionButton: Button {
+        id: captionControl
+        property string windowAction
+        readonly property color danger: NumaAppearance.theme === "rose_pine_dawn" ? "#b4637a" : "#eb6f92"
+        readonly property color glyphColor: hovered ? danger : NumaAppearance.mutedColor
+        width: 40
+        height: 30
+        y: 4
+        padding: 8
+        hoverEnabled: true
+        focusPolicy: Qt.TabFocus
+        enabled: Boolean(root.targetWindow)
+        HandCursor {}
+        Accessible.name: text
+        background: Rectangle {
+            radius: 10
+            color: !captionControl.hovered && !captionControl.down ? "transparent"
+                : NumaAppearance.theme === "rose_pine_dawn" ? NumaAppearance.highlightColor
+                : Qt.rgba(captionControl.danger.r, captionControl.danger.g, captionControl.danger.b, 0.16)
         }
-
-        MouseArea {
-            id: minArea
-
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                if (root.targetWindow)
-                    "minimizeSmoothly" in root.targetWindow ? root.targetWindow.minimizeSmoothly() : root.targetWindow.showMinimized();
-            }
-        }
-
-        GlassToolTip { control: minArea; text: qsTr("Minimize") }
-    }
-
-    // Maximize / Restore Button
-    Rectangle {
-        width: 44
-        height: parent.height
-        radius: (root.targetWindow && root.targetWindow.visibility === Window.Windowed) ? 6 : 0
-        color: maxArea.containsPress ? "#25282e" : (maxArea.containsMouse ? "#1e2126" : "transparent")
-
-        Item {
-            anchors.centerIn: parent
-            width: 10
-            height: 10
-
-            Rectangle {
-                anchors.fill: parent
-                color: "transparent"
-                border.color: maxArea.containsMouse ? "#ffffff" : "#9ba1ad"
-                border.width: 1
-            }
-        }
-
-        MouseArea {
-            id: maxArea
-
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                if (!root.targetWindow)
-                    return;
-
-                if (root.targetWindow.visibility === Window.Maximized)
-                    root.targetWindow.showNormal();
-                else
-                    root.targetWindow.showMaximized();
-            }
-        }
-
-        GlassToolTip {
-            control: maxArea
-            text: root.targetWindow && root.targetWindow.visibility === Window.Maximized
-                  ? qsTr("Restore") : qsTr("Maximize")
-        }
-    }
-
-    // Close Button
-    Rectangle {
-        width: 44
-        height: parent.height
-        radius: (root.targetWindow && root.targetWindow.visibility === Window.Windowed) ? 6 : 0
-        color: closeArea.containsPress ? "#dc2626" : (closeArea.containsMouse ? "#e81123" : "transparent")
-
-        Item {
-            anchors.centerIn: parent
-            width: 10
-            height: 10
-
-            Rectangle {
-                width: 12
-                height: 1.2
-                color: closeArea.containsMouse ? "#ffffff" : "#9ba1ad"
+        contentItem: Item {
+            Item {
                 anchors.centerIn: parent
-                rotation: 45
-            }
-
-            Rectangle {
-                width: 12
-                height: 1.2
-                color: closeArea.containsMouse ? "#ffffff" : "#9ba1ad"
-                anchors.centerIn: parent
-                rotation: -45
+                width: 14; height: 14
+                Rectangle {
+                    visible: captionControl.windowAction === "minimize"
+                    width: 11; height: 1.5; radius: 0.75
+                    anchors.centerIn: parent
+                    color: captionControl.glyphColor
+                }
+                Rectangle {
+                    visible: captionControl.windowAction === "maximize" && !root.maximized && !root.fullscreen
+                    x: 2; y: 2; width: 10; height: 10; radius: 1.5
+                    color: "transparent"
+                    border.width: 1.3
+                    border.color: captionControl.glyphColor
+                }
+                LucideIcon {
+                    anchors.fill: parent
+                    visible: captionControl.windowAction === "maximize" && (root.maximized || root.fullscreen)
+                    name: "copy"
+                    color: captionControl.glyphColor
+                }
+                Rectangle {
+                    visible: captionControl.windowAction === "close"
+                    anchors.centerIn: parent
+                    width: 13; height: 1.5; radius: 0.75
+                    color: captionControl.glyphColor
+                    rotation: 45
+                }
+                Rectangle {
+                    visible: captionControl.windowAction === "close"
+                    anchors.centerIn: parent
+                    width: 13; height: 1.5; radius: 0.75
+                    color: captionControl.glyphColor
+                    rotation: -45
+                }
             }
         }
+        GlassToolTip { control: captionControl; text: captionControl.text }
+    }
 
-        MouseArea {
-            id: closeArea
-
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                if (root.targetWindow)
-                    root.targetWindow.close();
-            }
+    CaptionButton {
+        id: minimizeButton
+        windowAction: "minimize"
+        text: qsTr("Minimize")
+        onClicked: "minimizeSmoothly" in root.targetWindow ? root.targetWindow.minimizeSmoothly() : root.targetWindow.showMinimized()
+    }
+    CaptionButton {
+        id: maximizeButton
+        windowAction: "maximize"
+        text: root.fullscreen ? qsTr("Exit full screen") : root.maximized ? qsTr("Restore") : qsTr("Maximize")
+        onClicked: {
+            if (root.fullscreen && "requestFullscreenVisibility" in root.targetWindow)
+                root.targetWindow.requestFullscreenVisibility(Window.Maximized);
+            else if (root.maximized)
+                root.targetWindow.showNormal();
+            else
+                root.targetWindow.showMaximized();
         }
-
-        GlassToolTip { control: closeArea; text: qsTr("Close") }
+    }
+    CaptionButton {
+        id: closeButton
+        windowAction: "close"
+        text: qsTr("Close")
+        onClicked: root.targetWindow.close()
     }
 }

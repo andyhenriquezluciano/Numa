@@ -7,6 +7,19 @@
 class CloudJsonTest : public QObject {
     Q_OBJECT
 private slots:
+    void localPlaylistsNeverEnterCloudSnapshots() {
+        const QJsonObject remote{{"savedPlaylists", QJsonArray{QJsonObject{{"id", "local-playlist:pc"}}, QJsonObject{{"id", "PL-shared"}}}},
+            {"hiddenPlaylistIds", QJsonArray{"local-playlist:phone", "SE"}},
+            {"automaticCovers", QJsonObject{{"mode:local-playlist:pc", true}, {"mode:PL-shared", true}}}};
+        const auto clean = cloud::withoutLocalPlaylists(remote);
+        QCOMPARE(clean.value("savedPlaylists").toArray().size(), 1);
+        QCOMPARE(clean.value("savedPlaylists").toArray().first().toObject().value("id").toString(), QStringLiteral("PL-shared"));
+        QCOMPARE(clean.value("hiddenPlaylistIds").toArray(), QJsonArray{"SE"});
+        QVERIFY(!clean.value("automaticCovers").toObject().contains("mode:local-playlist:pc"));
+        QCOMPARE(cloud::withoutLocalPlaylists(clean), clean);
+        QVERIFY(cloud::fromDesktop({{"id", "local-playlist:pc"}, {"type", "playlist"}}, "playlist").isEmpty());
+    }
+
     void savedArtistRetainsNavigation() {
         const auto row = cloud::toDesktop(cloud::fromDesktop({{"title", "Artist"}, {"browsePayload", QVariantMap{{"browseId", "UC-artist"}}}}, "artist"), "artist");
         QCOMPARE(row.value("title").toString(), QStringLiteral("Artist"));

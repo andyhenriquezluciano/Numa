@@ -21,9 +21,10 @@ import QtQuick
 import ".."
 
 // Routes wheel input for a horizontal rail: sideways deltas scroll the rail,
-// vertical ones go back to the containing page.
+// Shift redirects vertical wheel input to the rail; plain vertical input goes to the page.
 ScrollWheelHandler {
     id: root
+    acceptedModifiers: Qt.KeyboardModifierMask
 
     signal verticalRequested(real delta, bool smooth)
     signal horizontalRequested(real delta, bool smooth)
@@ -34,7 +35,7 @@ ScrollWheelHandler {
         if (motion.horizontal !== (root.orientation === Qt.Horizontal))
             return;
         // Trackpads often add a small sideways delta to vertical gestures; those go to the page.
-        if (!motion.horizontal) {
+        if (!motion.horizontal && !(event.modifiers & Qt.ShiftModifier)) {
             root.verticalRequested(motion.delta, motion.smooth);
             return;
         }

@@ -26,6 +26,7 @@ import Numa
 // Only exists while the playhead is inside such a span and the setting is on "Button".
 Button {
     id: root
+    HandCursor {}
 
     property color textColor: NumaAppearance.textColor
     property color fillColor: "#26ffffff"

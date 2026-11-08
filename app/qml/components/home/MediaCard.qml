@@ -101,12 +101,9 @@ Item {
         && !songlist && NumaAppearance.animatedArtworkEnabled
     readonly property bool nowPlaying: Boolean(media.id) && NumaPlayback.track.id === media.id
     readonly property bool localPlaylist: media.source === "local" || playlistIdentity(media).startsWith("local-playlist:")
-    readonly property string customPlaylistArtwork: media.type === "playlist" && typeof NumaSync !== "undefined" && NumaSync.revision >= 0
-        ? NumaSync.artworkFor(playlistIdentity(media), "") : ""
-    readonly property bool playlistBadge: presentation === "playlist" && media.type === "playlist" && !customPlaylistArtwork
-        && !["LM", "SE"].includes(playlistIdentity(media))
-        && !/liked music|your likes|música que te gusta|episodes.*later|episodios.*tarde/i.test(media.title || "")
-        && (localPlaylist || (NumaHome.playlists || []).some(item => playlistIdentity(item) === playlistIdentity(media)))
+    readonly property string customPlaylistArtwork: media.type === "playlist" && !root.localPlaylist && typeof NumaSync !== "undefined" && NumaSync.revision >= 0
+        ? NumaSync.artworkFor(playlistIdentity(media), "", false) : ""
+    readonly property bool playlistBadge: media.type === "playlist" && !root.songlist
 
     function playlistIdentity(item) {
         return String(item.playlistId || item.browseId || (item.browsePayload || {}).browseId || item.id || "").replace(/^VL/, "");
@@ -118,7 +115,7 @@ Item {
             return source;
         const id = String(root.media.id || "");
         return (root.media.type === "song" || root.media.type === "track") && /^[A-Za-z0-9_-]{11}$/.test(id)
-            ? "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg" : "";
+            ? "https://i.ytimg.com/vi/" + id + "/mqdefault.jpg" : "";
     }
 
     width: songlist || presentation === "album" ? preferredWidth : compact ? 290 : presentation === "editorial" ? 310 : landscape ? 238 : video ? 258 : presentation === "playlist" ? 178 : 158
@@ -126,13 +123,11 @@ Item {
     height: songlist ? 60 : compact ? 76 : landscape ? 162 : video ? Math.round(width * 9 / 16) + 57 : presentation === "playlist" ? 242 : width + 52
 
     MouseArea {
+        id: hover
         anchors.fill: parent
         acceptedButtons: Qt.NoButton
+        hoverEnabled: true
         cursorShape: root.playable || root.playbackBlocked || root.navigable ? Qt.PointingHandCursor : Qt.ArrowCursor
-    }
-
-    HoverHandler {
-        id: hover
     }
 
     Rectangle {
@@ -142,11 +137,12 @@ Item {
         anchors.bottomMargin: root.songlist ? 3 : 0
         radius: 10
         color: root.songlist
-            ? (NumaAppearance.rosePine ? (hover.hovered ? Qt.rgba(NumaAppearance.textColor.r, NumaAppearance.textColor.g, NumaAppearance.textColor.b, 0.08) : NumaAppearance.overlayColor) : hover.hovered ? "#16ffffff" : "#0cffffff")
-            : hover.hovered && !root.plain ? "#16ffffff" : "transparent"
+            ? (NumaAppearance.rosePine ? (hover.containsMouse ? (NumaAppearance.theme === "rose_pine_dawn" ? "#ede8e4" : NumaAppearance.highlightColor) : NumaAppearance.overlayColor) : hover.containsMouse ? "#16ffffff" : "#0cffffff")
+            : hover.containsMouse && !root.plain ? (NumaAppearance.theme === "rose_pine_dawn" ? "#ede8e4" : NumaAppearance.rosePine ? NumaAppearance.overlayColor : "#16ffffff") : "transparent"
         border.color: root.activeFocus ? NumaAppearance.accentColor : "transparent"
 
         Behavior on color {
+            enabled: !root.songlist && NumaAppearance.theme !== "rose_pine_dawn"
             ColorAnimation {
                 duration: 140
             }
@@ -157,33 +153,31 @@ Item {
         id: art
 
         x: root.songlist ? 4 : 0
-        y: root.songlist ? 8 : root.plain || hover.hovered ? 0 : 2
+        y: root.songlist ? 8 : root.plain || hover.containsMouse ? 0 : 2
         width: root.songlist ? 44 : root.compact ? 64 : root.width
         height: root.songlist ? 44 : root.compact ? 64 : root.landscape ? root.height - 4 : root.video ? Math.round(root.width * 9 / 16) : root.presentation === "playlist" ? 190 : root.width
 
         RoundedArtwork {
             anchors.fill: parent
             source: root.playlistBadge ? "" : root.artworkSource()
+            fallbackSources: {
+                const id = String(root.media.videoId || root.media.id || "");
+                const sources = [root.media.artworkUrl || "", root.media.coverUrl || ""];
+                if ((root.songlist || root.media.type === "song" || root.media.type === "track") && /^[A-Za-z0-9_-]{11}$/.test(id))
+                    sources.push("https://i.ytimg.com/vi/" + id + "/mqdefault.jpg");
+                return sources;
+            }
             visible: !root.playlistBadge
             radius: root.songlist ? 4 : root.media.type === "artist" ? (root.plain ? width / 2 : 18) : root.presentation === "playlist" ? 12 : root.plain ? 8 : 10
         }
 
-        Rectangle {
+        PlaylistArtwork {
             anchors.fill: parent
             radius: 12
             visible: root.playlistBadge
-            antialiasing: true
-            gradient: Gradient {
-                GradientStop { position: 0; color: root.localPlaylist ? "#35c8ed" : "#9464ee" }
-                GradientStop { position: 1; color: root.localPlaylist ? "#7950dc" : "#f54fa1" }
-            }
-            LucideIcon {
-                anchors.centerIn: parent
-                width: parent.width * 0.42
-                height: width
-                name: "list-music"
-                color: "#ffffff"
-            }
+            media: root.media
+            artwork: root.artworkSource()
+            customArtwork: root.customPlaylistArtwork
         }
 
         Timer {
@@ -191,12 +185,12 @@ Item {
 
             // Dwell before any lookup so sweeping the cursor across a shelf stays offline.
             interval: 400
-            running: root.hoverAnimates && hover.hovered
+            running: root.hoverAnimates && hover.containsMouse
         }
 
         Loader {
             anchors.fill: parent
-            active: root.hoverAnimates && hover.hovered && !hoverDelay.running
+            active: root.hoverAnimates && hover.containsMouse && !hoverDelay.running
             sourceComponent: HoverArtwork {
                 title: root.media.title || ""
                 artist: root.animatedArtist
@@ -287,6 +281,7 @@ Item {
         Text {
             width: parent.width
             text: root.caption || (root.media.artists || []).join(", ") || root.media.artist || root.media.subtitle || root.media.type || ""
+            visible: root.presentation !== "playlist"
             color: root.landscape ? "#a4a9ad" : NumaAppearance.mutedColor
             font.family: "Inter"
             font.pixelSize: root.plain ? 12 : 11

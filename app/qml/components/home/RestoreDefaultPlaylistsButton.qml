@@ -7,6 +7,7 @@ import ".."
 
 Button {
     id: root
+    HandCursor {}
     property bool compact: false
     readonly property var sync: typeof NumaSync === "undefined" ? null : NumaSync
     text: qsTr("Restore default playlists")

@@ -20,6 +20,7 @@
 #pragma once
 
 #include <QObject>
+#include <QAbstractNativeEventFilter>
 #include <QPointer>
 #include <QSettings>
 #include <QTimer>
@@ -29,7 +30,7 @@
 #include "window_occlusion.h"
 
 // Remembers the main window size and maximized state between launches.
-class WindowState final : public QObject
+class WindowState final : public QObject, public QAbstractNativeEventFilter
 {
     Q_OBJECT
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY enabledChanged)
@@ -44,6 +45,7 @@ class WindowState final : public QObject
 public:
     bool videoFullScreen() const { return m_videoFullScreen; }
     explicit WindowState(QObject *parent = nullptr);
+    ~WindowState() override;
 
     [[nodiscard]] bool enabled() const { return m_enabled; }
     void setEnabled(bool value);
@@ -55,6 +57,7 @@ public:
     Q_INVOKABLE void enterCompactMode(int width, int height);
     Q_INVOKABLE void exitCompactMode();
     Q_INVOKABLE void setVideoFullScreen(bool enabled, int restoreVisibility = -1);
+    Q_INVOKABLE void leavePlayerFullScreen(bool maximized);
     // True when the window is hidden, minimized, or reported as covered by the platform.
     [[nodiscard]] bool idle() const { return m_idle; }
     // True once the app has stayed unfocused past a short grace.
@@ -72,6 +75,7 @@ signals:
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
+    bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override;
 
 private:
     void save();
@@ -90,6 +94,8 @@ private:
     WindowOcclusion m_occlusion;
     bool m_maximizeAfterAnimation{false};
     bool m_videoFullScreen{false};
+    bool m_leavingPlayerFullScreen{false};
+    bool m_maximizingPlayerFullScreen{false};
     QWindow::Visibility m_videoRestoreVisibility{QWindow::Maximized};
     bool m_idle{false};
     bool m_unfocused{false};

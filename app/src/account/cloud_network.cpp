@@ -57,7 +57,7 @@ void CloudLibrary::synchronize() {
     m_metricSync.stop();
     {
         const auto base = m_data.value("base").toObject(), counters = m_data.value("counters").toObject();
-        auto sent = m_data.value("local").toObject(), styles = sent.value("coverStyles").toObject();
+        auto sent = cloud::withoutLocalPlaylists(m_data.value("local").toObject()), styles = sent.value("coverStyles").toObject();
         const auto baseStyles = base.value("coverStyles").toObject(), pending = m_data.value("uploads").toObject();
         for (auto it = styles.begin(); it != styles.end();) {
             const auto digest = it.value().toObject().value("asset").toString();
@@ -84,7 +84,7 @@ void CloudLibrary::synchronize() {
 }
 void CloudLibrary::finishSync(const QJsonObject &remote, const QJsonObject &sent, const QJsonObject &counters) {
     const auto merged = cloud::reconcile(sent, m_data.value("local").toObject(), remote);
-    m_data.insert("local", cloud::addPending(merged, cloud::countersDelta(m_data.value("counters").toObject(), counters)));
+    m_data.insert("local", cloud::withoutLocalPlaylists(cloud::addPending(merged, cloud::countersDelta(m_data.value("counters").toObject(), counters))));
     m_data.insert("base", remote); m_data.insert("acknowledged", counters); if (!save()) return; ++m_revision; emit changed(); fetchCovers();
 }
 void CloudLibrary::fetchCovers() {

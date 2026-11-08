@@ -1,4 +1,4 @@
-project('Numa', ['c', 'cpp'], version: '2.5.1', meson_version: '>=1.12.0',
+project('Numa', ['c', 'cpp'], version: '2.6', meson_version: '>=1.12.0',
   subproject_dir: 'third_party', default_options: ['cpp_std=c++20', 'b_lto=false'])
 
 cmake = import('cmake')
@@ -422,7 +422,7 @@ qml_startup_test = executable('numa_qml_startup_test',
     files('app/src/appearance/artwork_sampler.cpp',
       'app/src/appearance/kawarp_artwork.cpp'))],
   include_directories: app_inc,
-  dependencies: [qt_dep, qt_gui_private], build_by_default: false)
+  dependencies: [qt_dep, qt_gui_private, app_dep], build_by_default: false)
 
 if get_option('tests')
   if host_machine.system() == 'windows' and cpp.get_id() == 'msvc'

@@ -66,16 +66,34 @@ Item {
     readonly property color mutedText: "#858a82"
     readonly property real radius: compactMode ? 20 : 22
     readonly property var queue: NumaPlayback.queue || []
+    property alias scrollFollow: queueScrollFollow
+    QueueScrollFollow {
+        id: queueScrollFollow
+        view: queueList
+        active: root.open
+        continuous: root.continuous
+        currentIndex: root.hasCurrent ? root.history.length : -1
+        dragging: root.dragIndex >= 0
+    }
     // Continuous lists played songs, the current song and the queue as one list.
     readonly property bool continuous: NumaPlayback.queueLayout === "continuous"
     readonly property string trackId: NumaPlayback.track.id || ""
     // Snapshot so list rows rebuild on song changes, not on every playback tick.
     property var currentTrack: ({})
-    readonly property var history: continuous ? (NumaPlayback.history || []) : []
+    readonly property var fullHistory: continuous ? (NumaPlayback.history || []) : []
+    readonly property int historyOffset: Math.max(0, fullHistory.length - 2)
+    readonly property var history: fullHistory.slice(historyOffset)
+    readonly property bool queueShuffleEnabled: NumaPlayback.shuffleEnabled
+    onQueueShuffleEnabledChanged: Qt.callLater(() => queueScrollFollow.orderChanged())
     readonly property bool hasCurrent: continuous && trackId !== ""
     readonly property int leading: history.length + (hasCurrent ? 1 : 0)
     readonly property var rows: continuous
         ? history.concat(hasCurrent ? [currentTrack] : [], queue) : queue
+    QueueListModel {
+        id: queueModel
+        items: root.rows
+        onUpdated: if (queueScrollFollow.following && !queueScrollFollow.restoring) Qt.callLater(() => queueScrollFollow.center())
+    }
     readonly property real queueSeconds: {
         let total = 0;
         for (let i = 0; i < root.queue.length; ++i)
@@ -84,8 +102,8 @@ Item {
     }
 
     function showCurrent() {
-        if (continuous && hasCurrent)
-            Qt.callLater(() => queueList.positionViewAtIndex(history.length, ListView.Beginning));
+        if (queueScrollFollow.following)
+            Qt.callLater(() => queueScrollFollow.center());
     }
 
     function showCompactArtwork() {
@@ -335,6 +353,7 @@ Item {
 
                     Button {
                         id: clearBtn
+                        HandCursor {}
                         objectName: "clearQueue"
                         visible: !root.compactMode
                         text: qsTr("Clear")
@@ -344,8 +363,9 @@ Item {
                         rightPadding: 10
                         onClicked: NumaPlayback.clearQueue()
                         background: Rectangle {
-                            radius: height / 2
-                            color: clearBtn.down ? "#26ffffff" : clearBtn.hovered || clearBtn.activeFocus ? "#1affffff" : "transparent"
+                            radius: 8
+                            color: NumaAppearance.rosePine ? (clearBtn.hovered || clearBtn.down || clearBtn.activeFocus ? NumaAppearance.highlightColor : "transparent")
+                                : clearBtn.down ? "#26ffffff" : clearBtn.hovered || clearBtn.activeFocus ? "#1affffff" : "transparent"
                             border.color: clearBtn.activeFocus ? root.accentColor : "transparent"
                         }
                         contentItem: Text {
@@ -382,7 +402,9 @@ Item {
                     cacheBuffer: root.dragIndex >= 0 ? contentHeight : 320
                     interactive: root.dragIndex < 0
                     spacing: 2
-                    model: root.rows
+                    model: queueModel
+                    move: Transition { NumberAnimation { properties: "x,y"; duration: 220; easing.type: Easing.OutCubic } }
+                    displaced: Transition { NumberAnimation { properties: "x,y"; duration: 220; easing.type: Easing.OutCubic } }
                     boundsBehavior: Flickable.StopAtBounds
 
                     ScrollBar.vertical: ScrollBar {
@@ -396,13 +418,19 @@ Item {
                         }
                     }
 
-                    delegate: QueueRow { panel: root; list: queueList }
+                    delegate: QueueRow {
+                        required property string entryJson
+                        modelData: JSON.parse(entryJson)
+                        panel: root
+                        list: queueList
+                    }
 
                     QueueEmptyState { panel: root; visible: root.rows.length === 0 }
 
                     FlickableWheel {
                         view: queueList
                         enabled: queueList.interactive
+                        onUserScrolled: queueScrollFollow.hold()
                     }
                 }
             }
@@ -431,43 +459,18 @@ Item {
         panel: root
     }
 
-    // Floating drag preview
-    Rectangle {
+    QueueRow {
+        panel: root
+        list: queueList
+        dragPreview: true
+        modelData: root.dragIndex >= 0 ? (root.queue[root.dragIndex] || {}) : ({})
+        index: root.leading + Math.max(0, root.dragIndex)
+        enabled: false
         visible: root.dragIndex >= 0 && !root.compactDetailsOpen
         z: 20
-        x: 20
+        x: queueList.mapToItem(root, 0, 0).x
         y: Math.max(queueList.mapToItem(root, 0, 0).y,
                     Math.min(queueList.mapToItem(root, 0, queueList.height).y - height,
                              queueList.mapToItem(root, 0, root.dragY).y - height / 2))
-        width: root.width - 40
-        height: 48
-        radius: 12
-        color: Qt.rgba(root.inkColor.r * 0.8 + 0.08, root.inkColor.g * 0.8 + 0.08, root.inkColor.b * 0.8 + 0.08, 0.96)
-        border.color: root.accentColor
-        border.width: 1.5
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.margins: 6
-            spacing: 10
-
-            RoundedArtwork {
-                Layout.preferredWidth: 36
-                Layout.preferredHeight: 36
-                radius: 7
-                source: root.dragIndex >= 0 ? (root.queue[root.dragIndex]?.thumbnail || "") : ""
-            }
-
-            Text {
-                Layout.fillWidth: true
-                text: root.dragIndex >= 0 ? (root.queue[root.dragIndex]?.title || "") : ""
-                color: root.primaryText
-                font.family: "Inter"
-                font.pixelSize: 12
-                font.bold: true
-                elide: Text.ElideRight
-                verticalAlignment: Text.AlignVCenter
-            }
-        }
     }
 }

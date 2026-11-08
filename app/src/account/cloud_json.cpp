@@ -1,5 +1,6 @@
 #include "account/cloud_json.h"
 #include <QSet>
+#include <QCryptographicHash>
 #include <QJsonDocument>
 
 namespace {
@@ -30,6 +31,30 @@ QString playlistId(const QString &id) {
     if (key.startsWith("offline-playlist:")) key = key.mid(17);
     if (key.startsWith("VL")) key = key.mid(2);
     return key == "LM" ? QStringLiteral("FEmusic_liked_videos") : key;
+}
+QJsonObject withoutLocalPlaylists(const QJsonObject &library) {
+    auto out = library;
+    auto styles = library.value("coverStyles").toObject();
+    QJsonArray playlists;
+    for (const auto &value : library.value("savedPlaylists").toArray()) {
+        const auto row = value.toObject();
+        const QString id = playlistId(row.value("id").toString());
+        if (id.startsWith("local-playlist:") || row.value("source") == "local") {
+            styles.remove(QString::fromLatin1(QCryptographicHash::hash(id.toUtf8(), QCryptographicHash::Sha256).toHex()));
+        } else playlists.append(value);
+    }
+    if (library.contains("savedPlaylists")) out.insert("savedPlaylists", playlists);
+    if (library.contains("coverStyles")) out.insert("coverStyles", styles);
+    QJsonArray hidden;
+    for (const auto &value : library.value("hiddenPlaylistIds").toArray())
+        if (!playlistId(value.toString()).startsWith("local-playlist:")) hidden.append(value);
+    if (library.contains("hiddenPlaylistIds")) out.insert("hiddenPlaylistIds", hidden);
+    auto automatic = library.value("automaticCovers").toObject();
+    for (auto it = automatic.begin(); it != automatic.end();)
+        if (it.key().startsWith("mode:local-playlist:") || it.key().startsWith("art:local-playlist:")) it = automatic.erase(it);
+        else ++it;
+    if (library.contains("automaticCovers")) out.insert("automaticCovers", automatic);
+    return out;
 }
 QVariantList visibleMedia(const QVariantList &items, const QJsonArray &hidden, bool playlists) {
     QSet<QString> ids; for (auto value : hidden) ids.insert(playlistId(value.toString()));
@@ -153,6 +178,7 @@ QJsonObject fromDesktop(const QVariantMap &media, const QString &kind) {
     QJsonObject out;
     auto text = [&media](const char *key) { return media.value(QString::fromLatin1(key)).toString(); };
     auto id = text("id"); if (id.isEmpty()) id = text("browseId"); if (id.isEmpty()) id = text("playlistId"); if (id.isEmpty()) id = media.value("browsePayload").toMap().value("browseId").toString();
+    if (kind == "playlist" && (playlistId(id).startsWith("local-playlist:") || text("source") == "local")) return {};
     out.insert("id", kind == "playlist" ? playlistId(id) : id);
     out.insert("title", text("title")); out.insert("artworkUrl", text("thumbnail").isEmpty() ? text("artworkUrl") : text("thumbnail"));
     if (kind == "artist") { out.insert("name", text("title").isEmpty() ? text("name") : text("title")); out.remove("title"); out.insert("subtitle", text("subtitle")); }

@@ -31,6 +31,13 @@ Flow {
     property var playlist: ({})
     property color accentColor: "#b79bed"
     property color accentSoftColor: "#c4a7e7"
+    property bool showCoverActions: true
+    property bool showDeleteAction: true
+    property bool showRenameAction: true
+
+    function rename() {
+        renamePopup.openWith(root.playlist.title || "");
+    }
 
     readonly property string playlistId: playlist.id || ""
 
@@ -40,6 +47,7 @@ Flow {
 
     component Action: Button {
         id: action
+        HandCursor {}
 
         property string glyph
 
@@ -61,29 +69,30 @@ Flow {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: action.text
-                color: "#e6e9e5"
+                color: NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 12
             }
         }
         background: Rectangle {
-            radius: 16
-            color: action.hovered ? "#22ffffff" : "#0effffff"
-            border.color: action.activeFocus ? root.accentSoftColor : "#18ffffff"
+            radius: 10
+            color: NumaAppearance.rosePine ? (action.hovered || action.down ? NumaAppearance.highlightColor : NumaAppearance.overlayColor)
+                : action.hovered ? "#22ffffff" : "#0effffff"
+            border.width: 0
         }
     }
 
     Action { glyph: "folder-plus"; text: qsTr("Add songs"); onClicked: LocalPickers.addSongs(root.playlistId) }
     Action { glyph: "folder-plus"; text: qsTr("Add folder"); onClicked: LocalPickers.addFolder(root.playlistId) }
-    Action { glyph: "image"; text: qsTr("Cover"); onClicked: LocalPickers.pickCover("playlist", root.playlistId) }
+    Action { visible: root.showCoverActions; glyph: "image"; text: qsTr("Cover"); onClicked: LocalPickers.pickCover("playlist", root.playlistId) }
     Action {
-        visible: Boolean(root.playlist.hasCustomCover)
+        visible: root.showCoverActions && Boolean(root.playlist.hasCustomCover)
         glyph: "x"
         text: qsTr("Auto cover")
         onClicked: NumaLocal.clearPlaylistCover(root.playlistId)
     }
-    Action { glyph: "pencil"; text: qsTr("Rename"); onClicked: renamePopup.openWith(root.playlist.title || "") }
-    Action { glyph: "trash-2"; text: qsTr("Delete"); onClicked: deletePopup.open() }
+    Action { visible: root.showRenameAction; glyph: "pencil"; text: qsTr("Rename"); onClicked: root.rename() }
+    Action { visible: root.showDeleteAction; glyph: "trash-2"; text: qsTr("Delete"); onClicked: deletePopup.open() }
 
     // One small popup for renaming. A playlist called "New playlist (2)" deserves better.
     Popup {
@@ -113,7 +122,7 @@ Flow {
 
             Text {
                 text: qsTr("Rename playlist")
-                color: "#f2f0eb"
+                color: NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 16
                 font.weight: Font.DemiBold
@@ -125,6 +134,8 @@ Flow {
                 implicitHeight: 38
                 maximumLength: 150
                 selectByMouse: true
+                selectionColor: NumaAppearance.highlightColor
+                selectedTextColor: NumaAppearance.textColor
                 color: NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 13
@@ -134,8 +145,9 @@ Flow {
                 }
                 background: Rectangle {
                     radius: 10
-                    color: "#18ffffff"
-                    border.color: nameField.activeFocus ? "#50ffffff" : "#20ffffff"
+                    color: NumaAppearance.rosePine ? NumaAppearance.overlayColor : "#18ffffff"
+                    border.color: NumaAppearance.rosePine ? (nameField.activeFocus ? NumaAppearance.accentColor : "transparent")
+                        : nameField.activeFocus ? "#50ffffff" : "#20ffffff"
                 }
             }
         }
@@ -160,7 +172,7 @@ Flow {
             Text {
                 Layout.fillWidth: true
                 text: qsTr("Delete “%1”?").arg(root.playlist.title || "")
-                color: "#f2f0eb"
+                color: NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 16
                 font.weight: Font.DemiBold
@@ -168,8 +180,8 @@ Flow {
             }
             Text {
                 Layout.fillWidth: true
-                text: qsTr("Your songs stay on your computer. Only the playlist goes away.")
-                color: "#a6adb2"
+                text: qsTr("This local playlist and its songs will be removed from NÜMA, including other local playlists that contain them. Your audio files will stay on this computer.")
+                color: NumaAppearance.mutedColor
                 font.family: "Inter"
                 font.pixelSize: 12
                 wrapMode: Text.WordWrap
@@ -178,16 +190,16 @@ Flow {
                 Layout.alignment: Qt.AlignRight
                 spacing: 8
 
-                Button {
+                Action {
                     text: qsTr("Cancel")
                     flat: true
                     onClicked: deletePopup.close()
                 }
-                Button {
+                Action {
                     text: qsTr("Delete")
                     onClicked: {
                         deletePopup.close();
-                        NumaLocal.deletePlaylist(root.playlistId);
+                        NumaLocal.deletePlaylist(root.playlistId, true);
                         root.deleted();
                     }
                 }

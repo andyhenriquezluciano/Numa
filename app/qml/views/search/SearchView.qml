@@ -22,6 +22,7 @@ import QtQuick
 import QtQuick.Controls
 import "../../components"
 import "../../components/home"
+import "../library"
 
 Item {
     id: root
@@ -76,6 +77,7 @@ Item {
     component Panel: Rectangle { radius: 13; color: "#10ffffff"; border.color: "#14ffffff" }
     component Options: Button {
         id: options
+        HandCursor {}
         property var media: ({})
         width: 26; height: 32
         Accessible.name: qsTr("More options for %1").arg(media.title || "")
@@ -99,33 +101,13 @@ Item {
         height: 48; spacing: 8
         Repeater {
             model: root.filters
-            Button {
-                id: tab
+            LibraryPill {
                 required property var modelData
-                implicitWidth: tabText.implicitWidth + 30; height: 32
+                text: modelData.label
+                checked: root.filter === modelData.value
+                checkable: true
+                autoExclusive: true
                 onClicked: root.filterRequested(modelData.value)
-                background: Item {
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: 16
-                        color: root.filter === tab.modelData.value ? "#f1f0ec" : tab.hovered ? "#20ffffff" : "#08ffffff"
-                        Behavior on color { ColorAnimation { duration: Motion.normal } }
-                    }
-                    RoundedSurfaceFrame {
-                        anchors.fill: parent
-                        radius: 16
-                        softGlow: true
-                        showBorder: root.filter !== tab.modelData.value
-                        border.color: tab.activeFocus ? "#b8d4bd" : (tab.hovered ? "#45ffffff" : "#30ffffff")
-                        fillColor: "transparent"
-                    }
-                }
-                contentItem: Caption {
-                    id: tabText; text: tab.modelData.label
-                    color: root.filter === tab.modelData.value ? "#171b17" : "#d2d1cc"
-                    Behavior on color { ColorAnimation { duration: Motion.normal } }
-                    horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                }
             }
         }
     }
@@ -146,6 +128,7 @@ Item {
                 width: parent.width; height: root.width > 1000 ? 174 : 154; visible: root.filter === "all"
                 Button {
                     id: hero
+                    HandCursor {}
                     anchors.fill: parent; anchors.margins: 12
                     onClicked: root.activate(root.topResult, "")
                     Accessible.name: root.topResult.title || ""
@@ -201,6 +184,7 @@ Item {
                             Caption { x: 12; y: 10; text: panel.modelData.title; font.pixelSize: 18; font.weight: Font.DemiBold }
                             Button {
                                 id: viewAll
+                                HandCursor {}
                                 anchors.right: parent.right; anchors.rightMargin: 10; y: 8; height: 26
                                 visible: root.filter === "all"
                                 onClicked: root.filterRequested(panel.modelData.key)
@@ -229,6 +213,7 @@ Item {
                                         height: panel.tiles ? width * (panel.coverGrid ? 1 : 0.66) + 70 : 54
                                         Button {
                                             id: itemButton
+                                            HandCursor {}
                                             anchors.fill: parent; padding: 0
                                             onClicked: root.activate(entry.modelData, panel.modelData.key)
                                             Accessible.name: entry.modelData.title || ""

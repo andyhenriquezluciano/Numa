@@ -50,6 +50,8 @@ struct TrackRecord {
 };
 
 struct PlaylistRecord {
+  bool automaticCover{false};
+  QString automaticTrackId;
   QString id;
   QString title;
   QString description;
@@ -98,6 +100,6 @@ QVariantMap playlistToVariant(const PlaylistRecord &playlist, const LocalStore &
 QVariantMap playlistDetail(const PlaylistRecord &playlist, const LocalStore &store);
 
 // The picture a playlist shows: the user's, else the collage, else nothing.
-QString playlistCover(const PlaylistRecord &playlist);
+QString playlistCover(const PlaylistRecord &playlist, const LocalStore &store);
 
 } // namespace local

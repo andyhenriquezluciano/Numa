@@ -22,9 +22,12 @@
 #include "local_store.h"
 
 #include <QObject>
+#include <QRectF>
 #include <QTimer>
 #include <QVariantList>
 #include <QVariantMap>
+#include <atomic>
+#include <memory>
 
 namespace local {
 struct ImportResult;
@@ -40,6 +43,10 @@ class LocalLibrary final : public QObject {
   // The playlist opened with openPlaylist(), in the shape PlaylistView reads.
   Q_PROPERTY(QVariantMap detail READ detail NOTIFY detailChanged)
   Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
+  Q_PROPERTY(bool importing READ importing NOTIFY importProgressChanged)
+  Q_PROPERTY(bool scanningImport READ scanningImport NOTIFY importProgressChanged)
+  Q_PROPERTY(int importCompleted READ importCompleted NOTIFY importProgressChanged)
+  Q_PROPERTY(int importTotal READ importTotal NOTIFY importProgressChanged)
   Q_PROPERTY(QStringList audioNameFilters READ audioNameFilters CONSTANT)
   Q_PROPERTY(QStringList imageNameFilters READ imageNameFilters CONSTANT)
   Q_PROPERTY(QStringList lyricsNameFilters READ lyricsNameFilters CONSTANT)
@@ -54,6 +61,10 @@ public:
   [[nodiscard]] QVariantList songs() const;
   [[nodiscard]] QVariantMap detail() const { return m_detail; }
   [[nodiscard]] bool busy() const { return m_jobs > 0; }
+  [[nodiscard]] bool importing() const { return !m_imports.isEmpty(); }
+  [[nodiscard]] bool scanningImport() const;
+  [[nodiscard]] int importCompleted() const;
+  [[nodiscard]] int importTotal() const;
   [[nodiscard]] QStringList audioNameFilters() const;
   [[nodiscard]] QStringList imageNameFilters() const;
   [[nodiscard]] QStringList lyricsNameFilters() const;
@@ -62,7 +73,7 @@ public:
   Q_INVOKABLE QString createPlaylist(const QString &title, const QVariantList &files = {});
   Q_INVOKABLE void renamePlaylist(const QString &id, const QString &title);
   Q_INVOKABLE void setPlaylistDescription(const QString &id, const QString &description);
-  Q_INVOKABLE void deletePlaylist(const QString &id);
+  Q_INVOKABLE void deletePlaylist(const QString &id, bool removeSongs = false);
   Q_INVOKABLE void openPlaylist(const QString &id);
   Q_INVOKABLE void closePlaylist();
 
@@ -77,13 +88,19 @@ public:
 
   // Art and lyrics from the user. Pictures may be PNG, JPEG, WebP, GIF or MP4.
   Q_INVOKABLE void setPlaylistCover(const QString &playlistId, const QVariant &file);
+  Q_INVOKABLE bool setPlaylistCoverCrop(const QString &playlistId, const QVariant &file, const QRectF &crop);
   Q_INVOKABLE void clearPlaylistCover(const QString &playlistId);
+  Q_INVOKABLE void setAutomaticCover(const QString &playlistId, bool enabled, const QVariantMap &track = {});
+  void updateAutomaticCover(const QVariantMap &track);
   Q_INVOKABLE void setTrackCover(const QString &trackId, const QVariant &file);
   Q_INVOKABLE void clearTrackCover(const QString &trackId);
   Q_INVOKABLE void setTrackLyrics(const QString &trackId, const QVariant &file);
   Q_INVOKABLE void clearTrackLyrics(const QString &trackId);
 
   // Lyrics in LyricsController's format; status "unavailable" when there are none.
+  bool saveDownloadedLyrics(const QString &id, const QVariantMap &data);
+  QString downloadedArtworkPath(const QString &id) const;
+  bool saveDownloadedArtwork(const QString &id, const QString &path);
   Q_INVOKABLE QVariantMap lyricsFor(const QString &trackId) const;
   Q_INVOKABLE QVariantMap track(const QString &trackId) const;
   // The playlist picker's rows for one song: { id, title, containsTrack }.
@@ -97,8 +114,10 @@ signals:
   void changed();
   void detailChanged();
   void busyChanged();
+  void importProgressChanged();
   void noticeRequested(const QString &message);
   void playlistCreated(const QString &playlistId);
+  void playlistDeleted(const QString &playlistId);
 
 private:
   void beginJob();
@@ -115,5 +134,10 @@ private:
   QVariantMap m_detail;
   QString m_openId;
   QTimer m_saveTimer;
+  struct ImportProgress {
+    std::atomic<int> completed{0};
+    std::atomic<int> total{-1};
+  };
+  QList<std::shared_ptr<ImportProgress>> m_imports;
   int m_jobs{0};
 };

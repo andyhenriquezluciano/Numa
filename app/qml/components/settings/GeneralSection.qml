@@ -49,6 +49,9 @@ GeneralSectionForm {
                 : qsTr("Installed version: %1").arg(NumaUpdates.currentVersion)
             SettingsButton {
                 text: qsTr("Check for updates")
+                buttonColor: NumaAppearance.theme === "rose_pine" ? "#ebbcba"
+                    : NumaAppearance.theme === "rose_pine_dawn" ? NumaAppearance.highlightColor : (highlighted ? "#514060" : down ? "#2cffffff" : hovered ? "#1cffffff" : "#0fffffff")
+                labelColor: NumaAppearance.theme === "rose_pine" ? NumaAppearance.baseColor : NumaAppearance.textColor
                 enabled: NumaUpdates.available && ["checking", "downloading", "staging"].indexOf(NumaUpdates.state) < 0
                 onClicked: NumaUpdates.checkForUpdates()
             }

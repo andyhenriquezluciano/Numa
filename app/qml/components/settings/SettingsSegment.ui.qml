@@ -17,11 +17,13 @@
  * along with Numa. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import ".."
 import QtQuick
 import QtQuick.Controls
 
 // One option inside SettingsSegmented. entry: { value, label, enabled?, tip?, name? }
 AbstractButton {
+    HandCursor {}
     id: seg
 
     property var entry: ({ value: "a", label: "Option" })

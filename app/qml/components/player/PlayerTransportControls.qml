@@ -36,6 +36,7 @@ RowLayout {
 
         Button {
             id: transportButton
+            HandCursor {}
 
             required property string modelData
             readonly property bool modeButton: modelData === "shuffle" || modelData === "repeat"
@@ -64,7 +65,8 @@ RowLayout {
             }
 
             enabled: {
-                if (modeButton) return true;
+                if (modeButton)
+                    return Boolean(NumaPlayback.track.id) || (NumaPlayback.queue || []).length > 0;
                 if (mainButton)
                     return !NumaPlayback.loading && Boolean(NumaPlayback.track.id);
 
@@ -114,6 +116,8 @@ RowLayout {
                 border.width: 1
                 border.color: transportButton.activeFocus ? (bar.lightTheme ? bar.accentColor : bar.primaryText) : "transparent"
                 color: {
+                    if (transportButton.modeButton && !transportButton.enabled)
+                        return "transparent";
                     if (transportButton.mainButton) {
                         if (bar.lightTheme)
                             return transportButton.down ? Qt.darker(bar.accentColor, 1.12) : bar.accentColor;

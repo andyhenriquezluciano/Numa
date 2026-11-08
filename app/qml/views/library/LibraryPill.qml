@@ -25,6 +25,7 @@ import QtQuick.Controls
 // Pill button for the library header: category tabs and Refresh.
 Button {
     id: root
+    HandCursor {}
 
     property string iconName
     // Muted trailing text, e.g. an item count.

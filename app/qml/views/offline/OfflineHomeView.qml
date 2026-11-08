@@ -50,7 +50,6 @@ Item {
         boundsBehavior: Flickable.StopAtBounds
         model: root.feed
         cacheBuffer: 400
-        ScrollBar.vertical.width: 5
 
         header: Item {
             width: scroll.width

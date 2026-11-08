@@ -25,6 +25,7 @@ import ".."
 // Round edge arrow that fades in while its rail is hovered.
 Button {
     id: root
+    HandCursor {}
 
     property int direction: 1
     property bool shown: false
@@ -46,7 +47,7 @@ Button {
     background: Rectangle {
         radius: 10
         color: NumaAppearance.rosePine ? (root.hovered ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : root.hovered ? "#f2303430" : "#e01c1e1c"
-        border.width: 1
+        border.width: NumaAppearance.rosePine ? 2 : 1
         border.color: NumaAppearance.rosePine ? NumaAppearance.accentColor : "#1affffff"
 
         Behavior on color {

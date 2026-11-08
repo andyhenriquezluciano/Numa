@@ -24,6 +24,7 @@ import QtQuick.Controls
 // Transport button: skip, shuffle, repeat, or the large play/pause toggle.
 Button {
     id: transport
+    HandCursor {}
 
     property string glyph: "play"
     // Large button whose glyph trades places with altGlyph while altShown.

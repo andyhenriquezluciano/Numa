@@ -24,6 +24,7 @@ import QtQuick.Controls
 // Round glyph button used across the fullscreen player.
 Button {
     id: roundButton
+    HandCursor {}
     property color accentColor: NumaAppearance.textColor
     property color primaryText: "#f7f5f0"
     property color secondaryText: "#c3c6bf"

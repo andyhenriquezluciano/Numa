@@ -25,6 +25,7 @@ import Numa
 // Likes the playing song on YouTube Music.
 Button {
     id: root
+    HandCursor {}
 
     property color iconColor: "#d8dcd6"
     property color likedColor: "#c4a7e7"
@@ -49,10 +50,10 @@ Button {
 
     background: Rectangle {
         radius: 10
-        border.width: 1
-        border.color: root.activeFocus ? root.iconColor : "transparent"
-        color: root.hovered && root.enabled ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#1fffffff") : "transparent"
-        Behavior on color { ColorAnimation { duration: 90 } }
+        border.width: 0
+        color: root.enabled && (root.hovered || root.down || root.activeFocus)
+            ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : Qt.rgba(root.likedColor.r, root.likedColor.g, root.likedColor.b, 0.18))
+            : "transparent"
     }
 
     contentItem: LucideIcon {

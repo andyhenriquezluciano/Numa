@@ -4,7 +4,7 @@
 #include <QVariantMap>
 
 inline QVariantMap defaultPreferences() {
-  return {
+  QVariantMap preferences{
       {QStringLiteral("ui/language"), QStringLiteral("es")},
       {QStringLiteral("appearance/layoutStyle"), QStringLiteral("glade")},
       {QStringLiteral("appearance/performanceMode"), false},
@@ -54,6 +54,26 @@ inline QVariantMap defaultPreferences() {
       {QStringLiteral("window/remember"), true},
       {QStringLiteral("tray/closeToTray"), true},
   };
+#ifdef Q_OS_WIN
+  // Initial Windows profile captured from the approved application preferences.
+  // Device IDs, window geometry, accounts and playback history are excluded.
+  const QVariantMap windowsPreferences{
+      {QStringLiteral("appearance/theme"), QStringLiteral("crystal")},
+      {QStringLiteral("appearance/bordersEnabled"), false},
+      {QStringLiteral("appearance/playlistSongBackground"), true},
+      {QStringLiteral("downloads/localLyrics"), false},
+      {QStringLiteral("downloads/localTranslation"), false},
+      {QStringLiteral("downloads/localArtwork"), false},
+      {QStringLiteral("integrations/discord/enabled"), false},
+      {QStringLiteral("integrations/discord/showSyncedLyrics"), true},
+      {QStringLiteral("playback/audioEngine/enabled"), false},
+      {QStringLiteral("playback/audioEngine/q"), 1.0},
+      {QStringLiteral("playback/slopAction"), QStringLiteral("off")},
+  };
+  for (auto it = windowsPreferences.cbegin(); it != windowsPreferences.cend(); ++it)
+    preferences.insert(it.key(), it.value());
+#endif
+  return preferences;
 }
 
 // Existing profiles retain both explicit choices and their historical defaults.

@@ -56,7 +56,7 @@ class LyricsTranslator final : public QObject {
   Q_PROPERTY(double installedMegabytes READ installedMegabytes NOTIFY packsChanged)
 
 public:
-  explicit LyricsTranslator(LyricsController *lyrics, QObject *parent = nullptr);
+  explicit LyricsTranslator(LyricsController *lyrics, QObject *parent = nullptr, bool persistSettings = true);
   ~LyricsTranslator() override;
   [[nodiscard]] bool enabled() const { return m_enabled; }
   void setEnabled(bool enabled);
@@ -111,6 +111,7 @@ private:
   std::shared_ptr<std::atomic_int> m_generation;
   QTimer m_flush;
 
+  bool m_persistSettings{true};
   bool m_enabled{false};
   QString m_quality{QStringLiteral("standard")};
   QString m_provider{QStringLiteral("local")};

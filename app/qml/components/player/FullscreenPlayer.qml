@@ -37,6 +37,36 @@ FullscreenPlayerForm {
     readonly property real mixStart: NumaPlayback.mixStart
     readonly property real mixDuration: NumaPlayback.mixDuration
     readonly property string trackId: NumaPlayback.track.id || ""
+    property var queueCurrentTrack: ({})
+    readonly property bool queueShuffleEnabled: NumaPlayback.shuffleEnabled
+    onQueueShuffleEnabledChanged: Qt.callLater(() => queuePane.scrollFollow.orderChanged())
+
+    function showCurrentQueueSong() {
+        if (pane === "queue" && queuePane.scrollFollow.following)
+            Qt.callLater(() => queuePane.scrollFollow.center());
+    }
+
+    function cancelQueueDrag() {
+        queuePane.dragIndex = -1;
+        queuePane.dropIndex = -1;
+    }
+
+    function updateQueueDrop() {
+        const view = queuePane.list;
+        const position = queuePane.dragY + view.contentY;
+        const index = view.indexAt(view.width / 2, position);
+        if (index >= 0)
+            queuePane.dropIndex = Math.max(0, Math.min(queuePane.queueItems.length - 1, index - queuePane.queueStart));
+        else if (queuePane.dragY < 0)
+            queuePane.dropIndex = 0;
+        else if (position >= view.contentHeight || queuePane.dragY > view.height)
+            queuePane.dropIndex = queuePane.queueItems.length - 1;
+    }
+
+    Connections {
+        target: NumaPlayback
+        function onQueueChanged() { root.cancelQueueDrag(); }
+    }
     readonly property bool fading: NumaPlayback.crossfadeActive
     property double fadeEndedAt: 0
     property point lastPointer: Qt.point(-1, -1)
@@ -123,15 +153,18 @@ FullscreenPlayerForm {
             return;
         }
         root.visibilityBeforeNativeFullscreen = window.visibility;
-        window.showFullScreen();
+        if (typeof window.requestFullscreenVisibility === "function")
+            window.requestFullscreenVisibility(Window.FullScreen);
+        else
+            window.showFullScreen();
     }
 
     function restoreWindowVisibility() {
         const window = root.Window.window;
         if (!window || window.visibility !== Window.FullScreen)
             return;
-        if (root.visibilityBeforeNativeFullscreen === Window.Windowed)
-            window.showNormal();
+        if (typeof window.requestFullscreenVisibility === "function")
+            window.requestFullscreenVisibility(Window.Maximized);
         else
             window.showMaximized();
     }
@@ -147,6 +180,8 @@ FullscreenPlayerForm {
             root.restoreWindowVisibility();
             return;
         }
+        queueCurrentTrack = NumaPlayback.track;
+        showCurrentQueueSong();
         const window = root.Window.window;
         if (window && window.visibility !== Window.FullScreen)
             root.visibilityBeforeNativeFullscreen = window.visibility;
@@ -158,6 +193,7 @@ FullscreenPlayerForm {
 
     // Swaps lyrics and queue without collapsing the split.
     onPaneChanged: {
+        showCurrentQueueSong();
         if (pane === "" || pane === shownPane)
             return;
         if (split < 0.01) {
@@ -172,6 +208,8 @@ FullscreenPlayerForm {
 
     onFadingChanged: if (!fading) fadeEndedAt = Date.now()
     onTrackIdChanged: {
+        queueCurrentTrack = NumaPlayback.track;
+        showCurrentQueueSong();
         if (!visible || fading || Date.now() - fadeEndedAt < 500)
             return;
         bumpAnimation.restart();
@@ -246,21 +284,60 @@ FullscreenPlayerForm {
     }
 
     queuePane.queueItems: NumaPlayback.queue || []
+    queuePane.continuous: NumaPlayback.queueLayout === "continuous"
+    queuePane.historyItems: NumaPlayback.history || []
+    queuePane.currentTrack: root.queueCurrentTrack
+    queuePane.onContinuousChanged: root.showCurrentQueueSong()
+    queuePane.onDragStarted: function(index, position) {
+        queuePane.dragIndex = index;
+        queuePane.dropIndex = index;
+        queuePane.dragY = position;
+        root.updateQueueDrop();
+    }
+    queuePane.onDragMoved: function(position) {
+        if (queuePane.dragIndex < 0) return;
+        queuePane.dragY = position;
+        root.updateQueueDrop();
+    }
+    queuePane.onDragFinished: {
+        const from = queuePane.dragIndex;
+        const to = queuePane.dropIndex;
+        queuePane.scrollFollow.preserve();
+        root.cancelQueueDrag();
+        if (from >= 0 && to >= 0) NumaPlayback.moveQueueItem(from, to);
+        queuePane.scrollFollow.restore();
+    }
+    queuePane.onDragCanceled: root.cancelQueueDrag()
+    queuePane.onScrollDrag: {
+        const view = queuePane.list;
+        const delta = queuePane.dragY < 30 ? -12 : queuePane.dragY > view.height - 30 ? 12 : 0;
+        view.contentY = Math.max(view.originY, Math.min(Math.max(view.originY, view.originY + view.contentHeight - view.height), view.contentY + delta));
+        root.updateQueueDrop();
+    }
     queuePane.autoplayEnabled: NumaPlayback.autoplayEnabled
     queuePane.clearButton.onClicked: NumaPlayback.clearQueue()
     queuePane.list.delegate: FullscreenQueueRow {
-        required property var modelData
+        required property string entryJson
         required property int index
         width: root.queuePane.list.width - 8
-        track: modelData
+        track: JSON.parse(entryJson)
         rowIndex: index
-        artistText: root.artistLabel(modelData)
+        dragPane: root.queuePane
+        queueIndex: index - root.queuePane.queueStart
+        previous: index < root.queuePane.historyCount
+        current: root.queuePane.hasCurrent && index === root.queuePane.historyCount
+        sectionLabel: !root.queuePane.continuous ? "" : previous && index === 0 ? qsTr("PLAYED")
+            : current ? qsTr("NOW PLAYING") : index === root.queuePane.queueStart ? qsTr("UP NEXT") : ""
+        artistText: root.artistLabel(track)
         paneSwap: root.paneSwap
         accentColor: root.accentColor
         primaryText: root.primaryText
         mutedText: root.mutedText
-        onClicked: NumaPlayback.playQueueIndex(index)
-        removeButton.onClicked: NumaPlayback.removeFromQueue(index)
+        onClicked: {
+            if (previous) NumaPlayback.playHistoryIndex(root.queuePane.historyOffset + index);
+            else if (!current) NumaPlayback.playQueueIndex(queueIndex);
+        }
+        removeButton.onClicked: if (queueIndex >= 0) NumaPlayback.removeFromQueue(queueIndex)
     }
 
     controls.seekLimit: mixStart >= 0 ? Math.max(0, mixStart - 5, NumaPlayback.position) : NumaPlayback.duration
@@ -270,6 +347,9 @@ FullscreenPlayerForm {
         ? "-" + timeLabel(root.shownDuration - (controls.scrubbing ? controls.scrubPosition : root.shownPosition)) : "-:--"
     controls.mixDurationText: mixDuration > 0 ? timeLabel(mixDuration) : ""
     controls.qualityText: sourceQuality(NumaPlayback.track) || streamQuality(NumaPlayback.track)
+    property real rememberedVolume: NumaHome.volume > 0.001 ? NumaHome.volume : 1
+    controls.onVolumeChanged: if (controls.volume > 0.001) root.rememberedVolume = controls.volume
+    controls.volumeButton.onClicked: NumaHome.volume = NumaHome.volume > 0.001 ? 0 : root.rememberedVolume
     controls.volume: NumaHome.volume
 
     controls.progress.onPressedChanged: if (!controls.progress.pressed && controls.progress.enabled) NumaPlayback.seek(controls.scrubPosition)

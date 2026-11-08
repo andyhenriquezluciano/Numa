@@ -7,7 +7,7 @@ const source = readFileSync(new URL('../app/qml/components/player/FullscreenPlay
 const restore = source.match(/function restoreWindowVisibility\(\) \{[\s\S]*?\n    \}/)[0];
 const Window = { Windowed: 2, Maximized: 4, FullScreen: 5 };
 
-test('closing the song view restores native fullscreen to the previous window state', () => {
+test('closing the song view returns fullscreen directly to a maximized window', () => {
     assert.match(source, /if \(!open\) \{\s*root.restoreWindowVisibility\(\);/);
     for (const previous of [Window.Windowed, Window.Maximized]) {
         let restored;
@@ -16,8 +16,18 @@ test('closing the song view restores native fullscreen to the previous window st
         runInNewContext(`${restore}; restoreWindowVisibility();`, {
             root: { Window: { window }, visibilityBeforeNativeFullscreen: previous }, Window,
         });
-        assert.equal(restored, previous);
+        assert.equal(restored, Window.Maximized);
     }
+});
+
+test('fullscreen exit uses the window transition without an intermediate restore', () => {
+    const calls = [];
+    const window = { visibility: Window.FullScreen,
+        requestFullscreenVisibility: target => calls.push(target),
+        showNormal: () => assert.fail('Must not restore a small window first'),
+        showMaximized: () => assert.fail('The window transition owns maximization') };
+    runInNewContext(`${restore}; restoreWindowVisibility();`, { root: { Window: { window } }, Window });
+    assert.deepEqual(calls, [Window.Maximized]);
 });
 
 test('closing an already windowed view leaves its window untouched', () => {

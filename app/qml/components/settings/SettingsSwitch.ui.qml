@@ -18,10 +18,12 @@
  */
 
 import QtQuick
+import ".."
 import QtQuick.Controls
 
 Switch {
     id: control
+    HandCursor {}
 
     indicator: Rectangle {
         implicitWidth: 40

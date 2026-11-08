@@ -115,12 +115,13 @@ Item {
 
     function localizedSystemText(value) {
         const text = String(value || "");
-        if (text === "Episodes for Later") return qsTr("Episodes for Later");
-        if (text === "Episodes you've saved to listen to next. They'll be removed when finished.")
+        const normalized = text.replace(/[‘’]/g, "'").replace(/\s+/g, " ").trim();
+        if (normalized === "Episodes for Later") return qsTr("Episodes for Later");
+        if (normalized === "Episodes you've saved to listen to next. They'll be removed when finished.")
             return qsTr("Episodes you've saved to listen to next. They'll be removed when finished.");
-        if (text === "Liked Music")
+        if (normalized === "Liked Music")
             return qsTr("Liked Music");
-        if (text === "Only the music you like in YouTube Music will show here. If you want liked music from YouTube to show, you can change this in Settings.")
+        if (normalized === "Only the music you like in YouTube Music will show here. If you want liked music from YouTube to show, you can change this in Settings.")
             return qsTr("Only the music you like in YouTube Music will show here. If you want liked music from YouTube to show, you can change this in Settings.");
         return text;
     }
@@ -244,14 +245,16 @@ Item {
 
         Button {
             id: backButton
+            HandCursor {}
             width: 132
             height: 34
             text: qsTr("Back to home")
             onClicked: root.backRequested()
             background: Rectangle {
-                radius: 17
-                color: backButton.hovered ? "#18ffffff" : "transparent"
-                border.color: backButton.activeFocus ? root.accentSoftColor : "transparent"
+                radius: 10
+                color: NumaAppearance.theme === "rose_pine_dawn" ? (backButton.hovered || backButton.down ? NumaAppearance.highlightColor : NumaAppearance.overlayColor)
+                    : backButton.hovered ? "#18ffffff" : "transparent"
+                border.width: 0
             }
             contentItem: Row {
                 spacing: 8
@@ -261,6 +264,9 @@ Item {
         }
 
         CollectionHero {
+            showKind: false
+            playlistArtwork: true
+            customPlaylistArtwork: !root.isLocal && typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.artworkFor(cloudMedia.id || "", "", false) : ""
             cloudMedia: Object.assign({}, root.detail, {type: "playlist", id: root.detail.playlistId || root.detail.browseId || root.detail.id})
             id: hero
             width: parent.width
@@ -276,19 +282,21 @@ Item {
             ]
             description: root.showsDescription(root.detail.description)
                          ? root.localizedSystemText(root.detail.description) : ""
-            artwork: typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.artworkFor(cloudMedia.id || "", root.highResolutionArtwork(root.detail.thumbnail || "")) : root.highResolutionArtwork(root.detail.thumbnail || "")
-            gradientCover: (typeof NumaSync === "undefined" || NumaSync.revision < 0 || !NumaSync.artworkFor(cloudMedia.id || "", "")) && artwork === root.highResolutionArtwork(root.detail.thumbnail || "") && !root.isLikedPlaylist && !/episodes.*later|episodios.*tarde/i.test(root.detail.title || "")
+            artwork: !root.isLocal && typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.artworkFor(cloudMedia.id || "", root.highResolutionArtwork(root.detail.thumbnail || "")) : root.highResolutionArtwork(root.detail.thumbnail || "")
+            gradientCover: root.isLocal ? !root.detail.hasCustomCover && !root.detail.hasAutomaticCover : (typeof NumaSync === "undefined" || NumaSync.revision < 0 || !NumaSync.artworkFor(cloudMedia.id || "", "", false)) && artwork === root.highResolutionArtwork(root.detail.thumbnail || "") && !root.isLikedPlaylist && !/episodes.*later|episodios.*tarde/i.test(root.detail.title || "")
                            && String(root.detail.playlistId || root.detail.browseId || "").replace(/^VL/, "") !== "SE" && (!root.isLocal || !root.detail.hasCustomCover)
             localGradientCover: root.isLocal
             collageAlbums: root.collageAlbums
             // The user's own GIF or MP4 loop; nothing here is ever looked up online.
-            animatedArtwork: root.isLocal && (typeof NumaSync === "undefined" || NumaSync.revision < 0 || !NumaSync.artworkFor(cloudMedia.id || "", "")) ? (root.detail.animatedArtwork || "") : ""
+            animatedArtwork: root.isLocal ? (root.detail.animatedArtwork || "") : ""
             actionsEnabled: root.tracks.length > 0 && !NumaPlaylist.loading
             playing: root.collectionPlaying
             searchable: false
             shareLabel: qsTr("Copy playlist link")
             shareVisible: false
-            deleteVisible: playlistActions.canDelete && !root.isOffline
+            deleteVisible: !root.isLocal && playlistActions.canDelete && !root.isOffline
+            renameVisible: root.isLocal
+            onRenameClicked: localToolbar.rename()
             onDeleteClicked: playlistActions.confirmDelete()
             shareEnabled: Boolean(root.shareId) && !root.isLocal && !root.isOffline
             downloadable: !root.isLocal && root.tracks.length > 0
@@ -307,6 +315,19 @@ Item {
             onDownloadClicked: NumaDownloads.downloadAll(root.tracks, root.detail)
             onRemoveDownloadsClicked: NumaDownloads.removeAll(root.tracks, NumaOffline.collectionIdFor(root.detail))
         }
+
+        LocalPlaylistToolbar {
+            id: localToolbar
+            objectName: "localPlaylistActions"
+            visible: root.isLocal
+            width: parent.width
+            playlist: root.detail
+            accentColor: root.accentColor
+            accentSoftColor: root.accentSoftColor
+            showCoverActions: false
+            showDeleteAction: false
+            showRenameAction: false
+        }
     }
 
     DetailListView {
@@ -324,7 +345,7 @@ Item {
         property int dropIndex: -1
 
         header: Item {
-            width: scroll.width
+            width: Math.max(0, scroll.width - 18)
             height: content.height + 6
 
             readonly property Item slot: heroSlot
@@ -339,15 +360,6 @@ Item {
                     id: heroSlot
                     width: parent.width
                     height: root.compact ? sideColumn.height : 0
-                }
-
-                LocalPlaylistToolbar {
-                    visible: root.isLocal
-                    width: parent.width
-                    playlist: root.detail
-                    accentColor: root.accentColor
-                    accentSoftColor: root.accentSoftColor
-                    onDeleted: root.backRequested()
                 }
 
                 Text {
@@ -377,10 +389,11 @@ Item {
 
         delegate: ReorderableRow {
             id: slot
+            width: Math.max(0, scroll.width - 18)
             required property var modelData
             view: scroll
-            // Only the playlist's own order can be rearranged; a sorted view is a lens, not a list.
-            reorderable: root.isLocal && !NumaPlaylist.sortKey && !root.filterQuery.trim()
+            // Local playlists keep their order without drag-to-reorder controls.
+            reorderable: false
             accentColor: root.accentColor
             onMoveRequested: function(from, to) { NumaLocal.moveTrack(root.detail.id, from, to); }
 
@@ -388,6 +401,7 @@ Item {
                 id: trackRow
                 width: parent.width
                 track: slot.modelData
+                showLocalExtras: root.isLocal
                 trackIndex: slot.index
                 reveal: root.revealRows
                 showArtwork: true
@@ -407,7 +421,7 @@ Item {
         }
 
         footer: Item {
-            width: scroll.width
+            width: Math.max(0, scroll.width - 18)
             height: NumaPlaylist.loadingPage || NumaPlaylist.errorMessage ? 100 : emptyMessage.visible ? 88 : 16
 
             BusyIndicator {

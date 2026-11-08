@@ -112,13 +112,17 @@ Menu {
     function viewAlbum() {
         if (albumId)
             albumRequested({browseId: albumId, title: media.album || (media.type === "album" ? media.title : "")});
+        else if (isLocalSong && media.album)
+            albumRequested({type: "album", title: media.album, artist: String(media.artist || "").split(/[;,]/)[0].trim(), lookupByName: true});
     }
     function artistAt(index) {
         return {browseId: artistIds[index], type: "artist",
                 title: (media.artists || [])[index] || media.artist || media.title || ""};
     }
     function viewArtist(anchor, x, y) {
-        if (artistIds.length === 1)
+        if (isLocalSong && !artistIds.length && media.artist)
+            artistRequested({type: "artist", title: String(media.artist).split(/[;,]/)[0].trim(), lookupByName: true});
+        else if (artistIds.length === 1)
             artistRequested(artistAt(0));
         else if (artistIds.length > 1)
             root.artistChoices.popup(anchor || root.parent, x === undefined ? root.x : x, y === undefined ? root.y : y);
@@ -169,42 +173,21 @@ Menu {
         height: visible ? implicitHeight : 0
         onTriggered: NumaLocal.removeTrackById(root.media.localPlaylistId, root.media.id)
     }
-    Entry {
-        text: qsTr("Set cover…")
-        visible: root.isLocalSong
-        height: visible ? implicitHeight : 0
-        onTriggered: LocalPickers.pickCover("track", root.media.id)
-    }
+
     Entry {
         text: qsTr("Use the file's own cover")
         visible: root.isLocalSong && Boolean(root.media.hasCustomCover)
         height: visible ? implicitHeight : 0
         onTriggered: NumaLocal.clearTrackCover(root.media.id)
     }
-    Entry {
-        text: qsTr("Set lyrics…")
-        visible: root.isLocalSong
-        height: visible ? implicitHeight : 0
-        onTriggered: LocalPickers.pickLyrics(root.media.id)
-    }
+
     Entry {
         text: qsTr("Remove custom lyrics")
         visible: root.isLocalSong && Boolean(root.media.hasCustomLyrics)
         height: visible ? implicitHeight : 0
         onTriggered: NumaLocal.clearTrackLyrics(root.media.id)
     }
-    Entry {
-        text: qsTr("Remove from library")
-        visible: root.isLocalSong
-        height: visible ? implicitHeight : 0
-        onTriggered: NumaLocal.removeSong(root.media.id)
-    }
-    Entry {
-        text: qsTr("Delete playlist")
-        visible: root.isLocalPlaylist
-        height: visible ? implicitHeight : 0
-        onTriggered: NumaLocal.deletePlaylist(root.media.id)
-    }
+
     Entry {
         text: qsTr("Remove from liked songs")
         visible: root.isSong && root.likedPlaylist && !root.isLocalSong
@@ -221,7 +204,7 @@ Menu {
     }
     Entry {
         text: qsTr("View album")
-        enabled: Boolean(root.albumId) && !NumaNetwork.offline
+        enabled: (Boolean(root.albumId) || (root.isLocalSong && Boolean(root.media.album))) && !NumaNetwork.offline
         onTriggered: root.viewAlbum()
     }
     // Playlist owners are users. Nobody needs the discography of a mixtape curator.
@@ -229,7 +212,7 @@ Menu {
         text: qsTr("View artist")
         visible: !root.isPlaylist
         height: visible ? implicitHeight : 0
-        enabled: root.artistIds.length > 0 && !NumaNetwork.offline
+        enabled: (root.artistIds.length > 0 || (root.isLocalSong && Boolean(root.media.artist))) && !NumaNetwork.offline
         onTriggered: root.viewArtist()
     }
     // song.link has no artist pages, so artists get their channel. No knockoff merch here.

@@ -68,6 +68,8 @@ public:
   [[nodiscard]] DownloadManager *downloadManager() const { return m_downloads; }
   void request(const QVariantMap &track);
   Q_INVOKABLE void reload();
+  // Supplies a document to a detached controller used by background translation.
+  void setDocument(const QString &id, const QVariantMap &document) { m_active = true; apply(id, document); }
 
 signals:
   void activeChanged();

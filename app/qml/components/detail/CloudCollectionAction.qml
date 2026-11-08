@@ -1,3 +1,4 @@
+import Numa
 import ".."
 import "../settings"
 import QtQuick
@@ -14,8 +15,11 @@ Row {
     readonly property var sync: typeof NumaSync === "undefined" ? null : NumaSync
     readonly property string mediaId: String(kind === "playlist" ? media.playlistId || media.browseId || media.id || "" : media.id || media.browseId || "")
     readonly property string kind: media.type || "playlist"
-    readonly property bool saved: sync && sync.revision >= 0 && sync.isSaved(kind, mediaId)
-    visible: !!sync && mediaId.length > 0
+    readonly property bool localPlaylist: kind === "playlist" && (media.source === "local" || mediaId.startsWith("local-playlist:"))
+    readonly property bool localSaved: localPlaylist && typeof NumaLocal !== "undefined"
+        && (NumaLocal.playlists || []).some(playlist => String(playlist.id || "") === mediaId)
+    readonly property bool saved: localPlaylist ? localSaved : sync && sync.revision >= 0 && sync.isSaved(kind, mediaId)
+    visible: (localPlaylist || !!sync) && mediaId.length > 0
     spacing: buttonWidth < 40 ? 6 : 8
 
     component Action: CollectionActionButton {
@@ -64,9 +68,15 @@ Row {
 
     Action {
         objectName: "cloudLibraryButton"
+        enabled: !root.localPlaylist || root.localSaved
         glyph: root.saved ? "check" : "library-big"
         text: root.saved ? qsTr("Remove from NÜMA library") : qsTr("Save to NÜMA library")
-        onClicked: root.sync.toggleSaved(root.kind, Object.assign({}, root.media, {id: root.mediaId}))
+        onClicked: {
+            if (root.saved && root.kind === "playlist")
+                removal.open();
+            else
+                root.sync.toggleSaved(root.kind, Object.assign({}, root.media, {id: root.mediaId}));
+        }
     }
     Action {
         id: coverButton
@@ -86,21 +96,23 @@ Row {
             palette.text: NumaAppearance.textColor
             palette.windowText: NumaAppearance.textColor
             background: PopupBloomSurface { radius: 12 }
-            Entry { objectName: "playlistArtworkChange"; text: qsTr("Change artwork…"); onTriggered: chooser.open() }
+            Entry { objectName: "playlistArtworkChange"; text: qsTr("Change artwork…"); onTriggered: root.localPlaylist ? LocalPickers.pickCover("playlist", root.mediaId) : chooser.open() }
             Entry {
                 id: automaticItem
                 objectName: "playlistArtworkAutomatic"
                 text: qsTr("Automatic artwork")
                 checkable: true
-                checked: root.sync && root.sync.revision >= 0 && root.sync.automaticCover(root.mediaId)
-                onTriggered: root.sync.setAutomaticCover(root.mediaId, checked)
+                checked: root.localPlaylist ? Boolean(root.media.automaticCover)
+                    : root.sync && root.sync.revision >= 0 && root.sync.automaticCover(root.mediaId)
+                onTriggered: root.localPlaylist ? NumaLocal.setAutomaticCover(root.mediaId, checked, NumaPlayback.track)
+                    : root.sync.setAutomaticCover(root.mediaId, checked)
                 GlassToolTip { control: automaticItem; text: qsTr("Follows songs played from this playlist.") }
             }
             Entry {
                 text: qsTr("Remove artwork")
                 onTriggered: {
-                    root.sync.clearCover(root.mediaId)
-                    if (root.media.source === "local" || root.mediaId.startsWith("local-playlist:")) NumaLocal.clearPlaylistCover(root.mediaId)
+                    if (root.localPlaylist) NumaLocal.clearPlaylistCover(root.mediaId)
+                    else root.sync.clearCover(root.mediaId)
                 }
             }
 
@@ -123,15 +135,19 @@ Row {
     }
     ConfirmDialog {
         id: removal
+        objectName: "removePlaylistConfirmation"
         title: qsTr("Remove “%1” from NÜMA?").arg(root.media.title || "")
-        message: qsTr("The playlist will leave this library. Your songs and the playlist on YouTube Music are kept.")
+        message: root.localPlaylist
+            ? qsTr("This local playlist and its songs will be removed from NÜMA, including other local playlists that contain them. Your audio files will stay on this computer.")
+            : qsTr("The playlist will leave this library. Your songs and the playlist on YouTube Music are kept.")
         confirmText: qsTr("Remove")
         destructive: true
         onAccepted: {
-            const id = root.mediaId
-            const local = root.media.source === "local" || id.startsWith("local-playlist:")
-            root.sync.removePlaylist(id)
-            if (local) NumaLocal.deletePlaylist(id)
+            const id = root.mediaId;
+            if (root.localPlaylist)
+                NumaLocal.deletePlaylist(id, true);
+            else
+                root.sync.removePlaylist(id);
         }
     }
 }

@@ -153,7 +153,6 @@ Item {
         spacing: 24
         cacheBuffer: 400
         model: root.query ? root.sections.filter(section => section.items.length > 0) : root.sections
-        ScrollBar.vertical.width: 5
 
         delegate: Column {
             id: sectionColumn
@@ -266,7 +265,7 @@ Item {
         model: visible ? root.selectedSection.items : []
         cacheBuffer: 300
         bottomMargin: shelves.playerInset
-        ScrollBar.vertical: ScrollBar { width: 5; bottomPadding: shelves.playerInset }
+        ScrollBar.vertical: ThemedScrollBar { bottomPadding: shelves.playerInset }
 
         delegate: MediaCard {
             required property var modelData

@@ -36,7 +36,7 @@ ColumnLayout {
     Text {
         Layout.fillWidth: true
         text: body.title
-        color: "#f2eee7"
+        color: NumaAppearance.textColor
         font.family: "Inter"
         font.pixelSize: 17
         font.weight: Font.DemiBold
@@ -46,7 +46,7 @@ ColumnLayout {
     Text {
         Layout.fillWidth: true
         text: body.message
-        color: "#b4beb9"
+        color: NumaAppearance.mutedColor
         font.family: "Inter"
         font.pixelSize: 13
         lineHeight: 1.25
@@ -58,16 +58,17 @@ ColumnLayout {
         Layout.topMargin: 6
         spacing: 8
 
-        Item { Layout.fillWidth: true }
-
         SettingsButton {
             id: cancel
             text: qsTr("Cancel")
         }
 
+        Item { Layout.fillWidth: true }
+
         SettingsButton {
             id: confirm
             text: body.confirmText
+            highlighted: body.destructive
         }
     }
 }

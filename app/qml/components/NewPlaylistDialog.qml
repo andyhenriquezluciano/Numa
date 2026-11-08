@@ -37,15 +37,13 @@ Popup {
     readonly property bool canCreate: nameField.text.trim().length > 0
         && (root.local || !NumaLibrary.saving)
 
-    function create(thenAddSongs) {
+    function create() {
         if (!root.canCreate)
             return;
         const name = nameField.text;
         if (root.local) {
             const files = root.seedIsLocal ? [root.track.localPath] : [];
-            const id = NumaLocal.createPlaylist(name, files);
-            if (thenAddSongs)
-                LocalPickers.addSongs(id);
+            NumaLocal.createPlaylist(name, files);
         } else if (root.hasSeed) {
             NumaLibrary.createPlaylist(root.track, name);
         } else {
@@ -92,6 +90,7 @@ Popup {
 
     // One half of the source switch. A song can only live in its own kind of playlist.
     component SourceChoice: Button {
+        HandCursor {}
         id: choice
 
         property string value
@@ -103,7 +102,7 @@ Popup {
         onClicked: root.source = value
         contentItem: Text {
             text: choice.text
-            color: choice.chosen ? "#ffffff" : choice.enabled ? "#e5e8e3" : "#b0b5ae"
+            color: choice.enabled ? NumaAppearance.textColor : NumaAppearance.mutedColor
             font.family: "Inter"
             font.pixelSize: 12
             font.weight: Font.DemiBold
@@ -112,8 +111,10 @@ Popup {
         }
         background: RoundedSurfaceFrame {
             radius: 8
-            fillColor: choice.chosen ? "#26ffffff" : choice.hovered && choice.enabled ? "#22ffffff" : "#14ffffff"
-            border.color: choice.chosen || choice.activeFocus ? "#60ffffff" : "#30ffffff"
+            fillColor: NumaAppearance.rosePine ? (choice.chosen ? NumaAppearance.highlightColor : NumaAppearance.overlayColor)
+                : choice.chosen ? "#26ffffff" : choice.hovered && choice.enabled ? "#22ffffff" : "#14ffffff"
+            border.color: NumaAppearance.rosePine ? (choice.chosen || choice.activeFocus ? NumaAppearance.accentColor : "transparent")
+                : choice.chosen || choice.activeFocus ? "#60ffffff" : "#30ffffff"
         }
     }
 
@@ -122,7 +123,7 @@ Popup {
 
         Text {
             text: qsTr("New playlist")
-            color: "#f2f0eb"
+            color: NumaAppearance.textColor
             font.family: "Inter"
             font.pixelSize: 17
             font.weight: Font.DemiBold
@@ -139,7 +140,7 @@ Popup {
         Text {
             Layout.fillWidth: true
             text: root.hint()
-            color: "#d0d5cd"
+            color: NumaAppearance.mutedColor
             font.family: "Inter"
             font.pixelSize: 12
             wrapMode: Text.WordWrap
@@ -155,23 +156,27 @@ Popup {
             selectByMouse: true
             maximumLength: 150
             placeholderText: qsTr("Playlist name")
-            placeholderTextColor: "#bbc2b8"
+            placeholderTextColor: NumaAppearance.mutedColor
+            selectionColor: NumaAppearance.highlightColor
+            selectedTextColor: NumaAppearance.textColor
             color: NumaAppearance.textColor
             font.family: "Inter"
             font.pixelSize: 13
-            onAccepted: root.create(false)
+            onAccepted: root.create()
             background: RoundedSurfaceFrame {
                 radius: 10
-                fillColor: "#30101410"
-                border.color: nameField.activeFocus ? "#50ffffff" : "#20ffffff"
+                fillColor: NumaAppearance.rosePine ? NumaAppearance.overlayColor : "#30101410"
+                border.color: NumaAppearance.rosePine ? (nameField.activeFocus ? NumaAppearance.accentColor : "transparent")
+                    : nameField.activeFocus ? "#50ffffff" : "#20ffffff"
             }
         }
 
         RowLayout {
-            Layout.alignment: Qt.AlignRight
+            Layout.fillWidth: true
             spacing: 8
 
             Button {
+                HandCursor {}
                 id: cancelButton
 
                 text: qsTr("Cancel")
@@ -179,7 +184,7 @@ Popup {
                 onClicked: root.close()
                 contentItem: Text {
                     text: cancelButton.text
-                    color: "#d6d9d4"
+                    color: NumaAppearance.textColor
                     font.family: "Inter"
                     font.pixelSize: 13
                     horizontalAlignment: Text.AlignHCenter
@@ -189,43 +194,24 @@ Popup {
                     implicitWidth: 84
                     implicitHeight: 34
                     radius: 8
-                    fillColor: cancelButton.hovered ? "#22ffffff" : "#14ffffff"
+                    fillColor: NumaAppearance.rosePine ? (cancelButton.hovered ? NumaAppearance.highlightColor : NumaAppearance.overlayColor)
+                        : cancelButton.hovered ? "#22ffffff" : "#14ffffff"
                 }
             }
 
-            // Local playlists usually start from a pile of files, so offer to pick them straight away.
-            Button {
-                id: withSongsButton
-
-                visible: root.local && !root.hasSeed
-                text: qsTr("Create and add songs…")
-                enabled: root.canCreate
-                onClicked: root.create(true)
-                contentItem: Text {
-                    text: withSongsButton.text
-                    color: withSongsButton.enabled ? "#f2f4ef" : "#aab1a6"
-                    font.family: "Inter"
-                    font.pixelSize: 13
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-                background: RoundedSurfaceFrame {
-                    implicitHeight: 34
-                    implicitWidth: 168
-                    radius: 8
-                    fillColor: withSongsButton.hovered && withSongsButton.enabled ? "#22ffffff" : "#14ffffff"
-                }
-            }
+            Item { Layout.fillWidth: true }
 
             Button {
                 id: createButton
+                Layout.alignment: Qt.AlignRight
+                HandCursor {}
 
                 text: qsTr("Create")
                 enabled: root.canCreate
-                onClicked: root.create(false)
+                onClicked: root.create()
                 contentItem: Text {
                     text: createButton.text
-                    color: createButton.enabled ? "#ffffff" : "#aab1a6"
+                    color: createButton.enabled ? NumaAppearance.textColor : NumaAppearance.mutedColor
                     font.family: "Inter"
                     font.pixelSize: 13
                     font.weight: Font.DemiBold
@@ -236,7 +222,8 @@ Popup {
                     implicitWidth: 84
                     implicitHeight: 34
                     radius: 8
-                    fillColor: createButton.enabled && createButton.hovered ? "#2effffff" : "#18ffffff"
+                    fillColor: NumaAppearance.rosePine ? NumaAppearance.highlightColor
+                        : createButton.enabled && createButton.hovered ? "#2effffff" : "#18ffffff"
                 }
             }
         }

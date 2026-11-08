@@ -19,6 +19,7 @@
 
 import ".."
 import "../home"
+import "../settings"
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -106,36 +107,11 @@ Rectangle {
             }
         }
 
-        Switch {
-            id: autoplaySwitch
+        SettingsSwitch {
             objectName: "queueAutoplay"
             checked: NumaPlayback.autoplayEnabled
             Accessible.name: qsTr("Autoplay")
             onToggled: NumaPlayback.autoplayEnabled = checked
-
-            indicator: Rectangle {
-                implicitWidth: 42
-                implicitHeight: 24
-                x: autoplaySwitch.leftPadding
-                y: autoplaySwitch.topPadding + autoplaySwitch.availableHeight / 2 - height / 2
-                radius: 12
-                color: autoplaySwitch.checked ? panel.tint(panel.accentColor, 0.55) : "#26ffffff"
-                border.color: autoplaySwitch.activeFocus ? panel.primaryText : "transparent"
-                Behavior on color { ColorAnimation { duration: 150 } }
-
-                Rectangle {
-                    x: autoplaySwitch.checked ? parent.width - width - 3 : 3
-                    y: 3
-                    width: 18
-                    height: 18
-                    radius: 9
-                    color: autoplaySwitch.checked ? "#ffffff" : "#a8ada4"
-
-                    Behavior on x {
-                        NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
-                    }
-                }
-            }
         }
     }
 }

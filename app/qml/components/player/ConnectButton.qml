@@ -24,6 +24,7 @@ import QtQuick.Controls
 // qmllint disable unqualified
 Button {
     id: root
+    HandCursor {}
 
     required property Item backdrop
     property color accentColor: "white"
@@ -36,24 +37,27 @@ Button {
     implicitHeight: 32
     hoverEnabled: true
     focusPolicy: Qt.TabFocus
-    Accessible.name: qsTr("Salas Compartidas")
+    Accessible.name: qsTr("Shared rooms")
     onClicked: picker.open()
 
-    GlassToolTip { control: root; text: qsTr("Salas Compartidas"); accentColor: root.accentColor }
+    GlassToolTip { control: root; text: qsTr("Shared rooms"); accentColor: root.accentColor }
 
     background: Rectangle {
         radius: 10
         color: NumaAppearance.rosePine ? (root.linked || root.hovered || root.down ? NumaAppearance.highlightColor : "transparent") : root.linked ? Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, root.hovered ? 0.3 : 0.2)
                            : root.hovered ? "#1fffffff" : "transparent"
         border.width: 1
-        border.color: root.activeFocus ? root.focusColor : "transparent"
+        border.color: root.activeFocus ? (NumaAppearance.rosePine ? NumaAppearance.accentColor : root.focusColor) : "transparent"
 
-        Behavior on color { ColorAnimation { duration: 90 } }
+        Behavior on color {
+            enabled: !NumaAppearance.rosePine
+            ColorAnimation { duration: 90 }
+        }
     }
 
     contentItem: LucideIcon {
         name: "circle-user-round"
-        color: NumaAppearance.rosePine ? (root.linked || root.hovered || root.down ? NumaAppearance.highlightColor : "transparent") : root.linked ? root.accentColor : root.controlColor
+        color: root.linked ? root.accentColor : root.controlColor
         implicitWidth: 17
         implicitHeight: 17
     }

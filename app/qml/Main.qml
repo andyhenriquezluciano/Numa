@@ -45,6 +45,39 @@ Window {
             mainWindow.showMaximized();
     }
 
+    function requestFullscreenVisibility(targetVisibility) {
+        if (modeTransitionActive || targetVisibility === visibility)
+            return;
+        if (targetVisibility === Window.FullScreen)
+            enterFullscreenTransition.restart();
+        else if (visibility === Window.FullScreen)
+            NumaWindowState.leavePlayerFullScreen(targetVisibility !== Window.Windowed);
+        else if (targetVisibility === Window.Windowed)
+            showNormal();
+        else
+            showMaximized();
+    }
+
+    property real fullscreenContentScale: 1
+    SequentialAnimation {
+        id: enterFullscreenTransition
+        ScriptAction {
+            script: {
+                mainWindow.modeTransitionActive = true;
+                mainWindow.fullscreenContentScale = 0.992;
+                mainWindow.showFullScreen();
+            }
+        }
+        NumberAnimation {
+            target: mainWindow
+            property: "fullscreenContentScale"
+            to: 1
+            duration: 220
+            easing.type: Easing.OutCubic
+        }
+        ScriptAction { script: mainWindow.modeTransitionActive = false }
+    }
+
     function setCompactMode(compact) {
         NumaWindowState.setCompactFrame(compact);
         if (compact)
@@ -262,6 +295,12 @@ Window {
 
     Item {
         id: contentArea
+        transform: Scale {
+            origin.x: contentArea.width / 2
+            origin.y: contentArea.height / 2
+            xScale: mainWindow.fullscreenContentScale
+            yScale: mainWindow.fullscreenContentScale
+        }
 
         anchors.fill: parent
 

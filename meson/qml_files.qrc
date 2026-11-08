@@ -15,6 +15,7 @@
     <file alias="app/qml/components/settings/AppearanceSlider.qml">../app/qml/components/settings/AppearanceSlider.qml</file>
     <file alias="app/qml/components/settings/AudioEngineSection.qml">../app/qml/components/settings/AudioEngineSection.qml</file>
     <file alias="app/qml/components/settings/PlaybackSection.qml">../app/qml/components/settings/PlaybackSection.qml</file>
+    <file alias="app/qml/components/settings/LocalMediaDownloadOptions.qml">../app/qml/components/settings/LocalMediaDownloadOptions.qml</file>
     <file alias="app/qml/components/settings/DownloadsSection.qml">../app/qml/components/settings/DownloadsSection.qml</file>
     <file alias="app/qml/components/settings/LyricTranslationSettings.qml">../app/qml/components/settings/LyricTranslationSettings.qml</file>
     <file alias="app/qml/components/settings/ConfirmDialog.qml">../app/qml/components/settings/ConfirmDialog.qml</file>
@@ -96,6 +97,12 @@
     <file alias="app/qml/components/PlaylistPicker.qml">../app/qml/components/PlaylistPicker.qml</file>
     <file alias="app/qml/components/PlaylistActions.qml">../app/qml/components/PlaylistActions.qml</file>
     <file alias="app/qml/components/DetailListView.qml">../app/qml/components/DetailListView.qml</file>
+    <file alias="app/qml/components/ThemedScrollBar.qml">../app/qml/components/ThemedScrollBar.qml</file>
+    <file alias="app/qml/components/HoverTint.qml">../app/qml/components/HoverTint.qml</file>
+    <file alias="app/qml/components/HandCursor.qml">../app/qml/components/HandCursor.qml</file>
+    <file alias="app/qml/components/PlaylistArtwork.qml">../app/qml/components/PlaylistArtwork.qml</file>
+    <file alias="app/qml/components/QueueScrollFollow.qml">../app/qml/components/QueueScrollFollow.qml</file>
+    <file alias="app/qml/components/QueueListModel.qml">../app/qml/components/QueueListModel.qml</file>
     <file alias="app/qml/components/WheelGlide.qml">../app/qml/components/WheelGlide.qml</file>
     <file alias="app/qml/components/ScrollWheelHandler.qml">../app/qml/components/ScrollWheelHandler.qml</file>
     <file alias="app/qml/components/FlickableWheel.qml">../app/qml/components/FlickableWheel.qml</file>

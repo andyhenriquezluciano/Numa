@@ -23,6 +23,7 @@ import QtQuick.Layouts
 import ".."
 
 Button {
+    HandCursor {}
     id: root
     property string heading
     property string message

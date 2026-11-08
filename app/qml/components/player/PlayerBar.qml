@@ -82,6 +82,18 @@ Item {
 
     readonly property real volumeLevel: NumaHome.volume
 
+    property real lastAudibleVolume: volumeLevel > 0.001 ? volumeLevel : 1
+    onVolumeLevelChanged: if (volumeLevel > 0.001) lastAudibleVolume = volumeLevel
+
+    function toggleMute() {
+        if (volumeLevel > 0.001) {
+            lastAudibleVolume = volumeLevel;
+            setVolumeLevel(0);
+        } else {
+            setVolumeLevel(lastAudibleVolume);
+        }
+    }
+
     function setVolumeLevel(value) {
         NumaHome.volume = value;
     }
@@ -132,12 +144,11 @@ Item {
         return parts.join(" · ");
     }
 
-    // Files from this computer always say what they are, e.g. "FLAC · 1411 kbps",
-    // using the bitrate the decoder reports. No setting needed; there is no stream to hide.
+    // Local format stays visible; its bitrate follows the same setting as streams.
     function localLabel(track) {
         if (!track || String(track.id || "").indexOf("local:") !== 0)
             return "";
-        const rate = root.formatBitrate(NumaPlayback.bitrate);
+        const rate = NumaAppearance.showBitrate ? root.formatBitrate(NumaPlayback.bitrate) : "";
         const codec = track.codec ? String(track.codec).toUpperCase() : "";
         return [codec, rate ? rate + " kbps" : ""].filter(Boolean).join(" · ");
     }

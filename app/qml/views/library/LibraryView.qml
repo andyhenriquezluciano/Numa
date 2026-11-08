@@ -65,10 +65,13 @@ Item {
         if (key === "localSongs")
             return { items: NumaLocal.songs };
         const section = (NumaHome.librarySections || []).find(section => section.key === key) || {};
-        const cloud = typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.section(key) : [];
+        const isLocalPlaylist = item => item.source === "local" || String(item.id || item.playlistId || item.browseId || "").startsWith("local-playlist:");
+        const cloud = (typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.section(key) : [])
+            .filter(item => key !== "playlists" || !isLocalPlaylist(item));
         const normalized = id => key === "playlists" ? String(id || "").replace(/^VL/, "").replace(/^LM$/, "FEmusic_liked_videos") : id;
         const ids = new Set(cloud.map(item => normalized(item.id)));
         const native = (section.items || []).filter(item => {
+            if (key === "playlists" && isLocalPlaylist(item)) return false;
             const id = item.id || item.playlistId || item.browseId || "";
             if (ids.has(normalized(id))) return false;
             if (typeof NumaSync === "undefined") return true;
@@ -256,7 +259,6 @@ Item {
         spacing: 24
         cacheBuffer: 400
         model: root.shelfSections
-        ScrollBar.vertical.width: 5
 
         delegate: Column {
             id: sectionColumn
@@ -265,7 +267,7 @@ Item {
             // Shelves peek at the start; See all opens the full category.
             readonly property var shelfSection: ({ key: modelData.key, title: modelData.title,
                                                     items: modelData.items.slice(0, shelfLimit) })
-            width: shelves.width
+            width: Math.max(0, shelves.width - 18)
             spacing: 12
 
             ShelfView {
@@ -365,12 +367,14 @@ Item {
         boundsBehavior: Flickable.StopAtBounds
         readonly property string presentation: root.isPlaylists(root.filter) ? "playlist" : "album"
         readonly property int cardWidth: presentation === "playlist" ? 178 : 158
-        cellWidth: width / Math.max(1, Math.floor(width / (cardWidth + 14)))
+        cellWidth: (width - 18) / Math.max(1, Math.floor((width - 18) / (cardWidth + 14)))
         cellHeight: (presentation === "playlist" ? 242 : 210) + 14
         model: visible ? root.selectedSection.items : []
         cacheBuffer: 300
         bottomMargin: shelves.playerInset
-        ScrollBar.vertical: ScrollBar { width: 5; bottomPadding: shelves.playerInset }
+        ScrollBar.vertical: ThemedScrollBar {
+            bottomPadding: shelves.playerInset
+        }
 
         delegate: MediaCard {
             required property var modelData

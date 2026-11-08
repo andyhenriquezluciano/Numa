@@ -22,6 +22,7 @@
 #include "local_store.h"
 
 #include <QSet>
+#include <functional>
 
 namespace local {
 
@@ -36,7 +37,8 @@ struct ImportResult {
 
 // Expands folders, drops non-audio, probes new files and extracts their covers.
 // `known` holds ids already in the library, which are not probed again.
-ImportResult importPaths(const QStringList &paths, const QSet<QString> &known, const QString &coversDir);
+ImportResult importPaths(const QStringList &paths, const QSet<QString> &known, const QString &coversDir,
+                         const std::function<void(int, int)> &progress = {});
 
 struct CoverResult {
   bool ok{false};

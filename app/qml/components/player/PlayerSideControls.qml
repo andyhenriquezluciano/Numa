@@ -35,6 +35,7 @@ RowLayout {
 
     Button {
         id: videoButton
+        HandCursor {}
 
         // NumaMusicVideo is supplied as a QQmlContext property by main.cpp.
         // qmllint disable unqualified
@@ -75,15 +76,17 @@ RowLayout {
 
     Button {
         id: volumeButton
+        HandCursor {}
 
         implicitWidth: bar.controlSize
         implicitHeight: bar.controlSize
         hoverEnabled: true
         focusPolicy: Qt.TabFocus
-        Accessible.name: qsTr("Volume")
-        onClicked: {
-            if (bar.canopy || bar.compact)
-                volumePopup.visible ? volumePopup.close() : volumePopup.open();
+        Accessible.name: bar.volumeLevel <= 0.001 ? qsTr("Unmute") : qsTr("Mute")
+        onClicked: bar.toggleMute()
+        TapHandler {
+            acceptedButtons: Qt.RightButton
+            onTapped: if (bar.canopy || bar.compact) volumePopup.visible ? volumePopup.close() : volumePopup.open()
         }
 
         GlassToolTip { control: volumeButton; text: volumeButton.Accessible.name; accentColor: bar.accentColor }
@@ -176,6 +179,7 @@ RowLayout {
 
     Button {
         id: compactButton
+        HandCursor {}
 
         implicitWidth: bar.controlSize
         implicitHeight: bar.controlSize
@@ -203,6 +207,7 @@ RowLayout {
 
     Button {
         id: queueButton
+        HandCursor {}
 
         implicitWidth: bar.controlSize
         implicitHeight: bar.controlSize

@@ -63,6 +63,7 @@ public:
   Q_INVOKABLE void openAlbum(const QVariantMap &item);
   Q_INVOKABLE void retry();
   Q_INVOKABLE void clear();
+  void setDescriptionLanguage(const QString &language);
 
 signals:
   void stateChanged();
@@ -71,6 +72,7 @@ signals:
 private:
   void updateAnimatedArtwork();
   void updateStreamQuality();
+  void receiveSearch(quint64 requestId, const QJsonObject &search);
   void receiveAlbum(quint64 requestId, const QJsonObject &album);
   void receiveFailure(quint64 requestId, const QString &message);
   void requestArtwork(const QString &url);
@@ -78,6 +80,8 @@ private:
   void applyAudioDbArtist(const AudioDbArtist &artist);
   void sampleArtwork(QByteArray bytes);
   void cancelArtwork();
+  void updateDescription();
+  void cancelDescription();
   static QVariantMap defaultPalette();
 
   const bool m_artistMode;
@@ -86,12 +90,17 @@ private:
   QNetworkAccessManager m_network;
   QNetworkReply *m_artworkReply{nullptr};
   QNetworkReply *m_artistArtworkReply{nullptr};
+  QNetworkReply *m_descriptionReply{nullptr};
+  QString m_descriptionLanguage{QStringLiteral("en")};
+  QString m_originalDescription;
+  QCache<QString, QString> m_descriptionCache{64};
   QCache<QString, AudioDbArtist> m_artistArtworkCache{64};
   QVariantMap m_pendingItem;
   QVariantMap m_detail;
   QVariantMap m_palette;
   QString m_errorMessage;
   quint64 m_requestId{0};
+  quint64 m_lookupRequest{0};
   quint64 m_artworkGeneration{0};
   bool m_loading{false};
   bool m_artworkLoading{false};

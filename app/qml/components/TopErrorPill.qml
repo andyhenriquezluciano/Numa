@@ -49,15 +49,15 @@ Item {
         width: label.width + 40
         height: label.height + 20
         radius: height / 2
-        fillColor: root.pillColor
-        border.color: "#45ffffff"
+        fillColor: NumaAppearance.rosePine ? NumaAppearance.overlayColor : root.pillColor
+        border.color: NumaAppearance.rosePine ? NumaAppearance.accentColor : "#45ffffff"
         softGlow: true
 
         Text {
             id: label
             anchors.centerIn: parent
             text: root.text
-            color: root.textColor
+            color: NumaAppearance.rosePine ? NumaAppearance.textColor : root.textColor
             font.family: "Inter"
             font.pixelSize: 13
             font.weight: Font.Medium

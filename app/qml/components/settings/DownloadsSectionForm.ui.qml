@@ -85,6 +85,8 @@ ColumnLayout {
         }
     }
 
+    LocalMediaDownloadOptions {}
+
     SettingsSection {
         Layout.fillWidth: true
         title: qsTr("Storage")

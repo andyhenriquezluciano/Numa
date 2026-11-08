@@ -51,7 +51,7 @@ public:
     Q_INVOKABLE void setCover(const QString &id, const QUrl &url);
     Q_INVOKABLE void clearCover(const QString &id);
     Q_INVOKABLE void setAutomaticCover(const QString &id, bool enabled);
-    Q_INVOKABLE QString artworkFor(const QString &id, const QString &fallback) const;
+    Q_INVOKABLE QString artworkFor(const QString &id, const QString &fallback, bool includeDefault = true) const;
 signals:
     void changed();
     void playlistRemoved(const QString &id);

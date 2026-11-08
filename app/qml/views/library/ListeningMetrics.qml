@@ -104,12 +104,17 @@ ScrollView {
                         width: group.width
                         height: 64
                         radius: 10
-                        color: pointer.containsMouse ? "#16ffffff" : "transparent"
+                        color: pointer.containsMouse ? (NumaAppearance.theme === "rose_pine_dawn" ? "#ede8e4" : "#16ffffff") : "transparent"
                         Text { x: 12; anchors.verticalCenter: parent.verticalCenter; text: entry.index + 1; color: NumaAppearance.accentColor; font.bold: true }
                         RoundedArtwork {
                             id: portrait
                             x: 40; anchors.verticalCenter: parent.verticalCenter
                             width: 46; height: 46; radius: group.modelData.key === "artists" ? 23 : 8
+                            fallbackSources: {
+                                const id = String(entry.modelData.id || "");
+                                return group.modelData.key === "tracks" && /^[A-Za-z0-9_-]{11}$/.test(id)
+                                    ? ["https://i.ytimg.com/vi/" + id + "/mqdefault.jpg"] : [];
+                            }
                             source: {
                                 const revision = NumaSync.revision;
                                 if (group.modelData.key === "artists")
@@ -119,7 +124,7 @@ ScrollView {
                                     return artwork;
                                 const id = String(entry.modelData.id || "");
                                 return group.modelData.key === "tracks" && /^[A-Za-z0-9_-]{11}$/.test(id)
-                                    ? "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg" : "";
+                                    ? "https://i.ytimg.com/vi/" + id + "/mqdefault.jpg" : "";
                             }
                         }
                         Text {

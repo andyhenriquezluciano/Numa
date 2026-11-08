@@ -20,11 +20,21 @@
 import Numa
 import QtQuick
 import QtQuick.Window
+import ".."
 
 Item {
     id: root
 
     property url source: ""
+    property var fallbackSources: []
+    property int sourceAttempt: 0
+    readonly property var candidates: {
+        const values = [root.sizedSource(root.source), root.source.toString()];
+        for (const value of root.fallbackSources) {
+            if (value) values.push(root.sizedSource(value), value.toString());
+        }
+        return values.filter((value, index) => value.length > 0 && values.indexOf(value) === index);
+    }
     property real radius: 10
     // Square bottom corners let a card footer sit flush under the cover.
     property real bottomRadius: radius
@@ -35,6 +45,7 @@ Item {
     readonly property bool hasImage: image.status === Image.Ready && image.opacity > 0
 
     onSourceChanged: {
+        sourceAttempt = 0;
         retryTimer.stop();
         if (root.source.toString() !== root.shownSource.toString()) {
             fadeIn.stop();
@@ -55,10 +66,11 @@ Item {
 
     function reload() {
         if (root.source.toString().length > 0) {
+            root.sourceAttempt = 0;
             image.source = "";
             Qt.callLater(() => {
                 if (root && image)
-                    image.source = Qt.binding(() => root.sizedSource(root.source));
+                    image.source = Qt.binding(() => root.candidates[root.sourceAttempt] || "");
             });
         }
     }
@@ -88,16 +100,24 @@ Item {
         radius: root.radius
         bottomLeftRadius: root.bottomRadius
         bottomRightRadius: root.bottomRadius
-        color: "#252a2c"
+        color: NumaAppearance.overlayColor
         antialiasing: true
-        visible: (image.status !== Image.Ready || image.opacity < 1) && root.source.toString().length > 0
+        visible: image.status !== Image.Ready || image.opacity < 1
+        LucideIcon {
+            anchors.centerIn: parent
+            width: Math.min(parent.width, parent.height) * 0.45
+            height: width
+            name: "music-2"
+            color: NumaAppearance.mutedColor
+            visible: image.status === Image.Error || image.status === Image.Null
+        }
     }
 
     Image {
         id: image
 
         anchors.fill: parent
-        source: root.sizedSource(root.source)
+        source: root.candidates[root.sourceAttempt] || ""
         asynchronous: true
         fillMode: Image.PreserveAspectCrop
         sourceSize.width: root.artworkPixels
@@ -113,7 +133,9 @@ Item {
                     fadeIn.restart();
                 root.shownSource = root.source;
             } else if (status === Image.Error) {
-                if (!NumaNetwork.offline)
+                if (root.sourceAttempt + 1 < root.candidates.length)
+                    root.sourceAttempt += 1;
+                else if (!NumaNetwork.offline)
                     retryTimer.start();
             } else if (root.source.toString() !== root.shownSource.toString()) {
                 fadeIn.stop();

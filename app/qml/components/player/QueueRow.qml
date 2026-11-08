@@ -31,24 +31,29 @@ Item {
 
     required property var modelData
     required property int index
+    property bool dragPreview: false
     // Continuous layout rows before the queue are played songs, then the current song.
     readonly property bool previous: index < panel.history.length
     readonly property bool current: !previous && index < panel.leading
     readonly property int queueIndex: index - panel.leading
-    readonly property string sectionLabel: !panel.continuous ? ""
+    readonly property string sectionLabel: dragPreview || !panel.continuous ? ""
         : index === 0 && previous ? qsTr("PLAYED")
         : current ? qsTr("NOW PLAYING")
         : queueIndex === 0 ? qsTr("UP NEXT") : ""
     readonly property int headerHeight: sectionLabel ? 26 : 0
-    readonly property bool hot: song.hovered || song.activeFocus || handleArea.containsMouse || removeBtn.hovered
+    readonly property bool hot: dragPreview || song.hovered || song.activeFocus || handleArea.containsMouse || removeBtn.hovered
     readonly property bool mixingIn: NumaPlayback.crossfadeActive && queueIndex === 0
                                      && modelData.id === NumaPlayback.transitionTrack.id
     // Rows cascade in behind the panel slide; later rows wait their turn.
-    readonly property real enter: Math.max(0, Math.min(1, panel.reveal * 2.2 - Math.min(index, 10) * 0.12))
+    readonly property real enter: dragPreview ? 1 : Math.max(0, Math.min(1, panel.reveal * 2.2 - Math.min(index, 10) * 0.12))
 
     width: list.width
     height: 56 + headerHeight
-    opacity: (panel.dragIndex === queueIndex ? 0.35 : 1.0) * enter * (previous ? 0.6 : 1.0)
+    opacity: dragPreview ? 1 : (panel.dragIndex === queueIndex ? 0.35 : 1.0) * enter * (previous ? 0.6 : 1.0)
+    Behavior on opacity {
+        enabled: !rowItem.dragPreview && rowItem.panel.reveal >= 0.999
+        NumberAnimation { duration: 160; easing.type: Easing.OutCubic }
+    }
     transform: Translate { y: (1 - rowItem.enter) * 14 }
 
     Text {
@@ -76,7 +81,7 @@ Item {
         height: 2
         color: panel.accentColor
         radius: 1
-        visible: panel.dragIndex >= 0 && panel.dropIndex === rowItem.queueIndex
+        visible: !rowItem.dragPreview && panel.dragIndex >= 0 && panel.dropIndex === rowItem.queueIndex
         z: 5
     }
 
@@ -86,16 +91,25 @@ Item {
         radius: 12
         softGlow: rowItem.hot || rowItem.current || rowItem.queueIndex === 0 || song.activeFocus
         showBorder: softGlow
-        fillColor: rowItem.current ? panel.tint(panel.accentColor, rowItem.hot ? 0.22 : 0.14)
+        fillColor: NumaAppearance.theme === "rose_pine_dawn" ? (rowItem.current ? NumaAppearance.highlightColor
+                 : rowItem.hot ? "#ede8e4" : rowItem.queueIndex === 0 ? NumaAppearance.overlayColor : "transparent")
+                 : rowItem.current ? panel.tint(panel.accentColor, rowItem.hot ? 0.22 : 0.14)
                  : rowItem.queueIndex === 0 ? panel.tint(panel.accentColor, rowItem.hot ? 0.14 : 0.08)
                  : rowItem.hot ? "#16ffffff" : "transparent"
-        border.color: song.activeFocus ? panel.accentColor
+        border.color: NumaAppearance.theme === "rose_pine_dawn" ? (showBorder ? NumaAppearance.borderColor : "transparent")
+                    : song.activeFocus ? panel.accentColor
                     : rowItem.current ? panel.tint(panel.accentColor, rowItem.hot ? 0.52 : 0.34)
                     : rowItem.queueIndex === 0 ? panel.tint(panel.accentColor, rowItem.hot ? 0.36 : 0.22)
                     : rowItem.hot ? "#32ffffff" : "transparent"
         glowColor: (rowItem.current || rowItem.queueIndex === 0) ? panel.accentColor : "#ffffff"
-        Behavior on fillColor { ColorAnimation { duration: 120 } }
-        Behavior on border.color { ColorAnimation { duration: 120 } }
+        Behavior on fillColor {
+            enabled: NumaAppearance.theme !== "rose_pine_dawn"
+            ColorAnimation { duration: 120 }
+        }
+        Behavior on border.color {
+            enabled: NumaAppearance.theme !== "rose_pine_dawn"
+            ColorAnimation { duration: 120 }
+        }
     }
 
     RowLayout {
@@ -152,9 +166,12 @@ Item {
                 onReleased: {
                     const from = panel.dragIndex;
                     const to = panel.dropIndex;
+                    const follow = panel.scrollFollow;
+                    follow.preserve();
                     panel.dragIndex = -1;
                     panel.dropIndex = -1;
                     NumaPlayback.moveQueueItem(from, to);
+                    follow.restore();
                 }
                 onCanceled: {
                     panel.dragIndex = -1;
@@ -165,11 +182,12 @@ Item {
 
         Button {
             id: song
+            HandCursor {}
             objectName: "queuedSong"
             Layout.fillWidth: true
             Layout.fillHeight: true
             enabled: !NumaPlayback.loading && !rowItem.current
-            onClicked: rowItem.previous ? NumaPlayback.playHistoryIndex(rowItem.index)
+            onClicked: rowItem.previous ? NumaPlayback.playHistoryIndex(panel.historyOffset + rowItem.index)
                                         : NumaPlayback.playQueueIndex(rowItem.queueIndex)
             Accessible.name: qsTr("Play %1").arg(rowItem.modelData.title)
             background: Item {}
@@ -295,32 +313,22 @@ Item {
                 Behavior on opacity { NumberAnimation { duration: 120 } }
             }
 
-            Button {
+            FullscreenIconButton {
                 id: removeBtn
                 objectName: "removeQueuedSong"
                 anchors.centerIn: parent
                 visible: rowItem.queueIndex >= 0
-                implicitWidth: 28
-                implicitHeight: 28
-                Accessible.name: qsTr("Remove %1 from queue").arg(rowItem.modelData.title)
+                implicitWidth: 32
+                implicitHeight: 32
+                glyph: "x"
+                glyphSize: 16
+                accentColor: panel.accentColor
+                primaryText: panel.primaryText
+                secondaryText: panel.mutedText
+                ToolTip.text: qsTr("Remove %1 from queue").arg(rowItem.modelData.title || "")
                 onClicked: NumaPlayback.removeFromQueue(rowItem.queueIndex)
                 opacity: rowItem.hot || removeBtn.activeFocus ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 120 } }
-
-                background: Rectangle {
-                    radius: height / 2
-                    color: removeBtn.down ? "#4a2622" : removeBtn.hovered ? "#3a201d" : "transparent"
-                    border.color: removeBtn.activeFocus ? "#e6a197" : "transparent"
-                }
-                contentItem: Item {
-                    LucideIcon {
-                        anchors.centerIn: parent
-                        width: 14
-                        height: 14
-                        name: "x"
-                        color: removeBtn.hovered ? "#e6a197" : panel.secondaryText
-                    }
-                }
             }
         }
     }

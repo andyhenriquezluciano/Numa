@@ -26,6 +26,7 @@ import "../home"
 // One song in an album or playlist. Must stay cheap: playlists run into the thousands.
 ItemDelegate {
     id: root
+    HandCursor {}
 
     property var track: ({})
     property int trackIndex: 0
@@ -40,6 +41,7 @@ ItemDelegate {
     property string removablePlaylistId: ""
     property string removablePlaylistTitle: ""
     property bool likedPlaylist: false
+    property bool showLocalExtras: false
     property color accentColor: "#b79bed"
     property color accentSoftColor: "#c4a7e7"
     readonly property color rowAccent: NumaAppearance.rosePine ? NumaAppearance.borderColor : root.accentColor
@@ -86,6 +88,7 @@ ItemDelegate {
         softGlow: root.current || root.hovered || trackMenu.visible || root.searchMatch
         showBorder: softGlow || root.activeFocus
         fillColor: NumaAppearance.rosePine ? (root.current || root.searchMatch ? NumaAppearance.highlightColor
+                 : NumaAppearance.theme === "rose_pine_dawn" ? (root.hovered || trackMenu.visible ? "#ede8e4" : "transparent")
                  : root.tint(NumaAppearance.textColor, (root.hovered || trackMenu.visible) ? 0.08 : 0.0))
                  : root.searchMatch ? root.tint(root.rowAccent, 0.3)
                  : root.current ? root.tint(root.rowAccent, (root.hovered || trackMenu.visible) ? 0.22 : 0.14)
@@ -96,7 +99,10 @@ ItemDelegate {
                     : root.current ? root.tint(root.rowAccentSoft, (root.hovered || trackMenu.visible) ? 0.52 : 0.34)
                     : (root.hovered || trackMenu.visible) ? "#32ffffff" : "transparent"
         glowColor: root.current ? root.rowAccentSoft : "#ffffff"
-        Behavior on fillColor { ColorAnimation { duration: 110 } }
+        Behavior on fillColor {
+            enabled: NumaAppearance.theme !== "rose_pine_dawn"
+            ColorAnimation { duration: 110 }
+        }
         Behavior on border.color { ColorAnimation { duration: 110 } }
     }
 
@@ -188,7 +194,8 @@ ItemDelegate {
                 Text {
                     width: Math.min(implicitWidth, parent.width - (badge.visible ? badge.width + 6 : 0)
                                     - (slopBadge.visible ? slopBadge.width + 6 : 0)
-                                    - (downloadedIcon.visible ? downloadedIcon.width + 6 : 0))
+                                    - (downloadedIcon.visible ? downloadedIcon.width + 6 : 0)
+                                    - (localLyricsIcon.visible ? 20 : 0) - (localArtworkIcon.visible ? 20 : 0))
                     text: root.track.title || qsTr("Untitled track")
                     color: root.current ? root.rowAccentSoft : NumaAppearance.textColor
                     font.family: "Inter"
@@ -200,13 +207,43 @@ ItemDelegate {
                     id: badge
                     visible: Boolean(root.track.explicit)
                     anchors.verticalCenter: parent.verticalCenter
-                    color: "#26ffffff"
-                    textColor: "#d6d9d4"
                 }
                 SlopBadge {
                     id: slopBadge
                     trackId: root.track.id || ""
                     anchors.verticalCenter: parent.verticalCenter
+                }
+                LucideIcon {
+                    id: localLyricsIcon
+                    objectName: "localLyricsBadge"
+                    visible: root.showLocalExtras && Boolean(root.track.hasDownloadedLyrics)
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: "music-2"
+                    width: 14; height: 14
+                    color: NumaAppearance.accentColor
+                    HoverHandler { id: lyricsHover }
+                    GlassToolTip {
+                        control: localLyricsIcon
+                        visible: lyricsHover.hovered
+                        text: qsTr("Downloaded lyrics")
+                    }
+                    Accessible.name: qsTr("Downloaded lyrics")
+                }
+                LucideIcon {
+                    id: localArtworkIcon
+                    objectName: "localArtworkBadge"
+                    visible: root.showLocalExtras && Boolean(root.track.hasDownloadedArtwork)
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: "sparkles"
+                    width: 14; height: 14
+                    color: NumaAppearance.accentColor
+                    HoverHandler { id: artworkHover }
+                    GlassToolTip {
+                        control: localArtworkIcon
+                        visible: artworkHover.hovered
+                        text: qsTr("Downloaded animated artwork")
+                    }
+                    Accessible.name: qsTr("Downloaded animated artwork")
                 }
                 // Saved on this computer, so it plays without a connection.
                 LucideIcon {
@@ -275,6 +312,7 @@ ItemDelegate {
 
         ToolButton {
             id: moreButton
+            HandCursor {}
             x: parent.width - 8 - width
             width: 36
             height: 36
@@ -284,10 +322,7 @@ ItemDelegate {
             Behavior on opacity { NumberAnimation { duration: 110 } }
             Accessible.name: qsTr("More options for %1").arg(root.track.title || qsTr("track"))
             onClicked: trackMenu.popup(moreButton, 0, moreButton.height)
-            background: Rectangle {
-                radius: width / 2
-                color: moreButton.hovered ? "#1fffffff" : "transparent"
-            }
+            background: Item {}
             contentItem: LucideIcon { name: "ellipsis"; color: NumaAppearance.textColor }
         }
     }

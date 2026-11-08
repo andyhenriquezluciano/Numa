@@ -7,6 +7,7 @@ import ".."
 
 Button {
     id: control
+    HandCursor {}
     property string glyph
     property color accentColor: NumaAppearance.accentColor
     property color glyphColor: NumaAppearance.textColor

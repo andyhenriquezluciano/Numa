@@ -70,6 +70,9 @@ QStringList LocalLibrary::lyricsNameFilters() const {
 }
 
 QString LocalLibrary::pathFrom(const QVariant &file) {
+  // A Windows drive letter is a path, not a URL scheme.
+  if (file.userType() != QMetaType::QUrl && QDir::isAbsolutePath(file.toString()))
+    return file.toString();
   const QUrl url = file.userType() == QMetaType::QUrl ? file.toUrl() : QUrl(file.toString());
   if (url.isLocalFile())
     return url.toLocalFile();
@@ -216,17 +219,27 @@ void LocalLibrary::setPlaylistDescription(const QString &id, const QString &desc
   commit(id);
 }
 
-void LocalLibrary::deletePlaylist(const QString &id) {
+void LocalLibrary::deletePlaylist(const QString &id, bool removeSongs) {
   for (qsizetype i = 0; i < m_store.playlists.size(); ++i) {
     if (m_store.playlists.at(i).id != id)
       continue;
     const PlaylistRecord removed = m_store.playlists.takeAt(i);
+    if (removeSongs) {
+      // Remove library references only; audio and sidecar files belong to the user.
+      for (const QString &trackId : removed.trackIds) {
+        m_store.tracks.remove(trackId);
+        m_store.trackOrder.removeAll(trackId);
+        for (PlaylistRecord &playlist : m_store.playlists)
+          playlist.trackIds.removeAll(trackId);
+      }
+    }
     dropCoverFiles(removed.coverPath, removed.animatedPath);
     if (!removed.collagePath.isEmpty())
       QFile::remove(removed.collagePath);
     if (m_openId == id)
       m_openId.clear();
     commit();
+    emit playlistDeleted(id);
     return;
   }
 }

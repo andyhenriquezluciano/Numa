@@ -8,7 +8,7 @@ Flickable {
     // Room to scroll the last row out from under the floating player.
     readonly property real playerInset: Window.window && Window.window.playerInset !== undefined ? Window.window.playerInset : 0
     bottomMargin: playerInset
-    ScrollBar.vertical: ScrollBar {
+    ScrollBar.vertical: ThemedScrollBar {
         bottomPadding: root.playerInset
         onPressedChanged: if (pressed) wheelAnimation.stop()
     }

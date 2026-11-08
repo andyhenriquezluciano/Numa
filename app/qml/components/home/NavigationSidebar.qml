@@ -26,7 +26,13 @@ Item {
     id: root
     function visiblePlaylists(items) {
         const cloud = typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.section("playlists") : [];
-        const merged = items.concat(cloud.filter(c => !items.some(p => root.samePlaylist(p, c))));
+        // Local playlist records on this device are authoritative; synced metadata
+        // must not resurrect a deleted playlist or substitute an incomplete copy.
+        const deviceLocal = (typeof NumaLocal !== "undefined" ? NumaLocal.playlists || [] : [])
+            .concat(items.filter(p => p.source === "local"));
+        const available = item => !(item.source === "local" || root.playlistIdentity(item).startsWith("local-playlist:"))
+            || deviceLocal.some(p => root.samePlaylist(p, item));
+        const merged = items.filter(available).concat(cloud.filter(c => available(c) && !items.some(p => root.samePlaylist(p, c))));
         const unique = merged.filter((p, index) => merged.findIndex(other => root.samePlaylist(p, other)) === index);
         return typeof NumaSync !== "undefined" ? NumaSync.visiblePlaylists(unique) : unique;
     }
@@ -171,6 +177,7 @@ Item {
 
             Button {
                 id: nav
+                HandCursor {}
 
                 required property var modelData
 
@@ -230,6 +237,7 @@ Item {
         // Opens the YouTube-or-local chooser. The dialog destroys itself on close.
         Button {
             id: newPlaylistButton
+            HandCursor {}
 
             width: parent.width
             height: 38
@@ -300,11 +308,10 @@ Item {
                     return p.title !== "New playlist";
                 }))).slice().sort((a, b) => root.playlistRank(a) - root.playlistRank(b))
 
-            ScrollBar.vertical: ScrollBar {
-                width: 3
-            }
+            ScrollBar.vertical: ThemedScrollBar {}
 
             delegate: Button {
+                HandCursor {}
                 id: shortcut
 
                 required property var modelData
@@ -318,7 +325,7 @@ Item {
                         || title === "liked music" || title === "your likes"
                         || title.indexOf("gusta") !== -1;
                 }
-                readonly property string artworkOverride: typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.artworkFor(root.playlistIdentity(modelData), "") : ""
+                readonly property string artworkOverride: !String(modelData.id || "").startsWith("local-playlist:") && modelData.source !== "local" && typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.artworkFor(root.playlistIdentity(modelData), "", false) : ""
                 readonly property string artworkUrl: {
                     if (shortcut.artworkOverride) return shortcut.artworkOverride;
                     if (shortcut.modelData.thumbnail)
@@ -333,6 +340,7 @@ Item {
                 // The playlist buttons were dressed for the party but forgot to RSVP.
                 onClicked: root.playlistRequested(shortcut.modelData)
                 TapHandler {
+                    enabled: !playlistActions.local
                     acceptedButtons: Qt.RightButton
                     onTapped: function(point) { if (playlistActions.canDelete) playlistActions.popup(shortcut, point.position.x, point.position.y); }
                 }
@@ -363,51 +371,14 @@ Item {
                         height: 28
                         anchors.verticalCenter: parent.verticalCenter
 
-                        // Fallback badge for Liked Music when thumbnail is loading or offline
-                        Rectangle {
+                        PlaylistArtwork {
                             anchors.fill: parent
                             radius: 5
-                            antialiasing: true
-                            visible: shortcut.isLiked && !art.hasImage
-                            gradient: Gradient {
-                                orientation: Gradient.TopLeftToBottomRight
-                                GradientStop { position: 0.0; color: "#f0386b" }
-                                GradientStop { position: 1.0; color: "#9c27b0" }
-                            }
-                            LucideIcon {
-                                anchors.centerIn: parent
-                                width: 14
-                                height: 14
-                                name: "heart-filled"
-                                color: "#ffffff"
-                            }
+                            media: shortcut.modelData
+                            artwork: shortcut.artworkUrl
+                            customArtwork: shortcut.artworkOverride
                         }
 
-                        // Fallback badge for regular playlists
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 5
-                            antialiasing: true
-                            visible: !shortcut.isLiked && (!art.hasImage || (!shortcut.artworkOverride && root.playlistRank(shortcut.modelData) !== 3))
-                            gradient: Gradient {
-                                GradientStop { position: 0; color: shortcut.isLocal ? "#35c8ed" : "#9464ee" }
-                                GradientStop { position: 1; color: shortcut.isLocal ? "#7950dc" : "#f54fa1" }
-                            }
-                            LucideIcon {
-                                anchors.centerIn: parent
-                                width: 17
-                                height: 17
-                                name: root.playlistRank(shortcut.modelData) === 3 ? "podcast" : "list-music"
-                                color: "#ffffff"
-                            }
-                        }
-
-                        RoundedArtwork {
-                            id: art
-                            anchors.fill: parent
-                            radius: 5
-                            source: shortcut.artworkOverride || shortcut.isLiked || root.playlistRank(shortcut.modelData) === 3 ? shortcut.artworkUrl : ""
-                        }
                     }
 
                     Text {

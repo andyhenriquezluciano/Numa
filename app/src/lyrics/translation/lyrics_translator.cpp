@@ -53,10 +53,11 @@ bool sameText(const QString &a, const QString &b) {
 }
 } // namespace
 
-LyricsTranslator::LyricsTranslator(LyricsController *lyrics, QObject *parent)
+LyricsTranslator::LyricsTranslator(LyricsController *lyrics, QObject *parent, bool persistSettings)
     : QObject(parent), m_lyrics(lyrics), m_network(new QNetworkAccessManager(this)),
       m_packs(new TranslationPacks(m_network, this)), m_generation(std::make_shared<std::atomic_int>(0)) {
-  m_enabled = QSettings().value(kEnabledKey, false).toBool();
+  m_persistSettings = persistSettings;
+  m_enabled = persistSettings && QSettings().value(kEnabledKey, false).toBool();
   if (QSettings().value(kQualityKey).toString() == QStringLiteral("high"))
     m_quality = QStringLiteral("high");
   const QString savedProvider = QSettings().value(kProviderKey).toString();
@@ -104,7 +105,7 @@ void LyricsTranslator::setEnabled(bool enabled) {
   if (m_enabled == enabled)
     return;
   m_enabled = enabled;
-  QSettings().setValue(kEnabledKey, enabled);
+  if (m_persistSettings) QSettings().setValue(kEnabledKey, enabled);
   emit enabledChanged();
   // Switching off mid-download means "not now", so the half-fetched model goes too.
   if (!enabled)
@@ -119,7 +120,7 @@ void LyricsTranslator::setQuality(const QString &quality) {
   if (m_quality == value)
     return;
   m_quality = value;
-  QSettings().setValue(kQualityKey, value);
+  if (m_persistSettings) QSettings().setValue(kQualityKey, value);
   emit qualityChanged();
   // A download for the other quality is no longer wanted.
   m_packs->cancel();
@@ -134,7 +135,7 @@ void LyricsTranslator::setProvider(const QString &provider) {
   m_packs->cancel();
   cancelRemote();
   m_provider = provider;
-  QSettings().setValue(kProviderKey, provider);
+  if (m_persistSettings) QSettings().setValue(kProviderKey, provider);
   emit providerChanged();
   m_key.clear();
   sync();
@@ -147,7 +148,7 @@ void LyricsTranslator::setTargetLanguage(const QString &language) {
   cancelRemote();
   m_packs->cancel();
   m_targetLanguage = language;
-  QSettings().setValue(kTargetLanguageKey, language);
+  if (m_persistSettings) QSettings().setValue(kTargetLanguageKey, language);
   emit targetLanguageChanged();
   m_key.clear();
   sync();

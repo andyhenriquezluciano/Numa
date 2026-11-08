@@ -95,6 +95,7 @@ Item {
         RailWheelHandler {
             orientation: Qt.Vertical
             onVerticalRequested: function(delta, smooth) { root.verticalScrollRequested(delta, smooth); }
+            onHorizontalRequested: function(delta, smooth) { root.scrollRailBy(delta, smooth); }
         }
         RailWheelHandler {
             orientation: Qt.Horizontal
@@ -106,7 +107,8 @@ Item {
 
             required property var modelData
             readonly property var media: modelData.media || ({})
-            readonly property string artwork: typeof NumaSync !== "undefined" && NumaSync.revision >= 0 && media.type === "playlist" ? NumaSync.artworkFor(media.playlistId || media.browseId || media.id || "", media.thumbnail || "") : media.thumbnail || ""
+            readonly property string customArtwork: typeof NumaSync !== "undefined" && NumaSync.revision >= 0 && media.type === "playlist" ? NumaSync.artworkFor(media.playlistId || media.browseId || media.id || "", "", false) : ""
+            readonly property string artwork: customArtwork || media.thumbnail || ""
             readonly property var coverColors: coverPalette.palette
             // Edge color is clamped dark by the sampler, so white text always reads.
             readonly property color footerColor: root.paletteColor(coverColors, "seam", "#252a2c")
@@ -164,12 +166,24 @@ Item {
 
             RoundedArtwork {
                 id: cover
+                visible: card.media.type !== "playlist"
 
                 width: parent.width
                 height: width
                 radius: root.radius
                 bottomRadius: 0
                 source: card.artwork
+            }
+            PlaylistArtwork {
+                x: cover.x
+                y: cover.y
+                width: cover.width
+                height: cover.height
+                radius: root.radius
+                visible: card.media.type === "playlist"
+                media: card.media
+                artwork: card.artwork
+                customArtwork: card.customArtwork
             }
 
             Rectangle {
@@ -179,9 +193,11 @@ Item {
                 radius: root.radius
                 topLeftRadius: 0
                 topRightRadius: 0
-                color: NumaAppearance.rosePine ? NumaAppearance.surfaceColor : Qt.lighter(card.footerColor, 1.3)
+                color: NumaAppearance.theme === "rose_pine_dawn" ? (cardHover.hovered ? NumaAppearance.highlightColor : NumaAppearance.overlayColor)
+                    : NumaAppearance.rosePine ? NumaAppearance.surfaceColor : Qt.lighter(card.footerColor, 1.3)
 
                 Behavior on color {
+                    enabled: NumaAppearance.theme !== "rose_pine_dawn"
                     ColorAnimation { duration: Motion.normal }
                 }
 
@@ -195,7 +211,7 @@ Item {
 
                     Text {
                         width: parent.width
-                        text: card.modelData.eyebrow || ""
+                        text: qsTr(card.modelData.eyebrow || "")
                         color: NumaAppearance.rosePine ? NumaAppearance.mutedColor : "#d9ffffff"
                         font.family: "Inter"
                         font.pixelSize: 11
@@ -227,10 +243,11 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius: root.radius
-                color: cardHover.hovered ? "#14ffffff" : "transparent"
+                color: cardHover.hovered && NumaAppearance.theme !== "rose_pine_dawn" ? "#14ffffff" : "transparent"
                 border.color: card.activeFocus ? "#c4a7e7" : "transparent"
 
                 Behavior on color {
+                    enabled: NumaAppearance.theme !== "rose_pine_dawn"
                     ColorAnimation { duration: Motion.fast }
                 }
             }

@@ -40,6 +40,7 @@
 #include "instance_coordinator.h"
 #include "library/library_actions.h"
 #include "local/local_library.h"
+#include "local/local_media_downloads.h"
 #include "lyrics/lyrics_controller.h"
 #include "lyrics/translation/lyrics_translator.h"
 #include "offline/connectivity_monitor.h"
@@ -258,6 +259,11 @@ int main(int argc, char *argv[]) {
   auto homeController = std::make_unique<HomeController>(&youtubeCatalog, &authManager);
   auto artistController = std::make_unique<AlbumController>(&youtubeCatalog, &authManager, nullptr, true);
   auto albumController = std::make_unique<AlbumController>(&youtubeCatalog, &authManager, nullptr, false, &animatedArtwork, &qobuz);
+  const auto syncAlbumLanguage = [&] {
+    albumController->setDescriptionLanguage(uiLanguage.effectiveLanguage());
+  };
+  QObject::connect(&uiLanguage, &UiLanguage::languageChanged, albumController.get(), syncAlbumLanguage);
+  syncAlbumLanguage();
   // Songs and playlists that live on disk instead of YouTube Music: no buffering, no ads, no excuses.
   LocalLibrary localLibrary;
   // Declared before the controllers that read them, so they outlive those controllers.
@@ -279,6 +285,9 @@ int main(int argc, char *argv[]) {
   QObject::connect(&application, &QCoreApplication::aboutToQuit,
                    playback.get(), &PlaybackController::savePlaybackState);
   playback->setOfflineSources(&downloads, &connectivity);
+  QObject::connect(playback.get(), &PlaybackController::stateChanged, &localLibrary, [&localLibrary, player = playback.get()] {
+    localLibrary.updateAutomaticCover(player->shownTrack());
+  });
   auto lyrics = std::make_unique<LyricsController>(&youtubeProvider, &authManager, playback.get());
   auto *discord = integrations->discord();
   // One lyric clock for the karaoke window and Discord; no second tiny conductor.
@@ -300,6 +309,7 @@ int main(int argc, char *argv[]) {
   };
   QObject::connect(&uiLanguage, &UiLanguage::languageChanged, &lyricsTranslation, syncTranslationLanguage);
   syncTranslationLanguage();
+  LocalMediaDownloads localMediaDownloads(&localLibrary, &youtubeProvider, &authManager, &animatedArtwork, &lyricsTranslation);
   MusicVideoController musicVideo(&youtubeProvider, &authManager, playback.get());
   ArtistVideoBackdrop artistVideo(&youtubeProvider, &authManager);
   // Local imports announce themselves through the same pill as copied links.
@@ -312,6 +322,7 @@ int main(int argc, char *argv[]) {
                    playlistController.get(), &PlaylistController::removeTrack);
   ListeningParty listeningParty(playback.get(), &authManager);
   CloudLibrary accountLibrary(&numaAccount, playback.get(), homeController.get(), libraryActions.get());
+  QObject::connect(&localLibrary, &LocalLibrary::playlistDeleted, &accountLibrary, &CloudLibrary::removePlaylist);
   QObject::connect(playlistController.get(), &PlaylistController::detailChanged, &accountLibrary,
                    [&] { accountLibrary.cacheCollection(playlistController->detail()); });
   QObject::connect(&listeningParty, &ListeningParty::noticeRequested, &backend, &BackendInfo::noticeRequested);
@@ -372,6 +383,7 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty(QStringLiteral("NumaLocal"), &localLibrary);
   engine.rootContext()->setContextProperty(QStringLiteral("NumaNetwork"), &connectivity);
   engine.rootContext()->setContextProperty(QStringLiteral("NumaDownloads"), &downloads);
+  engine.rootContext()->setContextProperty(QStringLiteral("NumaLocalDownloads"), &localMediaDownloads);
   engine.rootContext()->setContextProperty(QStringLiteral("NumaOffline"), &offlineLibrary);
   engine.rootContext()->setContextProperty(QStringLiteral("NumaTray"), &tray);
   engine.rootContext()->setContextProperty(QStringLiteral("NumaWindowState"), &windowState);

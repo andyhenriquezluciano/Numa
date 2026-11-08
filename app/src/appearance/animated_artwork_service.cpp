@@ -54,8 +54,8 @@ AnimatedArtworkService::AnimatedArtworkService(AppearanceSettings *settings,
 
 void AnimatedArtworkService::resolveTrackArtwork(
     const QString &title, const QString &artist, const QString &album,
-    quint64 requestId, std::function<void(quint64, const QString &)> callback) {
-  if (!m_settings || !m_settings->animatedArtworkEnabled() ||
+    quint64 requestId, std::function<void(quint64, const QString &)> callback, bool explicitDownload) {
+  if (!m_settings || (!explicitDownload && !m_settings->animatedArtworkEnabled()) ||
       title.trimmed().isEmpty() || artist.trimmed().isEmpty()) {
     if (callback) {
       callback(requestId, QString());

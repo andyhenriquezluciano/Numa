@@ -105,7 +105,9 @@ TrackRecord LocalStore::trackFromJson(const QJsonObject &object) {
 }
 
 QJsonObject LocalStore::toJson(const PlaylistRecord &playlist) {
-  return {{QStringLiteral("id"), playlist.id},
+  return {{QStringLiteral("automaticCover"), playlist.automaticCover},
+          {QStringLiteral("automaticTrackId"), playlist.automaticTrackId},
+          {QStringLiteral("id"), playlist.id},
           {QStringLiteral("title"), playlist.title},
           {QStringLiteral("description"), playlist.description},
           {QStringLiteral("tracks"), QJsonArray::fromStringList(playlist.trackIds)},
@@ -117,6 +119,8 @@ QJsonObject LocalStore::toJson(const PlaylistRecord &playlist) {
 
 PlaylistRecord LocalStore::playlistFromJson(const QJsonObject &object) {
   PlaylistRecord playlist;
+  playlist.automaticCover = object.value(QStringLiteral("automaticCover")).toBool();
+  playlist.automaticTrackId = object.value(QStringLiteral("automaticTrackId")).toString();
   playlist.id = object.value(QStringLiteral("id")).toString();
   playlist.title = object.value(QStringLiteral("title")).toString();
   playlist.description = object.value(QStringLiteral("description")).toString();
@@ -176,7 +180,12 @@ bool LocalStore::save() const {
   return file.commit();
 }
 
-QString playlistCover(const PlaylistRecord &playlist) {
+QString playlistCover(const PlaylistRecord &playlist, const LocalStore &store) {
+  if (playlist.automaticCover && playlist.trackIds.contains(playlist.automaticTrackId)) {
+    const auto track = store.tracks.constFind(playlist.automaticTrackId);
+    if (track != store.tracks.cend() && !track->coverPath.isEmpty() && QFileInfo::exists(track->coverPath))
+      return track->coverPath;
+  }
   if (!playlist.coverPath.isEmpty() && QFileInfo::exists(playlist.coverPath))
     return playlist.coverPath;
   if (!playlist.collagePath.isEmpty() && QFileInfo::exists(playlist.collagePath))
@@ -207,12 +216,14 @@ QVariantMap trackToVariant(const TrackRecord &track) {
       {QStringLiteral("hasCustomCover"), track.customCover},
       {QStringLiteral("hasLyrics"), !track.lyricsPath.isEmpty() || !track.embeddedLyrics.isEmpty()},
       {QStringLiteral("hasCustomLyrics"), !track.lyricsPath.isEmpty()},
+      {QStringLiteral("hasDownloadedLyrics"), track.lyricsPath.endsWith(QStringLiteral(".json")) && QFileInfo::exists(track.lyricsPath)},
+      {QStringLiteral("hasDownloadedArtwork"), !track.customCover && !track.animatedPath.isEmpty() && QFileInfo::exists(track.animatedPath)},
       {QStringLiteral("missing"), !QFileInfo::exists(track.path)},
   };
   return map;
 }
 
-QVariantMap playlistToVariant(const PlaylistRecord &playlist, const LocalStore &) {
+QVariantMap playlistToVariant(const PlaylistRecord &playlist, const LocalStore &store) {
   const int count = static_cast<int>(playlist.trackIds.size());
   return {
       {QStringLiteral("id"), playlist.id},
@@ -221,10 +232,14 @@ QVariantMap playlistToVariant(const PlaylistRecord &playlist, const LocalStore &
       {QStringLiteral("source"), QStringLiteral("local")},
       {QStringLiteral("title"), playlist.title},
       {QStringLiteral("description"), playlist.description},
-      {QStringLiteral("thumbnail"), fileUrl(playlistCover(playlist))},
+      {QStringLiteral("thumbnail"), fileUrl(playlistCover(playlist, store))},
       {QStringLiteral("subtitle"), count == 1 ? QObject::tr("Local · 1 song") : QObject::tr("Local · %1 songs").arg(count)},
       {QStringLiteral("totalTrackCount"), count},
       {QStringLiteral("hasCustomCover"), !playlist.coverPath.isEmpty()},
+      {QStringLiteral("automaticCover"), playlist.automaticCover},
+      {QStringLiteral("hasAutomaticCover"), playlist.automaticCover && playlist.trackIds.contains(playlist.automaticTrackId)
+          && !store.tracks.value(playlist.automaticTrackId).coverPath.isEmpty()
+          && QFileInfo::exists(store.tracks.value(playlist.automaticTrackId).coverPath)},
   };
 }
 
@@ -249,7 +264,9 @@ QVariantMap playlistDetail(const PlaylistRecord &playlist, const LocalStore &sto
   detail.insert(QStringLiteral("totalTrackCount"), static_cast<int>(rows.size()));
   detail.insert(QStringLiteral("hasMoreTracks"), false);
   detail.insert(QStringLiteral("durationSeconds"), total);
-  detail.insert(QStringLiteral("animatedArtwork"), fileUrl(playlist.animatedPath));
+  const QString motion = playlist.automaticCover && playlist.trackIds.contains(playlist.automaticTrackId)
+      ? store.tracks.value(playlist.automaticTrackId).animatedPath : playlist.animatedPath;
+  detail.insert(QStringLiteral("animatedArtwork"), fileUrl(motion));
   return detail;
 }
 

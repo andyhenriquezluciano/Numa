@@ -245,6 +245,7 @@ Item {
             }
 
             Button {
+                HandCursor {}
                 id: qualityButton
 
                 implicitHeight: 36

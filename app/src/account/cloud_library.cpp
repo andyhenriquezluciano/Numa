@@ -79,7 +79,7 @@ void CloudLibrary::bind() {
     }
     m_events.start(); retry();
 }
-bool CloudLibrary::save() { const bool ok = write(accountPath(), m_data); if (!ok) fail(QStringLiteral("No se pudo guardar la copia local. Tus cambios no se subirán todavía.")); return ok; }
+bool CloudLibrary::save() { m_data.insert("local", cloud::withoutLocalPlaylists(m_data.value("local").toObject())); const bool ok = write(accountPath(), m_data); if (!ok) fail(QStringLiteral("No se pudo guardar la copia local. Tus cambios no se subirán todavía.")); return ok; }
 void CloudLibrary::retry() {
     if (!m_account->isSignedIn()) return;
     const int delay = int(qMax<qint64>(2000, m_retryAfterMs - QDateTime::currentMSecsSinceEpoch()));
@@ -185,7 +185,7 @@ void CloudLibrary::cacheCollection(const QVariantMap &detail) {
     m_data.insert("local", local); save(); ++m_revision; emit changed(); retry();
 }
 QVariantList CloudLibrary::section(const QString &kind) const {
-    QVariantList out; auto local = m_data.value("local").toObject();
+    QVariantList out; auto local = cloud::withoutLocalPlaylists(m_data.value("local").toObject());
     auto rows = local.value(kind == "metrics" ? "playedTracks" : cloud::field(kind)).toArray();
     const auto counts = local.value("playCounts").toObject();
     const auto type = kind == "artists" ? "artist" : kind == "albums" ? "album" : kind == "playlists" ? "playlist" : "song";

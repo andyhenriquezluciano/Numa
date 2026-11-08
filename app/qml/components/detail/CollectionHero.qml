@@ -28,6 +28,7 @@ Item {
     id: root
 
     property string kind
+    property bool showKind: true
     property var cloudMedia: ({})
     property string title
     property string byline
@@ -38,6 +39,8 @@ Item {
     property string artwork
     property bool gradientCover: false
     property bool localGradientCover: false
+    property bool playlistArtwork: false
+    property string customPlaylistArtwork: ""
     property url animatedArtwork
     // Albums behind a four-cover playlist collage; see CollageArtwork.
     property var collageAlbums: []
@@ -56,6 +59,7 @@ Item {
     property bool shareEnabled: true
     property bool shareVisible: true
     property bool deleteVisible: false
+    property bool renameVisible: false
 
     property color accentColor: "#b79bed"
     property color accentSoftColor: "#c4a7e7"
@@ -70,6 +74,7 @@ Item {
     signal shuffleClicked
     signal shareClicked
     signal deleteClicked
+    signal renameClicked
     signal shareOpenRequested
     signal searchClicked
     signal downloadClicked
@@ -100,12 +105,22 @@ Item {
                 anchors.fill: parent
                 radius: root.coverRadius
                 source: root.gradientCover ? "" : root.artwork
-                visible: !root.gradientCover
+                visible: !root.gradientCover && !root.playlistArtwork
+            }
+            PlaylistArtwork {
+                id: playlistCover
+                anchors.fill: parent
+                radius: root.coverRadius
+                visible: root.playlistArtwork
+                media: root.cloudMedia
+                artwork: root.artwork
+                customArtwork: root.customPlaylistArtwork
+                fallbackGenerated: root.gradientCover
             }
             Rectangle {
                 anchors.fill: parent
                 radius: root.coverRadius
-                visible: root.gradientCover
+                visible: root.gradientCover && !root.playlistArtwork
                 antialiasing: true
                 gradient: Gradient {
                     GradientStop { position: 0; color: root.localGradientCover ? "#35c8ed" : "#9464ee" }
@@ -122,6 +137,7 @@ Item {
             Loader {
                 anchors.fill: parent
                 active: !root.gradientCover && NumaAppearance.animatedArtworkEnabled
+                        && (!root.playlistArtwork || !playlistCover.generated)
                         && root.animatedArtwork.toString().length > 0 && root.visible
                 sourceComponent: AnimatedArtwork {
                     radius: root.coverRadius
@@ -133,6 +149,7 @@ Item {
                 anchors.fill: parent
                 // Opt-in separately: this one runs up to four videos at once.
                 active: !root.gradientCover && NumaAppearance.animatedArtworkEnabled
+                        && (!root.playlistArtwork || !playlistCover.generated)
                         && NumaAppearance.animatedCollageEnabled
                         && root.collageAlbums.length === 4 && root.visible
                 sourceComponent: CollageArtwork {
@@ -147,14 +164,14 @@ Item {
                 height: 56
                 name: "music-2"
                 color: root.tint(root.accentSoftColor, 0.7)
-                visible: !root.artwork && !root.gradientCover
+                visible: !root.artwork && !root.gradientCover && !root.playlistArtwork
             }
             Rectangle {
                 anchors.fill: parent
                 radius: root.coverRadius
                 color: "transparent"
                 border.color: "#1affffff"
-                visible: !root.gradientCover
+                visible: !root.gradientCover && !root.playlistArtwork
             }
         }
 
@@ -164,6 +181,7 @@ Item {
             spacing: 6
             Text {
                 text: [root.kind, root.year].filter(Boolean).join("  ·  ")
+                visible: root.showKind
                 color: NumaAppearance.mutedColor
                 font.family: "Inter"
                 font.pixelSize: 12
@@ -231,6 +249,7 @@ Item {
 
             Button {
                 id: playButton
+                HandCursor {}
                 width: playRow.implicitWidth + 36
                 height: 40
                 enabled: root.actionsEnabled
@@ -314,18 +333,18 @@ Item {
             }
             CloudCollectionAction { media: root.cloudMedia; accentColor: root.accentSoftColor; buttonWidth: root.width < 340 ? 36 : 40 }
             GhostButton {
-                visible: root.deleteVisible
-                glyph: "trash-2"
-                Accessible.name: qsTr("Delete playlist")
-                ToolTip.text: qsTr("Delete playlist")
-                onClicked: root.deleteClicked()
+                visible: root.deleteVisible || root.renameVisible
+                glyph: root.renameVisible ? "pencil" : "trash-2"
+                Accessible.name: root.renameVisible ? qsTr("Rename playlist") : qsTr("Delete playlist")
+                ToolTip.text: root.renameVisible ? qsTr("Rename playlist") : qsTr("Delete playlist")
+                onClicked: root.renameVisible ? root.renameClicked() : root.deleteClicked()
             }
             GhostButton {
                 glyph: "share-2"
                 visible: root.shareVisible
                 enabled: root.shareEnabled
                 Accessible.name: root.shareLabel
-                ToolTip.text: qsTr("%1 (right-click to open)").arg(root.shareLabel)
+                ToolTip.text: root.shareLabel
                 onClicked: root.shareClicked()
                 TapHandler {
                     acceptedButtons: Qt.RightButton
@@ -384,6 +403,7 @@ Item {
 
         MenuItem {
             id: removeItem
+            HandCursor {}
             text: qsTr("Remove downloads")
             implicitHeight: 36
             onTriggered: root.removeDownloadsClicked()

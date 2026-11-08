@@ -84,6 +84,7 @@ ColumnLayout {
     property alias playButton: playButton
     property alias nextButton: nextButton
     property alias repeatButton: repeatButton
+    property alias volumeButton: volumeButton
     property alias volumeSlider: volume
     property alias volumeWheel: volumeWheel
     property alias lyricsButton: lyricsButton
@@ -396,11 +397,17 @@ ColumnLayout {
         opacity: controls.stage60 * controls.chrome
         transform: Translate { y: 16 * (1 - controls.stage60) }
 
-        LucideIcon {
-            Layout.preferredWidth: 16
-            Layout.preferredHeight: 16
-            name: controls.volume <= 0.001 ? "volume-x" : "volume-2"
-            color: controls.mutedText
+        FullscreenIconButton {
+            id: volumeButton
+            objectName: "fullscreenVolumeButton"
+            Layout.preferredWidth: 32
+            Layout.preferredHeight: 32
+            glyph: controls.volume <= 0.001 ? "volume-x" : "volume-2"
+            glyphSize: 16
+            accentColor: controls.accentColor
+            primaryText: controls.primaryText
+            secondaryText: controls.mutedText
+            ToolTip.text: controls.volume <= 0.001 ? qsTr("Unmute") : qsTr("Mute")
         }
 
         Slider {

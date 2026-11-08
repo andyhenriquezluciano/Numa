@@ -5,6 +5,7 @@
 #include <QVariantList>
 
 namespace cloud {
+QJsonObject withoutLocalPlaylists(const QJsonObject &library);
 QJsonObject mergeMap(const QJsonObject &base, const QJsonObject &local, const QJsonObject &remote);
 QJsonArray mergeRows(const QJsonObject &base, const QJsonObject &local, const QJsonArray &remote);
 QJsonObject reconcile(const QJsonObject &sent, const QJsonObject &local, const QJsonObject &remote);

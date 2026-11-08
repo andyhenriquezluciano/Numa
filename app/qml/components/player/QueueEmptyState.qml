@@ -40,9 +40,9 @@ Item {
             Layout.alignment: Qt.AlignHCenter
             Layout.preferredWidth: 56
             Layout.preferredHeight: 56
-            radius: 28
+            radius: 14
             color: panel.tint(panel.accentColor, 0.12)
-            border.color: panel.tint(panel.accentColor, 0.25)
+            border.width: 0
 
             LucideIcon {
                 anchors.centerIn: parent

@@ -71,6 +71,16 @@ private slots:
         QVERIFY(!settings.contains("playback/persistedTrack"));
         QVERIFY(!settings.contains("playback/audioEngine/outputDeviceId"));
         QVERIFY(!settings.contains("window/width"));
+#ifdef Q_OS_WIN
+        QCOMPARE(settings.value("appearance/theme").toString(), QStringLiteral("crystal"));
+        QVERIFY(!settings.value("appearance/bordersEnabled").toBool());
+        QVERIFY(settings.value("appearance/playlistSongBackground").toBool());
+        QVERIFY(!settings.value("playback/audioEngine/enabled").toBool());
+        QCOMPARE(settings.value("playback/audioEngine/q").toDouble(), 1.0);
+        QVERIFY(!settings.value("downloads/localLyrics").toBool());
+        QVERIFY(!settings.value("downloads/localTranslation").toBool());
+        QVERIFY(!settings.value("downloads/localArtwork").toBool());
+#endif
         settings.setValue("ui/language", "en");
         QVERIFY(!initializeDefaultPreferences(settings));
         QCOMPARE(settings.value("ui/language").toString(), QStringLiteral("en"));

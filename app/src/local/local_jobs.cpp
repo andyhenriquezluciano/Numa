@@ -71,9 +71,11 @@ QString adoptByContent(const QString &temporary, const QString &coversDir) {
 
 } // namespace
 
-ImportResult importPaths(const QStringList &paths, const QSet<QString> &known, const QString &coversDir) {
+ImportResult importPaths(const QStringList &paths, const QSet<QString> &known, const QString &coversDir,
+                         const std::function<void(int, int)> &progress) {
   ImportResult result;
   QSet<QString> seen;
+  QStringList files;
   for (const QString &file : expand(paths)) {
     if (!isAudioFile(file)) {
       ++result.rejected;
@@ -83,9 +85,19 @@ ImportResult importPaths(const QStringList &paths, const QSet<QString> &known, c
     if (seen.contains(id))
       continue;
     seen.insert(id);
+    files.append(file);
+  }
+  int completed = 0;
+  if (progress)
+    progress(0, static_cast<int>(files.size()));
+  for (const QString &file : files) {
+    const QString id = trackIdForPath(file);
     result.ids.append(id);
-    if (known.contains(id))
+    if (known.contains(id)) {
+      if (progress)
+        progress(++completed, static_cast<int>(files.size()));
       continue;
+    }
 
     const Metadata metadata = probe(file);
     TrackRecord record;
@@ -106,6 +118,8 @@ ImportResult importPaths(const QStringList &paths, const QSet<QString> &known, c
     if (extractCover(record.path, temporary))
       record.coverPath = adoptByContent(temporary, coversDir);
     result.records.append(record);
+    if (progress)
+      progress(++completed, static_cast<int>(files.size()));
   }
   return result;
 }

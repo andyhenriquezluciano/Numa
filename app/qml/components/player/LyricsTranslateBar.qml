@@ -36,6 +36,7 @@ Row {
     layoutDirection: Qt.RightToLeft
 
     Button {
+        HandCursor {}
         id: toggle
         width: 48
         height: 48

@@ -23,6 +23,11 @@
 #include "local/local_metadata.h"
 #include "local/local_track.h"
 #include "local/local_store.h"
+#include "local/local_jobs.h"
+#include "local/local_media_downloads.h"
+#include "lyrics/lyrics_controller.h"
+#include "lyrics/translation/lyrics_translator.h"
+#include <QSettings>
 
 #include <QFile>
 #include <QImage>
@@ -86,6 +91,63 @@ class LocalLibraryTest : public QObject {
   }
 
 private slots:
+  void removingPlaylistSongsKeepsOriginalFiles() {
+    QTemporaryDir root, music;
+    local::LocalStore store(root.path());
+    QStringList paths;
+    for (const QString &id : {QStringLiteral("a"), QStringLiteral("b"), QStringLiteral("c")}) {
+      local::TrackRecord track;
+      track.id = "local:" + id;
+      track.title = id;
+      track.path = writeWav(music.path(), id + ".wav");
+      QVERIFY(!track.path.isEmpty());
+      paths.append(track.path);
+      track.lyricsPath = music.path() + '/' + id + ".lrc";
+      QFile lyrics(track.lyricsPath);
+      QVERIFY(lyrics.open(QIODevice::WriteOnly));
+      lyrics.write("[00:01]Original lyrics");
+      paths.append(track.lyricsPath);
+      store.tracks.insert(track.id, track);
+      store.trackOrder.append(track.id);
+    }
+    local::PlaylistRecord removed, kept;
+    removed.id = "local-playlist:removed";
+    removed.trackIds = {"local:a", "local:b"};
+    kept.id = "local-playlist:kept";
+    kept.trackIds = {"local:a", "local:c"};
+    store.playlists = {removed, kept};
+    QVERIFY(store.save());
+    LocalLibrary library(root.path());
+    library.deletePlaylist(removed.id, true);
+    QCOMPARE(library.songs().size(), 1);
+    QCOMPARE(library.songs().first().toMap().value("id").toString(), QStringLiteral("local:c"));
+    QCOMPARE(library.playlists().size(), 1);
+    library.openPlaylist(kept.id);
+    const auto tracks = library.detail().value("tracks").toList();
+    QCOMPARE(tracks.size(), 1);
+    QCOMPARE(tracks.first().toMap().value("id").toString(), QStringLiteral("local:c"));
+    for (const QString &path : paths)
+      QVERIFY2(QFile::exists(path), qPrintable(path));
+  }
+
+  void deletingPlaylistNotifiesAfterRemovingIt() {
+    QTemporaryDir store;
+    LocalLibrary library(store.path());
+    const QString id = library.createPlaylist(QStringLiteral("Temporary"), {});
+    library.openPlaylist(id);
+    QSignalSpy deleted(&library, &LocalLibrary::playlistDeleted);
+    bool absentWhenNotified = false;
+    connect(&library, &LocalLibrary::playlistDeleted, this, [&](const QString &removedId) {
+      absentWhenNotified = removedId == id && library.detail().isEmpty() && library.playlists().isEmpty();
+    });
+    library.deletePlaylist(id);
+    QCOMPARE(deleted.count(), 1);
+    QCOMPARE(deleted.first().first().toString(), id);
+    QVERIFY(absentWhenNotified);
+    library.deletePlaylist(id);
+    QCOMPARE(deleted.count(), 1);
+  }
+
   void collageBuildRunsAsABackgroundJob() {
     QTemporaryDir root, art;
     local::LocalStore store(root.path());
@@ -212,6 +274,217 @@ private slots:
     // Three covers repeat the first one in the last cell.
     const QImage three = local::buildCollage({a, b, b}, 64);
     QCOMPARE(three.pixelColor(60, 60), QColor(Qt::red));
+  }
+
+  void localPlaylistCropUsesSelectedAreaAndKeepsTheOriginal() {
+    QTemporaryDir root, photos;
+    QImage source(200, 100, QImage::Format_RGB32);
+    for (int y = 0; y < source.height(); ++y)
+      for (int x = 0; x < source.width(); ++x) source.setPixelColor(x, y, x < 100 ? Qt::red : Qt::blue);
+    const QString input = photos.filePath(QStringLiteral("wide.png"));
+    QVERIFY(source.save(input));
+    LocalLibrary library(root.path());
+    const QString id = library.createPlaylist(QStringLiteral("Crop"));
+    library.openPlaylist(id);
+    QVERIFY(library.setPlaylistCoverCrop(id, input, QRectF(0.5, 0, 0.5, 1)));
+    QVERIFY(library.detail().value("hasCustomCover").toBool());
+    const QString cropped = QUrl(library.detail().value("thumbnail").toString()).toLocalFile();
+    const QImage result(cropped);
+    QCOMPARE(result.width(), result.height());
+    QCOMPARE(result.pixelColor(result.width() / 2, result.height() / 2), QColor(Qt::blue));
+    QCOMPARE(QImage(input), source);
+    QVERIFY(!library.setPlaylistCoverCrop(id, input, QRectF(2, 2, 1, 1)));
+    QCOMPARE(QUrl(library.detail().value("thumbnail").toString()).toLocalFile(), cropped);
+    library.clearPlaylistCover(id);
+    QVERIFY(QFileInfo::exists(input));
+  }
+
+  void automaticLocalCoverFollowsOnlyItsPlaylistAndPersists() {
+    QTemporaryDir root, music;
+    local::LocalStore store(root.path());
+    for (int i = 0; i < 2; ++i) {
+      local::TrackRecord track;
+      track.path = writeWav(music.path(), QStringLiteral("%1.wav").arg(i));
+      track.id = local::trackIdForPath(track.path);
+      track.coverPath = writePng(music.path(), QStringLiteral("%1.png").arg(i), i ? Qt::blue : Qt::red);
+      store.tracks.insert(track.id, track); store.trackOrder.append(track.id);
+    }
+    local::PlaylistRecord playlist;
+    playlist.id = QStringLiteral("local-playlist:automatic");
+    playlist.title = QStringLiteral("Automatic");
+    playlist.trackIds = store.trackOrder;
+    store.playlists.append(playlist);
+    QVERIFY(store.save());
+    const auto playing = [&](int index, const QString &origin) {
+      return QVariantMap{{QStringLiteral("id"), store.trackOrder.at(index)},
+        {QStringLiteral("queueOrigin"), QVariantMap{{QStringLiteral("id"), origin}}}};
+    };
+    {
+      LocalLibrary library(root.path());
+      library.openPlaylist(playlist.id);
+      library.setAutomaticCover(playlist.id, true, playing(0, playlist.id));
+      QVERIFY(library.detail().value("hasAutomaticCover").toBool());
+      QCOMPARE(library.detail().value("thumbnail").toString(), QUrl::fromLocalFile(store.tracks.value(store.trackOrder.at(0)).coverPath).toString());
+      library.updateAutomaticCover(playing(1, QStringLiteral("local-playlist:other")));
+      QCOMPARE(library.detail().value("thumbnail").toString(), QUrl::fromLocalFile(store.tracks.value(store.trackOrder.at(0)).coverPath).toString());
+      library.updateAutomaticCover(playing(1, playlist.id));
+      QCOMPARE(library.detail().value("thumbnail").toString(), QUrl::fromLocalFile(store.tracks.value(store.trackOrder.at(1)).coverPath).toString());
+      settle(library);
+    }
+    LocalLibrary reopened(root.path());
+    reopened.openPlaylist(playlist.id);
+    QVERIFY(reopened.detail().value("automaticCover").toBool());
+    QCOMPARE(reopened.detail().value("thumbnail").toString(), QUrl::fromLocalFile(store.tracks.value(store.trackOrder.at(1)).coverPath).toString());
+    reopened.clearPlaylistCover(playlist.id);
+    QVERIFY(!reopened.detail().value("automaticCover").toBool());
+    QVERIFY(!reopened.detail().value("hasAutomaticCover").toBool());
+    QVERIFY(QFileInfo::exists(store.tracks.value(store.trackOrder.at(0)).coverPath));
+  }
+
+  void localDownloadOptionsRequireLyricsForTranslation() {
+    QTemporaryDir root;
+    QSettings settings;
+    const QStringList keys{QStringLiteral("downloads/localLyrics"), QStringLiteral("downloads/localTranslation"), QStringLiteral("downloads/localArtwork")};
+    QVariantList previous;
+    for (const auto &key : keys) previous.append(settings.value(key));
+    LocalLibrary library(root.path());
+    LyricsController document(nullptr, nullptr, nullptr);
+    LyricsTranslator preferences(&document, nullptr, false);
+    LocalMediaDownloads downloads(&library, nullptr, nullptr, nullptr, &preferences);
+    downloads.setLyrics(false);
+    downloads.setArtwork(false);
+    QVERIFY(!downloads.translation());
+    downloads.setTranslation(true);
+    QVERIFY(downloads.lyrics());
+    QVERIFY(downloads.translation());
+    downloads.setLyrics(false);
+    QVERIFY(!downloads.translation());
+    downloads.setArtwork(true);
+    QVERIFY(!downloads.lyrics());
+    downloads.start();
+    QVERIFY(!downloads.busy());
+    QCOMPARE(downloads.total(), 0);
+    for (int i = 0; i < keys.size(); ++i) {
+      if (previous.at(i).isValid()) settings.setValue(keys.at(i), previous.at(i));
+      else settings.remove(keys.at(i));
+    }
+  }
+
+  void localDownloadsSummarizeEachResourceAgainstLibraryTotal() {
+    QTemporaryDir root, music;
+    local::LocalStore store(root.path());
+    for (int i = 0; i < 2; ++i) {
+      local::TrackRecord track;
+      track.path = writeWav(music.path(), QStringLiteral("%1.wav").arg(i));
+      track.id = local::trackIdForPath(track.path);
+      track.title = QString::number(i);
+      store.tracks.insert(track.id, track);
+      store.trackOrder.append(track.id);
+    }
+    QVERIFY(store.save());
+    LocalLibrary library(root.path());
+    const QString first = store.trackOrder.first();
+    QVERIFY(library.saveDownloadedLyrics(first, {{"status", "ready"}, {"lines", QVariantList{QVariantMap{{"text", "Lyrics"}}}}}));
+    const QString path = library.downloadedArtworkPath(first);
+    QFile loop(path);
+    QVERIFY(loop.open(QIODevice::WriteOnly)); loop.write("loop"); loop.close();
+    QVERIFY(library.saveDownloadedArtwork(first, path));
+    LyricsController document(nullptr, nullptr, nullptr);
+    LyricsTranslator preferences(&document, nullptr, false);
+    const QStringList keys{QStringLiteral("downloads/localLyrics"), QStringLiteral("downloads/localTranslation"), QStringLiteral("downloads/localArtwork")};
+    QSettings settings;
+    QVariantList previous;
+    for (const auto &key : keys) previous.append(settings.value(key));
+    LocalMediaDownloads downloads(&library, nullptr, nullptr, nullptr, &preferences);
+    downloads.setTranslation(false); downloads.setLyrics(true); downloads.setArtwork(true);
+    downloads.start();
+    QTRY_VERIFY(!downloads.busy());
+    QCOMPARE(downloads.message(), QStringLiteral("Downloaded lyrics: 1 of 2 songs.\nDownloaded animated artwork: 1 of 2 songs."));
+    QCOMPARE(downloads.completed(), 2);
+    for (int i = 0; i < keys.size(); ++i) {
+      if (previous.at(i).isValid()) settings.setValue(keys.at(i), previous.at(i));
+      else settings.remove(keys.at(i));
+    }
+  }
+
+  void downloadedLocalExtrasPersistWithoutChangingAudio() {
+    QTemporaryDir root, music;
+    const QString audio = writeWav(music.path(), QStringLiteral("Song.wav"));
+    QFile source(audio);
+    QVERIFY(source.open(QIODevice::ReadOnly));
+    const QByteArray original = source.readAll();
+    source.close();
+    local::LocalStore store(root.path());
+    local::TrackRecord track;
+    track.id = local::trackIdForPath(audio);
+    track.path = audio;
+    track.title = QStringLiteral("Song");
+    store.tracks.insert(track.id, track);
+    store.trackOrder.append(track.id);
+    QVERIFY(store.save());
+    const QVariantMap lyrics{{QStringLiteral("status"), QStringLiteral("ready")},
+      {QStringLiteral("mode"), QStringLiteral("synced")},
+      {QStringLiteral("lines"), QVariantList{QVariantMap{{QStringLiteral("text"), QStringLiteral("Hello")}, {QStringLiteral("startTime"), 0}}}}};
+    {
+      LocalLibrary library(root.path());
+      QVERIFY(!library.track(track.id).value("hasDownloadedLyrics").toBool());
+      QVERIFY(!library.saveDownloadedLyrics(track.id, {}));
+      QVERIFY(library.saveDownloadedLyrics(track.id, lyrics));
+      QVERIFY(library.track(track.id).value("hasDownloadedLyrics").toBool());
+      QCOMPARE(library.lyricsFor(track.id), lyrics);
+      auto replacement = lyrics;
+      replacement.insert(QStringLiteral("source"), QStringLiteral("Different"));
+      QVERIFY(library.saveDownloadedLyrics(track.id, replacement));
+      QCOMPARE(library.lyricsFor(track.id), lyrics);
+      const QString artPath = library.downloadedArtworkPath(track.id);
+      QFile art(artPath);
+      QVERIFY(art.open(QIODevice::WriteOnly));
+      art.write("test-loop"); art.close();
+      QVERIFY(library.saveDownloadedArtwork(track.id, artPath));
+      QVERIFY(library.track(track.id).value("hasDownloadedArtwork").toBool());
+    }
+    LocalLibrary reopened(root.path());
+    QVERIFY(reopened.track(track.id).value("hasDownloadedLyrics").toBool());
+    QVERIFY(reopened.track(track.id).value("hasDownloadedArtwork").toBool());
+    QCOMPARE(reopened.lyricsFor(track.id), lyrics);
+    reopened.clearTrackLyrics(track.id);
+    QVERIFY(!reopened.track(track.id).value("hasDownloadedLyrics").toBool());
+    QVERIFY(source.open(QIODevice::ReadOnly));
+    QCOMPARE(source.readAll(), original);
+  }
+
+  void importProgressCountsUniqueAudioAndKnownFiles() {
+    QTemporaryDir music, store;
+    const QString first = writeWav(music.path(), QStringLiteral("First.wav"));
+    const QString second = writeWav(music.path(), QStringLiteral("Second.wav"));
+    writePng(music.path(), QStringLiteral("Cover.png"), Qt::red);
+    const QSet<QString> known{local::trackIdForPath(first), local::trackIdForPath(second)};
+    QList<QPair<int, int>> updates;
+    const auto result = local::importPaths({music.path(), first}, known, store.path(),
+        [&updates](int done, int total) { updates.append({done, total}); });
+    QCOMPARE(result.ids.size(), 2);
+    QCOMPARE(updates, (QList<QPair<int, int>>{{0, 2}, {1, 2}, {2, 2}}));
+  }
+
+  void importProgressStartsImmediatelyAndFinishes() {
+    QTemporaryDir music, store;
+    LocalLibrary library(store.path());
+    bool reachedEnd = false;
+    connect(&library, &LocalLibrary::importProgressChanged, &library, [&] {
+      if (library.importing() && !library.scanningImport()
+          && library.importTotal() == 2 && library.importCompleted() == 2)
+        reachedEnd = true;
+    });
+    library.importFiles({writeWav(music.path(), QStringLiteral("First.wav")),
+                         writeWav(music.path(), QStringLiteral("Second.wav"))});
+    QVERIFY(library.importing());
+    settle(library);
+    QVERIFY(reachedEnd);
+    QVERIFY(!library.importing());
+    library.importFiles({music.path() + QStringLiteral("/missing")});
+    settle(library);
+    QVERIFY(!library.importing());
+    QCOMPARE(library.importTotal(), 0);
   }
 
   void importProbesBitrateAndKeepsOrder() {

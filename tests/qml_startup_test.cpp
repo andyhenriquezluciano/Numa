@@ -1,8 +1,11 @@
 #include "account/cloud_cover_crop.h"
+#include "local/local_library.h"
 #include <QGuiApplication>
 #include <QFontDatabase>
 #include <QFont>
 #include <QQuickWindow>
+#include <QQuickItem>
+#include <QMouseEvent>
 #include <QImage>
 #include <QBuffer>
 #include <QPluginLoader>
@@ -145,7 +148,8 @@ int main(int argc, char *argv[]) {
     import QtQuick
     QtObject {
       property int revision: 0
-      function section(key) { return [] }
+      property var playlistItems: []
+      function section(key) { return key === "playlists" ? playlistItems : [] }
       function metricArtistArtwork(name) { return "" }
       function listeningMetrics(days) {
         return {listens: 6, heardMs: 180000, songs: 1,
@@ -169,6 +173,7 @@ int main(int argc, char *argv[]) {
       function restoreDefaultPlaylists() { defaultsHidden = false; revision++ }
       function isSaved(kind, id) { return saved }
       function toggleSaved(kind, media) { saved = !saved; revision++ }
+      function removePlaylist(id) { saved = false; revision++ }
       function automaticCover(id) { return automatic }
       function setAutomaticCover(id, enabled) { automatic = enabled; revision++ }
     }
@@ -309,10 +314,21 @@ int main(int argc, char *argv[]) {
   if (!restore || !restore->property("enabled").toBool()) return 1;
   QMetaObject::invokeMethod(restore, "clicked");
   if (sync->property("defaultsHidden").toBool() || restore->property("enabled").toBool()) return 1;
-  for (bool expected : {true, false}) {
-    QMetaObject::invokeMethod(libraryButton, "clicked");
-    if (sync->property("saved").toBool() != expected || libraryButton->property("glyph").toString() != (expected ? "check" : "library-big")) return 1;
+  QMetaObject::invokeMethod(libraryButton, "clicked");
+  if (!sync->property("saved").toBool() || libraryButton->property("glyph").toString() != "check") return 1;
+  auto *removeConfirmation = controlsObject->findChild<QObject *>("removePlaylistConfirmation");
+  if (!removeConfirmation) return 1;
+  QMetaObject::invokeMethod(libraryButton, "clicked");
+  if (!sync->property("saved").toBool() || !removeConfirmation->property("visible").toBool()) {
+    output << "Removing a saved playlist must ask for confirmation without changing the library.\n";
+    return 1;
   }
+  QMetaObject::invokeMethod(removeConfirmation, "close");
+  if (!sync->property("saved").toBool()) return 1;
+  QMetaObject::invokeMethod(libraryButton, "clicked");
+  QMetaObject::invokeMethod(removeConfirmation, "accepted");
+  QMetaObject::invokeMethod(removeConfirmation, "close");
+  if (sync->property("saved").toBool() || libraryButton->property("glyph").toString() != "library-big") return 1;
   const QColor neutralIcon(engine.rootContext()->contextProperty("NumaAppearance").toMap().value("textColor").toString());
   if (libraryButton->property("width") != artworkButton->property("width")
       || libraryButton->property("glyphColor").value<QColor>() != neutralIcon
@@ -431,6 +447,22 @@ int main(int argc, char *argv[]) {
     QMetaObject::invokeMethod(sidebar, "visiblePlaylists", Q_RETURN_ARG(QVariant, visible),
         Q_ARG(QVariant, QVariant(QVariantList{QVariantMap{{"id", "offline-playlist:LM"}}, QVariantMap{{"id", "VLLM"}}})));
     if (visible.value<QJSValue>().property("length").toInt() != 1) return 1;
+    sync->setProperty("playlistItems", QVariantList{
+      QVariantMap{{"id", "local-playlist:deleted"}, {"title", "Deleted copy"}},
+      QVariantMap{{"id", "local-playlist:existing"}, {"title", "Stale metadata"}},
+      QVariantMap{{"id", "PLremote"}, {"title", "Remote"}}});
+    QMetaObject::invokeMethod(sidebar, "visiblePlaylists", Q_RETURN_ARG(QVariant, visible),
+        Q_ARG(QVariant, QVariant(QVariantList{
+          QVariantMap{{"id", "local-playlist:existing"}, {"source", "local"}, {"title", "Device copy"}},
+          QVariantMap{{"id", "local-playlist:deleted"}, {"title", "Stale home entry"}}})));
+    const auto merged = visible.value<QJSValue>();
+    if (merged.property("length").toInt() != 2
+        || merged.property(0).property("title").toString() != "Device copy"
+        || merged.property(1).property("id").toString() != "PLremote") {
+      output << "Deleted local playlists must not be resurrected from cloud or cached home metadata.\n";
+      return 1;
+    }
+    sync->setProperty("playlistItems", QVariantList{});
     dawnWindow->show();
     for (int i = 0; i < 35; ++i) { application.processEvents(); QThread::msleep(10); }
     auto *brand = dawnObject->findChild<QObject *>("applicationBrand");
@@ -466,6 +498,352 @@ int main(int argc, char *argv[]) {
   if (!offlineDashboard || !offlineDashboard->property("visible").toBool()) {
     output << "Listening metrics must remain accessible offline.\n";
     return 1;
+  }
+  engine.rootContext()->setContextProperty("NumaPlayback", QVariantMap{
+    {"crossfadeEnabled", false}, {"adaptiveMix", QVariantMap{{"mode", "standard"}}},
+    {"bestMixSorted", false}, {"bestMix", QVariantMap{{"error", ""}, {"busy", false},
+      {"sorting", false}, {"downloading", false}, {"downloaded", 0}, {"completed", 0}, {"total", 0}}}});
+  QQmlComponent queuePaneComponent(&engine, QUrl(QStringLiteral("qrc:/qt/qml/Numa/app/qml/components/player/FullscreenQueuePane.ui.qml")));
+  std::unique_ptr<QObject> queuePane(queuePaneComponent.create());
+  if (!queuePane) {
+    for (const auto &error : queuePaneComponent.errors()) output << error.toString() << '\n';
+    return 1;
+  }
+  queuePane->setProperty("historyItems", QVariantList{QVariantMap{{"id", "played"}}});
+  queuePane->setProperty("currentTrack", QVariantMap{{"id", "playing"}});
+  queuePane->setProperty("queueItems", QVariantList{QVariantMap{{"id", "next"}}});
+  queuePane->setProperty("continuous", true);
+  auto *queueList = queuePane->property("list").value<QObject *>();
+  auto *clearQueue = queuePane->property("clearButton").value<QObject *>();
+  application.processEvents();
+  const auto queueRows = queuePane->property("rowItems").value<QJSValue>().toVariant().toList();
+  if (!queueList || !clearQueue || queueList->property("count").toInt() != 3
+      || queuePane->property("queueStart").toInt() != 2 || queueRows.size() != 3
+      || queueRows.at(0).toMap().value("id") != "played"
+      || queueRows.at(1).toMap().value("id") != "playing"
+      || queueRows.at(2).toMap().value("id") != "next") {
+    output << "Fullscreen continuous queue must include history, current song and upcoming songs in order.\n";
+    return 1;
+  }
+  queuePane->setProperty("historyItems", QVariantList{
+    QVariantMap{{"id", "old-one"}}, QVariantMap{{"id", "old-two"}},
+    QVariantMap{{"id", "recent-one"}}, QVariantMap{{"id", "recent-two"}}});
+  application.processEvents();
+  const auto recentRows = queuePane->property("rowItems").value<QJSValue>().toVariant().toList();
+  if (queuePane->property("historyOffset").toInt() != 2 || queuePane->property("historyCount").toInt() != 2
+      || recentRows.size() != 4 || recentRows.at(0).toMap().value("id") != "recent-one"
+      || recentRows.at(1).toMap().value("id") != "recent-two"
+      || recentRows.at(2).toMap().value("id") != "playing") {
+    output << "Continuous queue must show only the two most recently played songs before the current one.\n";
+    return 1;
+  }
+  queuePane->setProperty("historyItems", QVariantList{QVariantMap{{"id", "played"}}});
+  queuePane->setProperty("dragIndex", 0);
+  application.processEvents();
+  auto *dragPreview = queuePane->findChild<QObject *>("fullscreenQueueDragPreview");
+  if (queueList->property("interactive").toBool() || !dragPreview
+      || !dragPreview->property("dragPreview").toBool() || !dragPreview->property("visible").toBool()) {
+    output << "Fullscreen queue dragging must show its normal row preview and suspend list gestures.\n";
+    return 1;
+  }
+  queuePane->setProperty("dragIndex", -1);
+  QQmlComponent draggableRowComponent(&engine, QUrl(QStringLiteral("qrc:/qt/qml/Numa/app/qml/components/player/FullscreenQueueRow.ui.qml")));
+  std::unique_ptr<QObject> draggableRow(draggableRowComponent.create());
+  if (!draggableRow) return 1;
+  auto *rowContent = draggableRow->property("contentItem").value<QObject *>();
+  for (const auto &section : {QString(), QStringLiteral("UP NEXT")}) {
+    draggableRow->setProperty("sectionLabel", section);
+    application.processEvents();
+    const qreal header = draggableRow->property("sectionHeight").toReal();
+    const qreal frameCenter = header + (draggableRow->property("height").toReal() - header) / 2;
+    const qreal contentCenter = rowContent ? rowContent->property("y").toReal() + rowContent->property("height").toReal() / 2 : -1;
+    if (qAbs(frameCenter - contentCenter) > 0.5) {
+      output << "Queue row content must be centered inside its frame, including section headers.\n";
+      return 1;
+    }
+  }
+  draggableRow->setProperty("dragPane", QVariant::fromValue(queuePane.get()));
+  draggableRow->setProperty("queueIndex", 0);
+  if (!draggableRow->property("draggable").toBool()) return 1;
+  draggableRow->setProperty("previous", true);
+  if (draggableRow->property("draggable").toBool()) return 1;
+  draggableRow->setProperty("previous", false);
+  draggableRow->setProperty("current", true);
+  if (draggableRow->property("draggable").toBool()) return 1;
+  draggableRow->setProperty("current", false);
+  draggableRow->setProperty("dragPreview", true);
+  if (draggableRow->property("draggable").toBool()) return 1;
+  queuePane->setProperty("queueItems", QVariantList{});
+  application.processEvents();
+  if (queueList->property("count").toInt() != 2 || clearQueue->property("enabled").toBool()) {
+    output << "An empty upcoming queue must preserve history and the current song without enabling Clear.\n";
+    return 1;
+  }
+  queuePane->setProperty("continuous", false);
+  queuePane->setProperty("queueItems", QVariantList{QVariantMap{{"id", "next"}}});
+  application.processEvents();
+  if (queueList->property("count").toInt() != 1 || queuePane->property("queueStart").toInt() != 0) {
+    output << "Standard fullscreen queue must contain upcoming songs only.\n";
+    return 1;
+  }
+  QQmlComponent playlistArtworkComponent(&engine, QUrl(QStringLiteral("qrc:/qt/qml/Numa/app/qml/components/PlaylistArtwork.qml")));
+  std::unique_ptr<QObject> playlistArtwork(playlistArtworkComponent.create());
+  if (!playlistArtwork) {
+    for (const auto &error : playlistArtworkComponent.errors()) output << error.toString() << '\n';
+    return 1;
+  }
+  for (const auto &entry : {qMakePair(QStringLiteral("VLLM"), QStringLiteral("liked")),
+                           qMakePair(QStringLiteral("offline-playlist:SE"), QStringLiteral("episodes")),
+                           qMakePair(QStringLiteral("local-playlist:example"), QStringLiteral("local"))}) {
+    playlistArtwork->setProperty("media", QVariantMap{{"id", entry.first}, {"title", "Example"},
+      {"thumbnail", "https://example.invalid/old-cover.jpg"}});
+    if (playlistArtwork->property("kind").toString() != entry.second || !playlistArtwork->property("generated").toBool()) {
+      output << "Default and local playlists must use a stable themed cover.\n";
+      return 1;
+    }
+  }
+  playlistArtwork->setProperty("customArtwork", QStringLiteral("qrc:/qt/qml/Numa/app/qml/assets/lucide/list-music.svg"));
+  if (playlistArtwork->property("generated").toBool()) {
+    output << "A custom playlist cover must take priority over generated artwork.\n";
+    return 1;
+  }
+  playlistArtwork->setProperty("customArtwork", QString());
+  playlistArtwork->setProperty("media", QVariantMap{{"id", "local-playlist:example"}, {"hasCustomCover", true},
+    {"thumbnail", "qrc:/qt/qml/Numa/app/qml/assets/lucide/list-music.svg"}});
+  if (playlistArtwork->property("generated").toBool()) return 1;
+  sync->setProperty("saved", false);
+  engine.rootContext()->setContextProperty("NumaLocal", QVariantMap{{"playlists", QVariantList{
+    QVariantMap{{"id", "local-playlist:existing"}, {"title", "Local list"}}}}});
+  QQmlComponent localCollectionComponent(&engine);
+  localCollectionComponent.setData("import QtQuick\nimport Numa\nCloudCollectionAction { media: ({id: 'local-playlist:existing', source: 'local', type: 'playlist', title: 'Local list'}) }", QUrl());
+  std::unique_ptr<QObject> localCollection(localCollectionComponent.create());
+  if (!localCollection) return 1;
+  auto *localLibraryButton = localCollection->findChild<QObject *>("cloudLibraryButton");
+  if (!localCollection->property("saved").toBool() || !localLibraryButton
+      || localLibraryButton->property("glyph").toString() != "check"
+      || !localLibraryButton->property("enabled").toBool() || sync->property("saved").toBool()) {
+    output << "Existing local playlists must be marked as saved independently of cloud-library membership.\n";
+    return 1;
+  }
+  engine.rootContext()->setContextProperty("NumaLocal", QVariantMap{{"playlists", QVariantList{}}});
+  if (localCollection->property("saved").toBool() || localLibraryButton->property("enabled").toBool()) {
+    output << "Local collection state must update when the playlist leaves the device library.\n";
+    return 1;
+  }
+  engine.rootContext()->setContextProperty("NumaLocal", QVariantMap{{"songs", QVariantList{QVariantMap{{"id", "local:test"}}}}});
+  QQmlComponent localOptionsComponent(&engine);
+  localOptionsComponent.setData(R"(
+import QtQuick
+import Numa
+LocalMediaDownloadOptions {
+    width: 600
+    downloads: QtObject {
+        property bool lyrics: true
+        property bool translation: false
+        property bool artwork: true
+        property bool busy: false
+        property int total: 0
+        property int completed: 0
+        property string message: ""
+    }
+}
+)", QUrl());
+  std::unique_ptr<QObject> localOptions(localOptionsComponent.create());
+  if (!localOptions) {
+    for (const auto &error : localOptionsComponent.errors()) output << error.toString() << '\n';
+    return 1;
+  }
+  qobject_cast<QQuickItem *>(localOptions.get())->setParentItem(window->contentItem());
+  application.processEvents();
+  const auto findVisual = [](auto &&self, QQuickItem *item, const QString &name) -> QQuickItem * {
+    if (item->objectName() == name) return item;
+    for (auto *child : item->childItems()) if (auto *match = self(self, child, name)) return match;
+    return nullptr;
+  };
+  for (int i = 0; i < 3; ++i) {
+    auto *toggle = findVisual(findVisual, qobject_cast<QQuickItem *>(localOptions.get()), QStringLiteral("localDownloadSwitch%1").arg(i));
+    if (!toggle || toggle->property("checked").toBool() != (i != 1)) {
+      output << "Local download switches must reflect the selected options: " << i << " found=" << bool(toggle) << " checked=" << (toggle ? toggle->property("checked").toBool() : false) << "\n";
+      return 1;
+    }
+  }
+  QQmlComponent localMenuComponent(&engine);
+  localMenuComponent.setData(R"(
+import QtQuick
+import Numa
+MediaMenu {
+    property var requestedAlbum: ({})
+    property var requestedArtist: ({})
+    media: ({id: 'local:test', type: 'song', title: 'Song', artist: 'Artist', album: 'Album', localPlaylistId: 'local-playlist:test'})
+    onAlbumRequested: album => requestedAlbum = album
+    onArtistRequested: artist => requestedArtist = artist
+}
+)", QUrl());
+  std::unique_ptr<QObject> localMenu(localMenuComponent.create());
+  if (!localMenu) return 1;
+  QMetaObject::invokeMethod(localMenu.get(), "viewAlbum");
+  QMetaObject::invokeMethod(localMenu.get(), "viewArtist", Q_ARG(QVariant, QVariant()), Q_ARG(QVariant, QVariant()), Q_ARG(QVariant, QVariant()));
+  if (!localMenu->property("requestedAlbum").value<QJSValue>().toVariant().toMap().value("lookupByName").toBool()
+      || !localMenu->property("requestedArtist").value<QJSValue>().toVariant().toMap().value("lookupByName").toBool()) {
+    output << "Local songs must resolve album and artist pages by name.\n";
+    return 1;
+  }
+  for (auto *entry : localMenu->findChildren<QObject *>()) {
+    const QString text = entry->property("text").toString();
+    if (text == QStringLiteral("Set cover…") || text == QStringLiteral("Set lyrics…") || text == QStringLiteral("Remove from library")) {
+      output << "Local song menus must not include removed editing actions.\n";
+      return 1;
+    }
+  }
+  if (localOptions->property("implicitHeight").toDouble() < 150) {
+    output << "Local download options must have a visible layout.\n";
+    return 1;
+  }
+  QQmlComponent localBadgesComponent(&engine);
+  localBadgesComponent.setData(R"(
+import QtQuick
+import Numa
+CollectionTrackRow {
+    width: 700
+    showLocalExtras: true
+    track: ({id: 'local:test', title: 'Test song', hasDownloadedLyrics: true, hasDownloadedArtwork: true})
+}
+)", QUrl());
+  std::unique_ptr<QObject> localBadges(localBadgesComponent.create());
+  if (!localBadges) {
+    for (const auto &error : localBadgesComponent.errors()) output << error.toString() << '\n';
+    return 1;
+  }
+  auto *lyricsBadge = localBadges->findChild<QObject *>("localLyricsBadge");
+  auto *artworkBadge = localBadges->findChild<QObject *>("localArtworkBadge");
+  if (!lyricsBadge || !artworkBadge || !lyricsBadge->property("visible").toBool() || !artworkBadge->property("visible").toBool()) return 1;
+  localBadges->setProperty("showLocalExtras", false);
+  if (lyricsBadge->property("visible").toBool() || artworkBadge->property("visible").toBool()) return 1;
+  playlistArtwork->setProperty("media", QVariantMap{{"id", "local-playlist:test"}, {"source", "local"}});
+  playlistArtwork->setProperty("customArtwork", QString());
+  const QString generatedBackground = playlistArtwork->property("backgroundArtwork").toString();
+  QImage backgroundImage;
+  if (!generatedBackground.startsWith(QStringLiteral("data:image/svg+xml;base64,"))
+      || !backgroundImage.loadFromData(QByteArray::fromBase64(generatedBackground.section(',', 1).toLatin1()))
+      || backgroundImage.pixelColor(256, 10) == backgroundImage.pixelColor(256, 500)) {
+    output << "Generated playlist artwork must supply a decodable gradient image for its background.\n";
+    return 1;
+  }
+  QQmlContext deviceLibraryContext(engine.rootContext());
+  deviceLibraryContext.setContextProperty("NumaSync", QVariantMap{{"revision", -1}});
+  deviceLibraryContext.setContextProperty("NumaHome", QVariantMap{{"sections", QVariantList{QVariantMap{
+    {"title", "Library"}, {"items", QVariantList{QVariantMap{{"id", "LM"}, {"type", "playlist"}},
+      QVariantMap{{"id", "local-playlist:other-device"}, {"type", "playlist"}}}}}}}});
+  QTemporaryDir deviceLibraryRoot;
+  LocalLibrary deviceLibrary(deviceLibraryRoot.path());
+  const QString devicePlaylistId = deviceLibrary.createPlaylist(QStringLiteral("Hika"));
+  deviceLibraryContext.setContextProperty("NumaLocal", &deviceLibrary);
+  QQmlComponent homeLibraryComponent(&engine, QUrl(QStringLiteral("qrc:/qt/qml/Numa/app/qml/views/home/HomeView.qml")));
+  std::unique_ptr<QObject> homeLibrary(homeLibraryComponent.create(&deviceLibraryContext));
+  if (!homeLibrary) return 1;
+  const auto libraryFeed = homeLibrary->property("feed").value<QJSValue>().toVariant().toList();
+  if (libraryFeed.size() != 1) { output << "Device playlists must join the existing Library shelf, not create a second shelf at the bottom.\n"; return 1; }
+  const auto libraryItems = libraryFeed.first().toMap().value("items").toList();
+  if (libraryItems.size() != 2 || libraryItems.last().toMap().value("id") != devicePlaylistId) {
+    output << "Home library must include device-local playlists and exclude other devices' local lists.\n";
+    return 1;
+  }
+  QQmlComponent volumeModelComponent(&engine);
+  volumeModelComponent.setData("import QtQuick\nQtObject { property real volume: 0.37 }", QUrl());
+  std::unique_ptr<QObject> volumeModel(volumeModelComponent.create());
+  QQmlContext playerContext(engine.rootContext());
+  playerContext.setContextProperty("NumaHome", volumeModel.get());
+  auto playerAppearance = engine.rootContext()->contextProperty("NumaAppearance").toMap();
+  playerAppearance.insert("showBitrate", false);
+  playerContext.setContextProperty("NumaAppearance", playerAppearance);
+  QVariantMap localTrack{{"id", "local:format-test"}, {"title", "Local song"}, {"artist", "Artist"}, {"codec", "flac"}};
+  auto playerState = engine.rootContext()->contextProperty("NumaPlayback").toMap();
+  playerState.insert("track", localTrack);
+  playerState.insert("transitionTrack", QVariantMap{});
+  playerState.insert("bitrate", 757000);
+  playerState.insert("playing", false);
+  playerState.insert("loading", false);
+  playerState.insert("queue", QVariantList{});
+  playerState.insert("repeatMode", "off");
+  playerState.insert("shuffleEnabled", false);
+  playerContext.setContextProperty("NumaPlayback", playerState);
+  QQmlComponent playerTestComponent(&engine);
+  playerTestComponent.setData("import QtQuick\nimport Numa\nItem { id: stage; width: 1100; height: 70; PlayerBar { objectName: 'volumeTestBar'; anchors.fill: parent; backdrop: stage } }", QUrl());
+  std::unique_ptr<QObject> playerTest(playerTestComponent.create(&playerContext));
+  if (!playerTest) return 1;
+  auto *testBar = playerTest->findChild<QObject *>("volumeTestBar");
+  if (!testBar) return 1;
+  QMetaObject::invokeMethod(testBar, "toggleMute");
+  if (volumeModel->property("volume").toDouble() != 0) return 1;
+  QMetaObject::invokeMethod(testBar, "toggleMute");
+  if (qAbs(volumeModel->property("volume").toDouble() - 0.37) > 0.0001) return 1;
+  QVariant localFormat;
+  QMetaObject::invokeMethod(testBar, "localLabel", Q_RETURN_ARG(QVariant, localFormat), Q_ARG(QVariant, QVariant(localTrack)));
+  if (localFormat.toString() != QStringLiteral("FLAC")) {
+    output << "Local bitrates must respect the bitrate setting.\n";
+    return 1;
+  }
+  playerAppearance.insert("showBitrate", true);
+  playerContext.setContextProperty("NumaAppearance", playerAppearance);
+  QMetaObject::invokeMethod(testBar, "localLabel", Q_RETURN_ARG(QVariant, localFormat), Q_ARG(QVariant, QVariant(localTrack)));
+  if (!localFormat.toString().contains(QStringLiteral("757 kbps"))) return 1;
+  for (const QString theme : {QStringLiteral("rose_pine"), QStringLiteral("rose_pine_dawn")}) {
+    const bool dawn = theme.endsWith("dawn");
+    QQmlContext bloomContext(engine.rootContext());
+    bloomContext.setContextProperty("NumaAppearance", QVariantMap{{"theme", theme}, {"rosePine", true},
+      {"textColor", dawn ? "#575279" : "#e0def4"}, {"baseColor", dawn ? "#faf4ed" : "#191724"}});
+    QQmlComponent bloomComponent(&engine);
+    bloomComponent.setData(R"(
+import QtQuick
+import QtQuick.Controls
+import Numa
+ApplicationWindow {
+    id: preview
+    width: 280; height: 120
+    color: NumaAppearance.baseColor
+    property color paint: NumaAppearance.theme === "rose_pine_dawn" ? "#efd4cf" : "#ebbcba"
+    property bool glowHovered: true
+    Button {
+        id: pinkButton
+        HandCursor {}
+        x: 50; y: 40; width: 180; height: 40
+        background: Rectangle { radius: 10; color: preview.paint }
+        contentItem: Text { text: "Buscar actualizaciones"; color: "#575279"; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+        HoverTint { objectName: "testBloom"; control: pinkButton; hovered: preview.glowHovered }
+    }
+}
+)", QUrl());
+    std::unique_ptr<QObject> bloomPreview(bloomComponent.create(&bloomContext));
+    if (!bloomPreview) {
+      for (const auto &error : bloomComponent.errors()) output << error.toString() << '\n';
+      return 1;
+    }
+    auto *halo = bloomPreview->findChild<QObject *>("testBloom");
+    if (!halo || !halo->property("active").toBool()) return 1;
+    for (const auto &excluded : {"#fffaf3", "#eb6f92", "#40323e", "#d7827e"}) {
+      bloomPreview->setProperty("paint", QColor(excluded));
+      if (halo->property("active").toBool()) {
+        output << "Bloom must remain off for other button colors: " << excluded << '\n';
+        return 1;
+      }
+    }
+    bloomPreview->setProperty("paint", QColor(dawn ? "#efd4cf" : "#ebbcba"));
+    bloomPreview->setProperty("glowHovered", false);
+    if (halo->property("active").toBool()) return 1;
+    bloomPreview->setProperty("glowHovered", true);
+    auto *bloomWindow = qobject_cast<QQuickWindow *>(bloomPreview.get());
+    bloomWindow->show();
+    QElapsedTimer renderWait; renderWait.start();
+    while (renderWait.elapsed() < 260) { application.processEvents(); QThread::msleep(5); }
+    QMouseEvent hoverMove(QEvent::MouseMove, QPointF(100, 60), QPointF(bloomWindow->mapToGlobal(QPoint(100, 60))), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+    QCoreApplication::sendEvent(bloomWindow, &hoverMove);
+    application.processEvents();
+    auto *createdHalo = bloomPreview->findChild<QObject *>("buttonHoverTint");
+    if (!createdHalo || !createdHalo->property("active").toBool()) {
+      output << "Hovering a pink button must create its shared hover tint automatically.\n";
+      return 1;
+    }
+    bloomWindow->close();
   }
   output << "Numa QML startup check passed.\n";
   return 0;

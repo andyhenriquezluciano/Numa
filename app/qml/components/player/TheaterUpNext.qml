@@ -23,6 +23,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import ".."
 import "../home"
+import "../settings"
 
 // Frosted "Up next" rail laid over the right edge of the picture.
 Rectangle {
@@ -238,7 +239,7 @@ Rectangle {
                     color: "#f7f5f0"
                     font.pixelSize: 12
                 }
-                Switch {
+                SettingsSwitch {
                     checked: NumaPlayback.autoplayEnabled
                     onToggled: NumaPlayback.autoplayEnabled = checked
                     Accessible.name: qsTr("Autoplay")

@@ -55,7 +55,7 @@ Item {
             Layout.preferredHeight: 36
             Layout.alignment: Qt.AlignTop
             radius: 10
-            color: "#12ffffff"
+            color: NumaAppearance.theme === "rose_pine_dawn" ? "#fffaf3" : NumaAppearance.theme === "rose_pine" ? "#1f1d2e" : "#12ffffff"
             border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#10ffffff"
             border.width: NumaAppearance.controlBorderWidth
 

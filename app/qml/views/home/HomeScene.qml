@@ -84,11 +84,7 @@ Item {
         if (scene.shell.currentPage === "playlist") {
             if (NumaAppearance.playlistSongBackground && scene.playbackArtwork.length > 0)
                 return scene.playbackArtwork;
-            const detail = NumaPlaylist.detail || {};
-            const fallback = detail.thumbnail || "";
-            const id = detail.playlistId || detail.browseId || detail.id || "";
-            return typeof NumaSync !== "undefined" && NumaSync.revision >= 0
-                ? NumaSync.artworkFor(id, fallback) : fallback;
+            return playlistBackgroundCover.backgroundArtwork;
         }
         return "";
     }
@@ -112,6 +108,14 @@ Item {
     // each panel re-rendering the whole page into its own capture. Frames where only the player
     // bar changes (the progress ticker) also skip redrawing the page. Draw once, blur everywhere.
     layer.enabled: scene.visible && !NumaAppearance.performanceMode
+
+    PlaylistArtwork {
+        id: playlistBackgroundCover
+        visible: false
+        media: NumaPlaylist.detail || ({})
+        customArtwork: !identity.startsWith("local-playlist:") && typeof NumaSync !== "undefined" && NumaSync.revision >= 0
+            ? NumaSync.artworkFor(identity, "", false) : ""
+    }
 
     ImmersiveBackground {
         id: immersive

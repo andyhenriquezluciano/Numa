@@ -77,6 +77,7 @@ void configureNativeFrame(QWindow *window, bool compact, bool videoFullScreen = 
 
 WindowState::WindowState(QObject *parent) : QObject(parent)
 {
+    qGuiApp->installNativeEventFilter(this);
     m_enabled = m_settings.value(QStringLiteral("window/remember"), true).toBool();
     if (m_enabled) {
         m_width = qMax(m_settings.value(QStringLiteral("window/width"), kDefaultWidth).toInt(), 1);
@@ -127,6 +128,39 @@ void WindowState::setEnabled(bool value)
     emit enabledChanged();
 }
 
+WindowState::~WindowState()
+{
+    if (qGuiApp)
+        qGuiApp->removeNativeEventFilter(this);
+}
+
+bool WindowState::nativeEventFilter(const QByteArray &, void *message, qintptr *)
+{
+#ifdef Q_OS_WIN
+    if (!m_leavingPlayerFullScreen || !m_maximizingPlayerFullScreen || !m_window)
+        return false;
+    const auto *event = static_cast<MSG *>(message);
+    const HWND handle = reinterpret_cast<HWND>(m_window->winId());
+    if (event->hwnd != handle || event->message != WM_WINDOWPOSCHANGING)
+        return false;
+    auto *position = reinterpret_cast<WINDOWPOS *>(event->lParam);
+    MONITORINFO monitorInfo{};
+    monitorInfo.cbSize = sizeof(monitorInfo);
+    if (!GetMonitorInfo(MonitorFromWindow(handle, MONITOR_DEFAULTTONEAREST), &monitorInfo))
+        return false;
+    // Qt restores the saved normal rectangle before SW_MAXIMIZE. Keep both
+    // native geometry requests at the monitor work area during this exit.
+    position->x = monitorInfo.rcWork.left;
+    position->y = monitorInfo.rcWork.top;
+    position->cx = monitorInfo.rcWork.right - monitorInfo.rcWork.left;
+    position->cy = monitorInfo.rcWork.bottom - monitorInfo.rcWork.top;
+    position->flags &= ~(SWP_NOMOVE | SWP_NOSIZE);
+#else
+    Q_UNUSED(message)
+#endif
+    return false;
+}
+
 void WindowState::setWindow(QWindow *window)
 {
     m_window = window;
@@ -141,6 +175,8 @@ void WindowState::setWindow(QWindow *window)
     connect(window, &QWindow::widthChanged, this, scheduleSave);
     connect(window, &QWindow::heightChanged, this, scheduleSave);
     connect(window, &QWindow::visibilityChanged, this, [this](QWindow::Visibility visibility) {
+        if (m_leavingPlayerFullScreen)
+            return;
         if (visibility == QWindow::Minimized || visibility == QWindow::Hidden) {
             m_wasMaximizedBeforeHide = m_wasMaximizedBeforeHide
                 || m_previousVisibility == QWindow::Maximized;
@@ -278,6 +314,27 @@ void WindowState::applyFrame()
     if (!m_window)
         return;
     configureNativeFrame(m_window, m_compactFrame, m_videoFullScreen);
+}
+
+void WindowState::leavePlayerFullScreen(bool maximized)
+{
+    if (!m_window || m_window->visibility() != QWindow::FullScreen)
+        return;
+    m_leavingPlayerFullScreen = true;
+    m_maximizingPlayerFullScreen = maximized;
+    m_wasFullScreenBeforeMinimize = false;
+    m_wasMaximizedBeforeHide = false;
+    if (maximized)
+        m_window->showMaximized();
+    else
+        m_window->showNormal();
+    m_previousVisibility = m_window->visibility();
+    m_leavingPlayerFullScreen = false;
+    m_maximizingPlayerFullScreen = false;
+    applyFrame();
+    m_window->requestUpdate();
+    m_saveTimer.start();
+    updateState();
 }
 
 bool WindowState::eventFilter(QObject *watched, QEvent *event)

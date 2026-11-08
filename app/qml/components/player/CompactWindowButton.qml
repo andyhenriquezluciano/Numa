@@ -8,6 +8,7 @@ import QtQuick
 import QtQuick.Controls
 
 Button {
+    HandCursor {}
     id: control
 
     required property string glyph

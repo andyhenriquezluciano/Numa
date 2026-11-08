@@ -23,8 +23,20 @@ import QtQuick.Controls
 
 Button {
     id: control
+    HandCursor {}
     property bool prominent: false
     property bool surfaceBackground: false
+    property color labelColor: NumaAppearance.theme === "rose_pine" && control.prominent ? NumaAppearance.baseColor
+        : control.prominent && NumaAppearance.theme === "rose_pine_dawn" ? NumaAppearance.surfaceColor : NumaAppearance.textColor
+    property color buttonColor: {
+        if (NumaAppearance.rosePine) {
+            if (control.prominent) return NumaAppearance.accentColor;
+            if (control.hovered || control.down || control.highlighted) return NumaAppearance.highlightColor;
+            if (NumaAppearance.theme === "rose_pine") return "#1f1d2e";
+            return control.surfaceBackground ? NumaAppearance.surfaceColor : NumaAppearance.overlayColor;
+        }
+        return control.highlighted ? "#514060" : control.down ? "#2cffffff" : control.hovered ? "#1cffffff" : "#0fffffff";
+    }
     implicitHeight: 38
     padding: 12
     font.family: "Inter"
@@ -33,7 +45,7 @@ Button {
     contentItem: Text {
         text: control.text
         font: control.font
-        color: NumaAppearance.theme === "rose_pine" && (control.prominent || control.surfaceBackground) ? NumaAppearance.baseColor : control.prominent && NumaAppearance.theme === "rose_pine_dawn" ? NumaAppearance.surfaceColor : NumaAppearance.textColor
+        color: control.labelColor
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
     }
@@ -41,7 +53,7 @@ Button {
         Rectangle {
             anchors.fill: parent
             radius: 10
-            color: NumaAppearance.theme === "rose_pine" && (control.prominent || control.surfaceBackground) ? NumaAppearance.accentColor : control.surfaceBackground && NumaAppearance.rosePine ? NumaAppearance.surfaceColor : NumaAppearance.rosePine ? (control.prominent ? NumaAppearance.accentColor : control.hovered || control.down || control.highlighted ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : control.highlighted ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#514060") : control.down ? "#2cffffff" : control.hovered ? "#1cffffff" : "#0fffffff"
+            color: control.buttonColor
         }
         RoundedSurfaceFrame {
             anchors.fill: parent

@@ -149,15 +149,6 @@ Item {
                 }
 
                 CompactWindowButton {
-                    colors: panel; glyph: panel.lyricsMode ? "image" : "mic-vocal"
-                    label: panel.lyricsMode ? qsTr("Show artwork") : qsTr("Show lyrics")
-                    active: panel.lyricsMode; onClicked: panel.lyricsMode = !panel.lyricsMode
-                }
-                CompactWindowButton {
-                    colors: panel; glyph: "maximize"; label: qsTr("Exit compact mode")
-                    onClicked: { popup.open = false; panel.compactExitRequested(); }
-                }
-                CompactWindowButton {
                     colors: panel; glyph: ""; minimizeGlyph: true; label: qsTr("Minimize")
                     onClicked: if (popup.Window.window) { const win = popup.Window.window; "minimizeSmoothly" in win ? win.minimizeSmoothly() : win.showMinimized(); }
                 }
@@ -395,12 +386,12 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
-                visible: !panel.lyricsMode
                 spacing: 8
 
                 RoundControl {
                     glyph: popup.volumeLevel <= 0.001 ? "volume-x" : "volume-2"
-                    label: qsTr("Volume")
+                    roundedSquare: true
+                    label: popup.volumeLevel <= 0.001 ? qsTr("Unmute") : qsTr("Mute")
                     onClicked: popup.setVolume(popup.volumeLevel > 0.001 ? 0 : popup.rememberedVolume)
                 }
 
@@ -416,12 +407,24 @@ Item {
                     background: Rail { control: volume; fill: volume.visualPosition }
                     handle: Knob { control: volume }
                 }
+
+                CompactWindowButton {
+                    colors: panel; glyph: panel.lyricsMode ? "image" : "mic-vocal"
+                    label: panel.lyricsMode ? qsTr("Show artwork") : qsTr("Show lyrics")
+                    active: panel.lyricsMode; onClicked: panel.lyricsMode = !panel.lyricsMode
+                }
+                CompactWindowButton {
+                    colors: panel; glyph: "maximize"; label: qsTr("Exit compact mode")
+                    onClicked: { popup.open = false; panel.compactExitRequested(); }
+                }
             }
         }
 
     }
 
     component RoundControl: Button {
+        property bool roundedSquare: false
+        HandCursor {}
         required property string glyph
         required property string label
         property bool active: false
@@ -431,7 +434,7 @@ Item {
         implicitWidth: main ? 42 : 34; implicitHeight: implicitWidth
         hoverEnabled: true; focusPolicy: Qt.TabFocus
         background: Rectangle {
-            radius: width / 2
+            radius: roundedSquare ? 10 : width / 2
             color: NumaAppearance.theme === "rose_pine_dawn" && parent.main ? NumaAppearance.accentColor : parent.main ? (parent.down ? "#e5e2da" : parent.hovered ? "#ffffff" : "#f7f5f0")
                                : NumaAppearance.rosePine ? (parent.active || parent.hovered || parent.down ? NumaAppearance.highlightColor : "transparent") : parent.active ? (parent.hovered ? "#3dffffff" : "#2effffff")
                                                : parent.hovered ? "#1fffffff" : "transparent"

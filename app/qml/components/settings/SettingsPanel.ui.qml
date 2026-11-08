@@ -80,6 +80,7 @@ RowLayout {
         }
         SettingsSelect {
             Layout.fillWidth: true
+            Layout.topMargin: 6
             Layout.bottomMargin: 18
             tintedBackground: true
             model: ["English", "Español"]
@@ -198,7 +199,7 @@ RowLayout {
                 }
 
                 background: Rectangle {
-                    radius: width / 2
+                    radius: 10
                     color: closeButton.down ? "#30ffffff" : closeButton.hovered ? "#20ffffff" : "#10ffffff"
                     border.color: closeButton.visualFocus ? "#d8c2f2" : "transparent"
                 }

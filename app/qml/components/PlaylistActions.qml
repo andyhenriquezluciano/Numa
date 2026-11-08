@@ -46,13 +46,13 @@ Menu {
             property string targetTitle
             property bool localPlaylist
             title: qsTr("Delete “%1”?").arg(targetTitle)
-            message: localPlaylist ? qsTr("Your songs stay on your computer. Only the playlist goes away.")
+            message: localPlaylist ? qsTr("This local playlist and its songs will be removed from NÜMA, including other local playlists that contain them. Your audio files will stay on this computer.")
                                    : qsTr("This deletes the playlist from your YouTube Music account. Songs are not deleted.")
             confirmText: qsTr("Delete")
             destructive: true
             onAccepted: {
                 if (localPlaylist)
-                    NumaLocal.deletePlaylist(targetId);
+                    NumaLocal.deletePlaylist(targetId, true);
                 else
                     NumaLibrary.deletePlaylist(targetId, targetTitle);
             }

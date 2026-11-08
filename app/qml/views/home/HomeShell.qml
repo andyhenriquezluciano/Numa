@@ -124,6 +124,13 @@ Item {
     }
 
     function showDetail(page, item) {
+        if (page === "playlist") {
+            const id = String(item.id || item.playlistId || item.browseId || "");
+            if (id.startsWith("local-playlist:") && !(NumaLocal.playlists || []).some(playlist => playlist.id === id)) {
+                root.navigateTo("library");
+                return;
+            }
+        }
         currentItem = item;
         currentPage = page;
         if (page === "artist")
@@ -312,6 +319,15 @@ Item {
 
     PlaylistPicker {
         id: playlistPicker
+    }
+
+    Connections {
+        target: NumaLocal
+        function onPlaylistDeleted(id) {
+            const openedId = String(root.currentItem.id || root.currentItem.playlistId || root.currentItem.browseId || "");
+            if (root.currentPage === "playlist" && openedId === id)
+                root.navigateTo("library");
+        }
     }
 
     Connections {

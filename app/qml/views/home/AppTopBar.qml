@@ -48,6 +48,17 @@ Item {
     onSearchModeChanged: clearSearch()
     onSectionTitleChanged: if (searchMode === "section") clearSearch()
 
+    TapHandler {
+        parent: root.Window.window ? root.Window.window.contentItem : root
+        enabled: search.activeFocus
+        gesturePolicy: TapHandler.DragThreshold
+        onTapped: function(eventPoint) {
+            const position = searchBox.mapFromItem(parent, eventPoint.position.x, eventPoint.position.y);
+            if (!searchBox.contains(position))
+                search.focus = false;
+        }
+    }
+
     // Canopy: search is a glass circle that grows into a field while focused or filled.
     readonly property bool canopy: NumaAppearance.layoutStyle === "canopy"
     readonly property bool searchOpen: !canopy || search.activeFocus || search.text.length > 0
@@ -125,6 +136,7 @@ Item {
         }
 
         Button {
+            HandCursor {}
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             anchors.rightMargin: 6
@@ -156,6 +168,7 @@ Item {
 
     Button {
         id: account
+        HandCursor {}
 
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter

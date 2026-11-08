@@ -27,6 +27,7 @@ ScrollWheelHandler {
 
     // Item so a ScrollView's contentItem binds without a cast at the call site.
     required property Item view
+    signal userScrolled()
     property bool overshootEnabled: true
     readonly property Flickable flickable: root.view as Flickable
     readonly property WheelGlide glide: WheelGlide {
@@ -57,6 +58,7 @@ ScrollWheelHandler {
             event.accepted = false;
             return;
         }
+        root.userScrolled();
         root.glide.scrollBy(motion.delta, motion.smooth);
         event.accepted = true;
     }

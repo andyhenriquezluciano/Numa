@@ -19,6 +19,8 @@
 
 import Numa
 import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 import QtQuick.Dialogs
 import QtQuick.Window
 
@@ -55,6 +57,51 @@ Item {
     // Dialogs need to find a window; the host is parked in the main one.
     Component.onCompleted: LocalPickers.host = root
 
+    Popup {
+        id: importProgress
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: Math.min(400, parent.width - 48)
+        padding: 24
+        modal: true
+        focus: true
+        closePolicy: Popup.NoAutoClose
+        visible: Boolean(NumaLocal.importing)
+        Overlay.modal: Rectangle { color: "#30000000" }
+        background: PopupBloomSurface {
+            radius: 14
+            tintOpacity: 0.12
+            refractionEnabled: false
+        }
+        contentItem: ColumnLayout {
+            spacing: 16
+            Label {
+                Layout.fillWidth: true
+                text: NumaLocal.scanningImport ? qsTr("Finding audio files…") : qsTr("Adding songs…")
+                color: NumaAppearance.textColor
+                font.pixelSize: 18
+                font.bold: true
+                wrapMode: Text.Wrap
+            }
+            Label {
+                Layout.fillWidth: true
+                text: NumaLocal.scanningImport ? qsTr("Preparing the folder. This may take a moment.")
+                    : qsTr("%1 of %2 songs processed").arg(NumaLocal.importCompleted || 0).arg(NumaLocal.importTotal || 0)
+                color: NumaAppearance.mutedColor
+                wrapMode: Text.Wrap
+            }
+            ProgressBar {
+                Layout.fillWidth: true
+                from: 0
+                to: Math.max(1, NumaLocal.importTotal || 0)
+                value: NumaLocal.importCompleted || 0
+                indeterminate: Boolean(NumaLocal.scanningImport)
+                palette.highlight: NumaAppearance.accentColor
+                palette.dark: NumaAppearance.overlayColor
+            }
+        }
+    }
+
     FileDialog {
         id: songDialog
         title: qsTr("Add songs")
@@ -74,10 +121,27 @@ Item {
         title: qsTr("Choose a cover")
         nameFilters: NumaLocal.imageNameFilters
         onAccepted: {
-            if (root.ownerKind === "playlist")
-                NumaLocal.setPlaylistCover(root.ownerId, selectedFile);
-            else
+            if (root.ownerKind === "playlist") {
+                const animated = /\.(gif|mp4|webm|mov|m4v)$/i.test(selectedFile.toString());
+                if (animated) {
+                    NumaLocal.setPlaylistCover(root.ownerId, selectedFile);
+                } else {
+                    localCrop.playlistId = root.ownerId;
+                    localCrop.imageSource = selectedFile;
+                    localCrop.open();
+                }
+            } else {
                 NumaLocal.setTrackCover(root.ownerId, selectedFile);
+            }
+        }
+    }
+
+    PlaylistCoverCropDialog {
+        id: localCrop
+        property string playlistId
+        onCropAccepted: area => {
+            if (NumaLocal.setPlaylistCoverCrop(playlistId, imageSource, area)) accept();
+            else errorText = qsTr("The artwork could not be saved. Try again.");
         }
     }
 

@@ -27,7 +27,26 @@ import QtQuick.Controls
 Item {
     id: root
 
-    readonly property var feed: typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.visibleSections(NumaHome.sections) : NumaHome.sections
+    readonly property var feed: {
+        const source = typeof NumaSync !== "undefined" && NumaSync.revision >= 0
+            ? NumaSync.visibleSections(NumaHome.sections) : NumaHome.sections;
+        const local = Array.from(typeof NumaLocal !== "undefined" ? NumaLocal.playlists || [] : []);
+        const isLocal = item => item.source === "local" || String(item.id || item.playlistId || "").startsWith("local-playlist:");
+        let libraryFound = false;
+        const sections = (source || []).map(section => {
+            const items = (section.items || []).filter(item => !isLocal(item));
+            const library = /^(library|your library|biblioteca|tu biblioteca|su biblioteca|from your library)$/i.test(String(section.title || "").trim())
+                || ["library", "your-library", "your_library"].includes(section.key);
+            if (library && !libraryFound) {
+                libraryFound = true;
+                return Object.assign({}, section, {items: items.concat(local)});
+            }
+            return Object.assign({}, section, {items: items});
+        });
+        if (!libraryFound && local.length)
+            sections.push({key: "device-library", title: qsTr("Your library"), items: local});
+        return sections.filter(section => section.items.length > 0);
+    }
     // Lead album or playlist from each shelf, for the carousel up top. Library
     // shelves only fill in when the editorial ones run short.
     readonly property var features: {
@@ -78,7 +97,6 @@ Item {
         onModelChanged: Qt.callLater(() => {
             return scroll.positionViewAtBeginning();
         })
-        ScrollBar.vertical.width: 5
 
         populate: Transition {
             NumberAnimation {

@@ -22,6 +22,7 @@
 #include "appearance/animated_artwork_service.h"
 #include "appearance/artwork_sampler.h"
 #include "auth/auth_manager.h"
+#include "lyrics/translation/google_translation.h"
 #include "providers/qobuz/qobuz_service.h"
 #include "providers/youtube/catalog/youtube_catalog.h"
 
@@ -75,6 +76,7 @@ AlbumController::AlbumController(YouTubeCatalog *catalog, AuthManager *auth,
           this, &AlbumController::receiveAlbum);
   connect(m_catalog, &YouTubeCatalog::requestFailed, this,
           &AlbumController::receiveFailure);
+  connect(m_catalog, &YouTubeCatalog::searchReady, this, &AlbumController::receiveSearch);
   connect(m_auth, &AuthManager::sessionChanged, this, &AlbumController::clear);
   if (m_qobuz && !m_artistMode)
     connect(m_qobuz, &QobuzService::changed, this, &AlbumController::updateStreamQuality);
@@ -94,14 +96,31 @@ QVariantMap AlbumController::defaultPalette() {
 }
 
 void AlbumController::openAlbum(const QVariantMap &item) {
+  cancelDescription();
+  m_originalDescription.clear();
   const QVariantMap selectedItem = item;
   m_requestId = 0;
+  m_lookupRequest = 0;
   m_animatedArtworkRequestId++;
   m_animatedArtworkUrl.clear();
   cancelArtwork();
   m_detail.clear();
   updateStreamQuality();
   const QString browseId = browseIdFromItem(item);
+  if (browseId.isEmpty() && item.value(QStringLiteral("lookupByName")).toBool()
+      && !item.value(QStringLiteral("title")).toString().trimmed().isEmpty()) {
+    m_pendingItem = item;
+    m_auth->refreshSession();
+    m_loading = m_auth->isSignedIn();
+    m_errorMessage = m_loading ? QString() : tr("Sign in to open music details.");
+    if (m_loading) {
+      const QString query = item.value(QStringLiteral("title")).toString() + QLatin1Char(' ')
+          + (m_artistMode ? QString() : item.value(QStringLiteral("artist")).toString());
+      m_lookupRequest = m_catalog->fetchSearch(query.trimmed(), m_artistMode ? QStringLiteral("artists") : QStringLiteral("albums"), m_auth->sessionObject());
+    }
+    emit stateChanged();
+    return;
+  }
   if (browseId.isEmpty()) {
     m_pendingItem = selectedItem;
     m_loading = false;
@@ -129,13 +148,38 @@ void AlbumController::openAlbum(const QVariantMap &item) {
   emit stateChanged();
 }
 
+void AlbumController::receiveSearch(quint64 requestId, const QJsonObject &search) {
+  if (!m_lookupRequest || requestId != m_lookupRequest) return;
+  m_lookupRequest = 0;
+  const QString title = AnimatedArtworkService::normalizeText(m_pendingItem.value(QStringLiteral("title")).toString());
+  const QString artist = AnimatedArtworkService::normalizeText(m_pendingItem.value(QStringLiteral("artist")).toString());
+  for (const auto &sectionValue : search.value(QStringLiteral("sections")).toArray()) {
+    const auto section = sectionValue.toObject();
+    for (const auto &value : section.value(QStringLiteral("items")).toArray()) {
+      const QVariantMap candidate = value.toObject().toVariantMap();
+      if (browseIdFromItem(candidate).isEmpty()) continue;
+      if (AnimatedArtworkService::normalizeText(candidate.value(QStringLiteral("title")).toString()) != title) continue;
+      const QString candidateArtist = AnimatedArtworkService::normalizeText(candidate.value(QStringLiteral("artist")).toString());
+      if (!m_artistMode && !artist.isEmpty() && candidateArtist != artist) continue;
+      openAlbum(candidate);
+      return;
+    }
+  }
+  m_loading = false;
+  m_errorMessage = tr("No matching page was found for this local song.");
+  emit stateChanged();
+}
+
 void AlbumController::retry() {
   if (!m_pendingItem.isEmpty())
     openAlbum(m_pendingItem);
 }
 
 void AlbumController::clear() {
+  cancelDescription();
+  m_originalDescription.clear();
   m_requestId = 0;
+  m_lookupRequest = 0;
   m_animatedArtworkRequestId++;
   m_animatedArtworkUrl.clear();
   cancelArtwork();
@@ -157,6 +201,7 @@ void AlbumController::receiveAlbum(quint64 requestId,
   m_loading = false;
   m_errorMessage.clear();
   m_detail = album.toVariantMap();
+  m_originalDescription = m_detail.value(QStringLiteral("description")).toString();
   copyIfMissing(m_detail, m_pendingItem, QStringLiteral("title"));
   copyIfMissing(m_detail, m_pendingItem, QStringLiteral("artist"));
   copyIfMissing(m_detail, m_pendingItem, QStringLiteral("thumbnail"));
@@ -199,6 +244,7 @@ void AlbumController::receiveAlbum(quint64 requestId,
   emit stateChanged();
 
   updateAnimatedArtwork();
+  updateDescription();
   updateStreamQuality();
   const QString heroArtwork = m_detail.value(QStringLiteral("heroArtwork")).toString();
   requestArtwork(heroArtwork.isEmpty()
@@ -206,6 +252,67 @@ void AlbumController::receiveAlbum(quint64 requestId,
                      : heroArtwork);
   if (m_artistMode)
     requestArtistArtwork();
+}
+
+void AlbumController::setDescriptionLanguage(const QString &language) {
+  const QString target = language == QStringLiteral("es") ? language : QStringLiteral("en");
+  if (m_descriptionLanguage == target)
+    return;
+  m_descriptionLanguage = target;
+  updateDescription();
+}
+
+void AlbumController::cancelDescription() {
+  if (!m_descriptionReply)
+    return;
+  auto *reply = std::exchange(m_descriptionReply, nullptr);
+  disconnect(reply, nullptr, this, nullptr);
+  reply->abort();
+  reply->deleteLater();
+}
+
+void AlbumController::updateDescription() {
+  cancelDescription();
+  if (m_artistMode || m_originalDescription.trimmed().isEmpty())
+    return;
+  const QString key = m_descriptionLanguage + QLatin1Char('\n') + m_originalDescription;
+  if (const auto *cached = m_descriptionCache.object(key)) {
+    m_detail.insert(QStringLiteral("description"), *cached);
+    emit stateChanged();
+    return;
+  }
+  m_detail.insert(QStringLiteral("description"), m_originalDescription);
+  emit stateChanged();
+  QUrlQuery query;
+  query.addQueryItem(QStringLiteral("client"), QStringLiteral("gtx"));
+  query.addQueryItem(QStringLiteral("sl"), QStringLiteral("auto"));
+  query.addQueryItem(QStringLiteral("tl"), m_descriptionLanguage);
+  query.addQueryItem(QStringLiteral("dt"), QStringLiteral("t"));
+  query.addQueryItem(QStringLiteral("q"), m_originalDescription);
+  QNetworkRequest request(QUrl(QStringLiteral("https://translate.googleapis.com/translate_a/single")));
+  request.setHeader(QNetworkRequest::ContentTypeHeader,
+                    QStringLiteral("application/x-www-form-urlencoded; charset=UTF-8"));
+  request.setTransferTimeout(20000);
+  auto *reply = m_network.post(request, query.query(QUrl::FullyEncoded).toUtf8());
+  m_descriptionReply = reply;
+  connect(reply, &QNetworkReply::finished, this, [this, reply, key] {
+    if (m_descriptionReply != reply) {
+      reply->deleteLater();
+      return;
+    }
+    m_descriptionReply = nullptr;
+    const bool succeeded = reply->error() == QNetworkReply::NoError;
+    const auto document = QJsonDocument::fromJson(reply->readAll());
+    reply->deleteLater();
+    if (!succeeded || !document.isArray() || document.array().isEmpty())
+      return;
+    const QString translated = googleTranslatedLine(document.array().first().toArray());
+    if (translated.isEmpty())
+      return;
+    m_descriptionCache.insert(key, new QString(translated));
+    m_detail.insert(QStringLiteral("description"), translated);
+    emit stateChanged();
+  });
 }
 
 // Hi-Res or Lossless, when the user's Qobuz plays this album. Nothing otherwise.
@@ -330,10 +437,11 @@ void AlbumController::applyAudioDbArtist(const AudioDbArtist &artist) {
 
 void AlbumController::receiveFailure(quint64 requestId,
                                      const QString &message) {
-  if (requestId != m_requestId)
+  if (requestId != m_requestId && requestId != m_lookupRequest)
     return;
 
   m_requestId = 0;
+  m_lookupRequest = 0;
   m_loading = false;
   m_errorMessage = message;
   emit stateChanged();

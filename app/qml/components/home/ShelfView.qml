@@ -244,6 +244,7 @@ Item {
         RailWheelHandler {
             orientation: Qt.Vertical
             onVerticalRequested: function(delta, smooth) { root.verticalScrollRequested(delta, smooth); }
+            onHorizontalRequested: function(delta, smooth) { root.scrollRailBy(delta, smooth); }
         }
         RailWheelHandler {
             orientation: Qt.Horizontal

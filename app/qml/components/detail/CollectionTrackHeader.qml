@@ -60,6 +60,13 @@ Item {
 
     height: 40
 
+    Rectangle {
+        anchors.fill: parent
+        radius: 8
+        color: NumaAppearance.overlayColor
+        visible: NumaAppearance.theme === "rose_pine_dawn"
+    }
+
     component SortLabel: Item {
         id: label
 
@@ -97,13 +104,29 @@ Item {
                 name: label.icon
                 color: label.tone
             }
-            LucideIcon {
+            Canvas {
                 visible: label.active
                 width: 12
                 height: 12
                 anchors.verticalCenter: parent.verticalCenter
-                name: root.sortDescending ? "chevron-down" : "chevron-up"
-                color: root.activeColor
+                property bool descending: root.sortDescending
+                property color strokeColor: root.activeColor
+                onDescendingChanged: requestPaint()
+                onStrokeColorChanged: requestPaint()
+                onVisibleChanged: if (visible) requestPaint()
+                onPaint: {
+                    const context = getContext("2d");
+                    context.reset();
+                    context.strokeStyle = strokeColor;
+                    context.lineWidth = 1.8;
+                    context.lineCap = "round";
+                    context.lineJoin = "round";
+                    context.beginPath();
+                    context.moveTo(3, descending ? 4.5 : 7.5);
+                    context.lineTo(6, descending ? 7.5 : 4.5);
+                    context.lineTo(9, descending ? 4.5 : 7.5);
+                    context.stroke();
+                }
             }
         }
         MouseArea {
@@ -118,6 +141,7 @@ Item {
 
     component SortEntry: MenuItem {
         id: entry
+        HandCursor {}
 
         property string key
         readonly property bool active: root.sortKey === key
@@ -179,6 +203,7 @@ Item {
 
     ToolButton {
         id: sortButton
+        HandCursor {}
         x: root.width - 8 - width
         width: 36
         height: 36

@@ -165,6 +165,7 @@ Item {
 
         Button {
             id: backButton
+            HandCursor {}
 
             width: 132
             height: 34
@@ -172,9 +173,10 @@ Item {
             onClicked: root.backRequested()
 
             background: Rectangle {
-                radius: 17
-                color: backButton.hovered ? "#18ffffff" : "transparent"
-                border.color: backButton.activeFocus ? root.accentSoftColor : "transparent"
+                radius: 10
+                color: NumaAppearance.theme === "rose_pine_dawn" ? (backButton.hovered || backButton.down ? NumaAppearance.highlightColor : NumaAppearance.overlayColor)
+                    : backButton.hovered ? "#18ffffff" : "transparent"
+                border.width: 0
             }
 
             contentItem: Row {
@@ -201,6 +203,7 @@ Item {
         }
 
         CollectionHero {
+            visible: !NumaAlbum.loading && !NumaAlbum.errorMessage
             cloudMedia: Object.assign({}, root.detail, {type: "album"})
             id: hero
 
@@ -284,6 +287,7 @@ Item {
             }
 
             Column {
+                visible: !NumaAlbum.loading && !NumaAlbum.errorMessage
                 width: parent.width
 
                 CollectionTrackHeader {
@@ -377,6 +381,25 @@ Item {
         inkColor: root.inkColor
         onPlayClicked: root.playOrToggle()
         onBackToTopClicked: scroll.contentY = 0
+    }
+
+    Column {
+        anchors.centerIn: parent
+        width: Math.min(parent.width - 48, 360)
+        spacing: 14
+        visible: NumaAlbum.loading
+        BusyIndicator {
+            anchors.horizontalCenter: parent.horizontalCenter
+            running: parent.visible
+            palette.dark: NumaAppearance.accentColor
+        }
+        Text {
+            width: parent.width
+            text: qsTr("Loading album…")
+            color: NumaAppearance.textColor
+            font.pixelSize: 14
+            horizontalAlignment: Text.AlignHCenter
+        }
     }
 
     PageLoadState {

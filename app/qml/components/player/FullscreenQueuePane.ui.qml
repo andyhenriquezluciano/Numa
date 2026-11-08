@@ -32,6 +32,15 @@ ColumnLayout {
         { title: "Genesis", artist: "Grimes", duration: "4:15" }
     ]
     property bool autoplayEnabled: true
+    property bool continuous: false
+    property var historyItems: []
+    property var currentTrack: ({})
+    readonly property int historyOffset: continuous ? Math.max(0, historyItems.length - 2) : 0
+    readonly property var visibleHistory: continuous ? historyItems.slice(historyOffset) : []
+    readonly property int historyCount: visibleHistory.length
+    readonly property bool hasCurrent: continuous && Boolean(currentTrack.id)
+    readonly property int queueStart: historyCount + (hasCurrent ? 1 : 0)
+    readonly property var rowItems: continuous ? visibleHistory.concat(hasCurrent ? [currentTrack] : [], queueItems) : queueItems
     property real paneSwap: 1
     property color accentColor: NumaAppearance.textColor
     property color primaryText: "#f7f5f0"
@@ -39,6 +48,37 @@ ColumnLayout {
     property color mutedText: "#8d928a"
     property alias list: upNext
     property alias clearButton: clearButton
+    property alias scrollFollow: scrollFollow
+    property int dragIndex: -1
+    property int dropIndex: -1
+    property real dragY: 0
+    signal dragStarted(int queueIndex, real position)
+    signal dragMoved(real position)
+    signal dragFinished()
+    signal dragCanceled()
+    signal scrollDrag()
+
+    QueueScrollFollow {
+        id: scrollFollow
+        view: upNext
+        active: pane.visible
+        continuous: pane.continuous
+        currentIndex: pane.hasCurrent ? pane.historyCount : -1
+        dragging: pane.dragIndex >= 0
+    }
+
+    QueueListModel {
+        id: queueModel
+        items: pane.rowItems
+        onUpdated: if (scrollFollow.following && !scrollFollow.restoring) Qt.callLater(() => scrollFollow.center())
+    }
+
+    Timer {
+        interval: 40
+        repeat: true
+        running: pane.dragIndex >= 0
+        onTriggered: pane.scrollDrag()
+    }
 
     spacing: 14
 
@@ -48,7 +88,7 @@ ColumnLayout {
 
         Text {
             Layout.fillWidth: true
-            text: qsTr("Up next")
+            text: pane.continuous ? qsTr("Queue") : qsTr("Up next")
             color: pane.primaryText
             font.family: "Inter"
             font.pixelSize: 28
@@ -64,7 +104,7 @@ ColumnLayout {
 
         QueueBestMixButton {
             panel: pane
-            count: upNext.count
+            count: pane.queueItems.length
             Layout.maximumWidth: Math.max(0, pane.width - clearButton.implicitWidth - 8)
         }
 
@@ -72,17 +112,19 @@ ColumnLayout {
 
         Button {
             id: clearButton
+            HandCursor {}
             objectName: "clearFullscreenQueue"
             text: qsTr("Clear")
-            enabled: upNext.count > 0
+            enabled: pane.queueItems.length > 0
             implicitHeight: 28
             leftPadding: 10
             rightPadding: 10
             Accessible.name: qsTr("Clear queue")
 
             background: Rectangle {
-                radius: height / 2
-                color: clearButton.down ? "#26ffffff" : clearButton.hovered ? "#1affffff" : "transparent"
+                radius: 8
+                color: NumaAppearance.rosePine ? (clearButton.hovered || clearButton.down || clearButton.activeFocus ? NumaAppearance.highlightColor : "transparent")
+                    : clearButton.down ? "#26ffffff" : clearButton.hovered ? "#1affffff" : "transparent"
                 border.color: clearButton.activeFocus ? pane.accentColor : "transparent"
             }
 
@@ -114,26 +156,31 @@ ColumnLayout {
         Layout.fillHeight: true
         clip: true
         spacing: 4
-        model: pane.queueItems
+        model: queueModel
+        move: Transition { NumberAnimation { properties: "x,y"; duration: 220; easing.type: Easing.OutCubic } }
+        displaced: Transition { NumberAnimation { properties: "x,y"; duration: 220; easing.type: Easing.OutCubic } }
+        interactive: pane.dragIndex < 0
+        cacheBuffer: pane.dragIndex >= 0 ? contentHeight : 320
         boundsBehavior: Flickable.StopAtBounds
 
-        ScrollBar.vertical: ScrollBar {
+        ScrollBar.vertical: ThemedScrollBar {
             id: upNextBar
             policy: upNext.contentHeight > upNext.height ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
-            contentItem: Rectangle {
-                implicitWidth: 4
-                radius: 2
-                color: upNextBar.pressed ? "#80ffffff" : "#30ffffff"
-            }
         }
 
         // The logic layer binds playback and removal for each row.
         delegate: FullscreenQueueRow {
-            required property var modelData
+            required property string entryJson
             required property int index
             width: upNext.width - 8
-            track: modelData
+            track: JSON.parse(entryJson)
             rowIndex: index
+            dragPane: pane
+            queueIndex: index - pane.queueStart
+            previous: index < pane.historyCount
+            current: pane.hasCurrent && index === pane.historyCount
+            sectionLabel: !pane.continuous ? "" : previous && index === 0 ? qsTr("PLAYED")
+                : current ? qsTr("NOW PLAYING") : index === pane.queueStart ? qsTr("UP NEXT") : ""
             paneSwap: pane.paneSwap
             accentColor: pane.accentColor
             primaryText: pane.primaryText
@@ -142,6 +189,26 @@ ColumnLayout {
 
         FlickableWheel {
             view: upNext
+            enabled: upNext.interactive
+            onUserScrolled: scrollFollow.hold()
+        }
+
+        FullscreenQueueRow {
+            parent: upNext
+            objectName: "fullscreenQueueDragPreview"
+            visible: pane.dragIndex >= 0
+            enabled: false
+            z: 20
+            x: 0
+            y: Math.max(0, Math.min(upNext.height - height, pane.dragY - height / 2))
+            width: upNext.width - 8
+            track: pane.dragIndex >= 0 ? (pane.queueItems[pane.dragIndex] || {}) : ({})
+            dragPane: pane
+            queueIndex: pane.dragIndex
+            dragPreview: true
+            accentColor: pane.accentColor
+            primaryText: pane.primaryText
+            mutedText: pane.mutedText
         }
     }
 

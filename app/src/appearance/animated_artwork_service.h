@@ -45,7 +45,7 @@ public:
 
     // Resolves animated cover artwork for a track.
     void resolveTrackArtwork(const QString &title, const QString &artist, const QString &album,
-                             quint64 requestId, std::function<void(quint64, const QString &)> callback);
+                             quint64 requestId, std::function<void(quint64, const QString &)> callback, bool explicitDownload = false);
 
     // Resolves animated cover artwork for an album.
     void resolveAlbumArtwork(const QString &title, const QString &artist,

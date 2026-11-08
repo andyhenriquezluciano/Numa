@@ -82,6 +82,7 @@ RowLayout {
             spacing: 2
 
             Button {
+                HandCursor {}
                 id: songMode
 
                 text: qsTr("Song")

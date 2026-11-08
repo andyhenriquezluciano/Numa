@@ -23,6 +23,7 @@ import QtQuick.Controls
 
 // Round icon button for the music video theater.
 Button {
+    HandCursor {}
     id: root
 
     property string glyph: ""
