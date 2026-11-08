@@ -7,6 +7,7 @@ test("library commits notify the account hub and both clients retain edits and c
   const { call, env } = await syncFixture();
   const notices = [];
   const hub = new ConnectHub({getWebSockets: () => []}, env);
+  hub.notifyLibraryChanged = change => notices.push(change);
   env.CONNECT_HUB = { idFromName: name => name, get: user => ({ fetch: async request => {
     if (new URL(request.url).pathname === "/internal/library-sync") return hub.fetch(request);
     notices.push({ user, ...await request.json() }); return new Response(null, { status: 204 });
@@ -37,6 +38,7 @@ test("library commits notify the account hub and both clients retain edits and c
 test("notification outages preserve committed library changes", async () => {
   const { call, env } = await syncFixture();
   const hub = new ConnectHub({getWebSockets: () => []}, env);
+  hub.notifyLibraryChanged = () => { throw new Error("offline"); };
   env.CONNECT_HUB = { idFromName: name => name, get: () => ({ fetch: async request => {
     if (new URL(request.url).pathname === "/internal/library-sync") return hub.fetch(request);
     throw new Error("offline");
@@ -121,4 +123,62 @@ test("sync delegation rejects forged claims and preserves validation errors", as
   assert.equal(response.status, 400);
   assert.equal((await response.json()).error, "invalid_client");
   assert.equal((await call("/internal/library-sync", "GET")).status, 404);
+});
+
+
+test("conditional sync reads omit unchanged payloads and still enforce revocation", async () => {
+  const { call, env } = await syncFixture();
+  const first = await call("/sync/library");
+  assert.equal(first.headers.get("etag"), '"0"');
+  assert.equal((await call("/sync/library", "GET", undefined, "a", {"if-none-match": '"0"'})).status, 304);
+  await call("/sync/library", "POST", packet("windows", 1, {savedPlaylists: [{id: "mine"}]}));
+  const changed = await call("/sync/library", "GET", undefined, "a", {"if-none-match": '"0"'});
+  assert.equal(changed.status, 200);
+  assert.equal(changed.headers.get("etag"), '"1"');
+  assert.equal((await changed.json()).library.savedPlaylists[0].id, "mine");
+  const own = await call("/sync/library", "GET", undefined, "b", {"if-none-match": '"1"'});
+  assert.equal(own.status, 200);
+  assert.deepEqual((await own.json()).library, {});
+  await env.DB.prepare("DELETE FROM devices WHERE id = ?").bind("device-a").run();
+  assert.equal((await call("/sync/library", "GET", undefined, "a", {"if-none-match": '"1"'})).status, 401);
+});
+
+test("hub shares only in-flight reads and notifies directly without fetching itself", async () => {
+  const { call, env } = await syncFixture();
+  let reads = 0, invocations = 0;
+  const notices = [];
+  const hubs = new Map();
+  env.CONNECT_HUB = {idFromName: name => name, get: user => ({fetch: request => {
+    ++invocations;
+    assert.equal(new URL(request.url).pathname, "/internal/library-sync");
+    if (!hubs.has(user)) {
+      const hub = new ConnectHub({getWebSockets: () => []}, env);
+      hub.notifyLibraryChanged = change => notices.push(change);
+      hubs.set(user, hub);
+    }
+    return hubs.get(user).fetch(request);
+  }})};
+  const prepare = env.DB.prepare.bind(env.DB);
+  env.DB.prepare = sql => {
+    const query = prepare(sql);
+    if (sql !== "SELECT revision, payload FROM library_states WHERE user_id = ?") return query;
+    return {bind: (...values) => {const bound = query.bind(...values); return {first: async () => {
+      ++reads;
+      await new Promise(resolve => setTimeout(resolve, 10));
+      return bound.first();
+    }}}};
+  };
+  const responses = await Promise.all(Array.from({length: 8}, () => call("/sync/library")));
+  for (const response of responses) assert.deepEqual((await response.json()).library, {});
+  assert.equal(reads, 1);
+  await call("/sync/library");
+  assert.equal(reads, 2, "Completed reads must not stay cached");
+  const before = invocations;
+  const response = await call("/sync/library", "POST", packet("windows", 1, {savedPlaylists: [{id: "one"}]}));
+  const saved = (await response.json()).library;
+  assert.equal(invocations - before, 1, "One hub invocation per commit, with no self-fetch");
+  assert.equal(notices.length, 1);
+  await call("/sync/library", "POST", packet("windows", 2, saved, saved));
+  assert.equal(notices.length, 1, "Sequence acknowledgements do not wake other devices");
+  assert.equal((await (await call("/sync/library")).json()).library.savedPlaylists[0].id, "one");
 });

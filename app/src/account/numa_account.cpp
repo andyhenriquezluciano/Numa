@@ -313,6 +313,7 @@ void NumaAccount::acceptTokens(const QJsonObject &body) {
   m_refreshToken = body.value(QStringLiteral("refresh_token")).toString();
   m_deviceId = body.value(QStringLiteral("device_id")).toString();
   const QJsonObject user = body.value(QStringLiteral("user")).toObject();
+  if (m_userId != user.value(QStringLiteral("id")).toString()) m_deviceListAge.invalidate();
   m_userId = user.value(QStringLiteral("id")).toString();
   m_userName = user.value(QStringLiteral("name")).toString();
   m_userEmail = user.value(QStringLiteral("email")).toString();
@@ -403,6 +404,8 @@ void NumaAccount::clearSession() {
   m_userPicture.clear();
   m_devices.clear();
   m_devicesLoading = false;
+  m_devicesRefreshPending = false;
+  m_deviceListAge.invalidate();
   deleteSession();
   emit userChanged();
   emit devicesChanged();
@@ -410,7 +413,10 @@ void NumaAccount::clearSession() {
   finishTokenWaiters(QString());
 }
 
-void NumaAccount::refreshDevices() {
+void NumaAccount::refreshDevices(bool force) {
+  if (!isSignedIn()) return;
+  if (m_devicesLoading) { if (force) m_devicesRefreshPending = true; return; }
+  if (!force && m_deviceListAge.isValid() && m_deviceListAge.elapsed() < 30000) return;
   m_devicesLoading = true;
   emit devicesChanged();
   const quint64 generation = m_generation;
@@ -419,6 +425,7 @@ void NumaAccount::refreshDevices() {
       return;
     if (token.isEmpty()) {
       m_devicesLoading = false;
+      m_devicesRefreshPending = false;
       emit devicesChanged();
       return;
     }
@@ -430,6 +437,7 @@ void NumaAccount::refreshDevices() {
       m_devicesLoading = false;
       const QJsonObject body = replyJson(reply);
       if (httpStatus(reply) == 200) {
+        m_deviceListAge.start();
         m_devices.clear();
         for (const QJsonValue &value : body.value(QStringLiteral("devices")).toArray()) {
           const QJsonObject device = value.toObject();
@@ -449,7 +457,9 @@ void NumaAccount::refreshDevices() {
       } else {
         setErrorMessage(describeFailure(reply, body));
       }
+      const bool again = std::exchange(m_devicesRefreshPending, false);
       emit devicesChanged();
+      if (again) refreshDevices(true);
     });
   });
 }
@@ -473,7 +483,8 @@ void NumaAccount::removeDevice(const QString &deviceId) {
         return;
       if (httpStatus(reply) != 204 && httpStatus(reply) != 404)
         setErrorMessage(describeFailure(reply, replyJson(reply)));
-      refreshDevices();
+      m_deviceListAge.invalidate();
+      refreshDevices(true);
     });
   });
 }

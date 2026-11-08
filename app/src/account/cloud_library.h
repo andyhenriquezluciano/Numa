@@ -92,4 +92,5 @@ private:
     quint64 m_generation{0};
     int m_revision{0}, m_syncFailures{0};
     qint64 m_retryAfterMs{0};
+    qint64 m_serverRevision{-1};
 };

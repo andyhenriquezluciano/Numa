@@ -20,6 +20,7 @@
 #pragma once
 
 #include <QDateTime>
+#include <QElapsedTimer>
 #include <QNetworkAccessManager>
 #include <QObject>
 #include <QString>
@@ -85,7 +86,7 @@ public:
     Q_INVOKABLE void signIn();
     Q_INVOKABLE void cancelSignIn();
     Q_INVOKABLE void signOut();
-    Q_INVOKABLE void refreshDevices();
+    Q_INVOKABLE void refreshDevices(bool force = false);
     Q_INVOKABLE void removeDevice(const QString &deviceId);
 
     // Calls back with a valid access token, refreshing first if needed.
@@ -137,6 +138,8 @@ private:
     QDateTime m_accessExpiry;
     QVariantList m_devices;
     bool m_devicesLoading{false};
+    bool m_devicesRefreshPending{false};
+    QElapsedTimer m_deviceListAge;
 
     QTcpServer *m_callbackServer{nullptr};
     QString m_pkceVerifier;

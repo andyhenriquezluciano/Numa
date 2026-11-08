@@ -26,3 +26,33 @@ Los secretos se guardan en Cloudflare y nunca se incluyen en las aplicaciones.
 Los módulos opcionales de informes, Discord y Connect requieren sus bindings o
 credenciales indicados en la configuración de ejemplo. No son necesarios para
 sincronizar la biblioteca.
+
+## Llamadas e invocaciones
+
+Una petición HTTP que llega a `numa-account` sigue siendo una invocación aunque
+responda `304`. Las lecturas de D1 y los envíos al Durable Object son trabajo
+interno; reducirlos no equivale a eliminar la petición inicial del cliente.
+
+El cliente Windows agrupa cambios de biblioteca durante 2 segundos. El tiempo
+escuchado se acumula localmente y se sincroniza cada 5 minutos mientras hay
+actividad. Un temporizador de respaldo consulta a los 15 minutos de la última
+sincronización y los errores usan espera progresiva de 30 segundos a 15 minutos.
+Estos temporizadores son de la aplicación, no tareas programadas del Worker.
+
+| Operación | Comportamiento |
+| --- | --- |
+| Abrir Cuentas | Una petición `/devices` compartida si ya está en curso; reutiliza el resultado correcto durante 30 segundos. |
+| Quitar un dispositivo | `DELETE /devices/<id>` y una lectura forzada de la lista, incluso si existía caché. Cerrar sesión o cambiar de cuenta invalida esa caché. |
+| Guardar favoritos, listas o métricas | Un `POST /sync/library` con los cambios agrupados; el Durable Object avisa directamente por WebSocket, sin hacerse otra petición a sí mismo. |
+| Confirmar solo una secuencia, sin cambiar la biblioteca | Guarda la confirmación necesaria, pero no despierta a otros dispositivos con un aviso sin novedades. |
+| Aviso `library.changed` | El cliente consulta si la revisión recibida es más nueva que la que ya conoce. |
+| Consultar una biblioteca sin cambios | Envía `If-None-Match`; el servidor consulta la revisión y responde `304` sin volver a enviar la biblioteca completa. |
+| Varias lecturas simultáneas iguales | El Durable Object comparte únicamente la lectura de biblioteca que está en curso. La siguiente consulta vuelve a leer D1; no hay una copia persistente que pueda quedar obsoleta. |
+| Carátulas privadas | Se descargan cuando falta su copia local y se verifican mediante su hash. |
+
+La sesión y la existencia del dispositivo se verifican en cada petición, incluso
+cuando la respuesta es `304`. La caché de la lista de dispositivos es solo una
+optimización de la interfaz; no autoriza peticiones ni retrasa una revocación.
+Los clientes anteriores que no envían `If-None-Match` siguen recibiendo la
+respuesta completa habitual. Los cambios del cliente requieren distribuir un
+nuevo ejecutable; los del Worker son compatibles con las aplicaciones instaladas.

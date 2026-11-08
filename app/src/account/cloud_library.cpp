@@ -43,7 +43,8 @@ CloudLibrary::CloudLibrary(NumaAccount *account, PlaybackController *playback, H
     connect(account, &NumaAccount::userChanged, this, &CloudLibrary::bind);
     connect(&m_events, &ConnectHubSocket::opened, this, [this] { m_retryAfterMs = 0; retry(); });
     connect(&m_events, &ConnectHubSocket::message, this, [this](const QString &text) {
-        if (QJsonDocument::fromJson(text.toUtf8()).object().value("type") == "library.changed") retry();
+        const auto event = QJsonDocument::fromJson(text.toUtf8()).object();
+        if (event.value("type") == "library.changed" && event.value("revision").toInteger(-1) > m_serverRevision) retry();
     });
     connect(home, &HomeController::libraryChanged, this, &CloudLibrary::observeLibrary);
     connect(home, &HomeController::playlistsLoaded, this, &CloudLibrary::observePlaylists);
@@ -60,11 +61,13 @@ QString CloudLibrary::coverKey(const QString &id) const { return hash(cloud::pla
 void CloudLibrary::bind() {
     const auto owner = m_account->isSignedIn() ? m_account->userId() : QString();
     if (owner.isEmpty()) {
+        m_serverRevision = -1;
         m_events.stop(); m_debounce.stop(); m_metricSync.stop();
         ++m_generation; if (m_reply) m_reply->abort(); m_busy = false;
         m_status = QStringLiteral("Inicia sesión en NÜMA para sincronizar tu biblioteca."); emit changed(); return;
     }
     if (owner != m_owner) {
+        m_serverRevision = -1;
         m_events.stop(); m_debounce.stop(); m_metricSync.stop();
         ++m_generation; if (m_reply) m_reply->abort(); save();
         const bool adopt = m_owner.isEmpty(); m_owner = owner;

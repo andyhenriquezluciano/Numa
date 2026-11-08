@@ -1,5 +1,5 @@
 import { HttpError, json, nowSeconds, requireSession } from "./http.js";
-import { mergeLibrary } from "./library_merge.js";
+import { mergeLibrary, sameLibraryValue } from "./library_merge.js";
 
 export async function readSyncJson(request, limit = 3 * 1024 * 1024) {
   if (!request.headers.get("content-type")?.startsWith("application/json")) throw new HttpError(415, "invalid_type", "Use application/json");
@@ -51,16 +51,24 @@ export async function routeLibrarySync(request, env, ctx) {
     body: request.method === "GET" ? undefined : request.body}));
 }
 
-export async function synchronizeLibrary(request, env, ctx, authenticatedClaims) {
+export async function synchronizeLibrary(request, env, ctx, authenticatedClaims, notifyChanged) {
   const claims = authenticatedClaims || await requireSession(request, env);
   if (request.method === "GET") {
+    const expected = request.headers.get("if-none-match");
+    if (expected) {
+      const head = await env.DB.prepare("SELECT revision FROM library_states WHERE user_id = ?").bind(claims.sub).first();
+      const etag = `"${head?.revision || 0}"`;
+      if (expected === etag) return new Response(null, {status: 304, headers: {etag, "cache-control": "private, no-cache"}});
+    }
     const row = await env.DB.prepare("SELECT revision, payload FROM library_states WHERE user_id = ?").bind(claims.sub).first();
-    return json({ revision: row?.revision || 0, library: row ? JSON.parse(row.payload)?.library || {} : {} });
+    return json({ revision: row?.revision || 0, library: row ? JSON.parse(row.payload)?.library || {} : {} }, 200,
+      {etag: `"${row?.revision || 0}"`});
   }
   const body = await readSyncJson(request); validate(body);
   for (let attempt = 0; attempt < 4; attempt++) {
     const row = await env.DB.prepare("SELECT revision, payload FROM library_states WHERE user_id = ?").bind(claims.sub).first();
-    const state = mergeLibrary(row ? JSON.parse(row.payload) : null, body), payload = JSON.stringify(state);
+    const previous = row ? JSON.parse(row.payload) : null;
+    const state = mergeLibrary(previous, body), payload = JSON.stringify(state);
     if (new TextEncoder().encode(payload).length > 1800 * 1024) throw new HttpError(413, "library_limit", "Your library is larger than the cloud limit; local data is preserved");
     if (row?.payload === payload) return json({ revision: row.revision, library: state.library });
     const result = row ? await env.DB.prepare("UPDATE library_states SET payload = ?, revision = revision + 1, updated_at = ? WHERE user_id = ? AND revision = ?")
@@ -69,11 +77,13 @@ export async function synchronizeLibrary(request, env, ctx, authenticatedClaims)
       .bind(claims.sub, payload, nowSeconds()).run();
     if (result.meta?.changes) {
       const revision = (row?.revision || 0) + 1;
-      if (env.CONNECT_HUB) {
+      if ((env.CONNECT_HUB || notifyChanged) && !sameLibraryValue(previous?.library || {}, state.library)) {
         const notify = async () => { try {
+          const change = { user: claims.sub, device: claims.did, revision };
+          if (notifyChanged) { await notifyChanged(change); return; }
           const hub = env.CONNECT_HUB.get(env.CONNECT_HUB.idFromName(claims.sub));
           await hub.fetch(new Request("https://internal/internal/library-changed", { method: "POST",
-            body: JSON.stringify({ user: claims.sub, device: claims.did, revision }) }));
+            body: JSON.stringify(change) }));
         } catch { /* Clients also reconcile on reconnect and periodic refresh. */ } };
         if (ctx?.waitUntil) ctx.waitUntil(notify()); else await notify();
       }

@@ -19,6 +19,7 @@
 
 #include "account/numa_account.h"
 
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkAccessManager>
@@ -176,6 +177,42 @@ private slots:
     QString token;
     account.withAccessToken([&token](const QString &value) { token = value; });
     QCOMPARE(token, QStringLiteral("access-device-1.r1"));
+  }
+
+  void coalescesDeviceReadsCachesBrieflyAndRefreshesAfterRemoval() {
+    int reads = 0, deletes = 0;
+    FakeAccountService service([&](const Recorded &request) {
+      if (request.path == QStringLiteral("/auth/token"))
+        return qMakePair(200, tokenResponse(QStringLiteral("device-1.r1")));
+      if (request.path == QStringLiteral("/devices")) {
+        ++reads;
+        return qMakePair(200, QJsonObject{{"devices", QJsonArray{QJsonObject{{"id", "device-1"}, {"current", true}}}}});
+      }
+      if (request.method == "DELETE") { ++deletes; return qMakePair(204, QJsonObject{}); }
+      return qMakePair(404, QJsonObject{});
+    });
+    QUrl opened;
+    NumaAccount account({service.url(), false, [&opened](const QUrl &url) { opened = url; }});
+    account.signIn();
+    visit(callbackUrl(opened, QStringLiteral("c"), QUrlQuery(opened).queryItemValue(QStringLiteral("state"))));
+    QTRY_VERIFY(account.isSignedIn());
+    for (int i = 0; i < 8; ++i) account.refreshDevices();
+    QTRY_VERIFY(!account.devicesLoading());
+    QCOMPARE(reads, 1);
+    QCOMPARE(account.devices().size(), 1);
+    account.refreshDevices();
+    QVERIFY(!account.devicesLoading());
+    QCOMPARE(reads, 1);
+    account.refreshDevices(true);
+    QTRY_VERIFY(!account.devicesLoading());
+    QCOMPARE(reads, 2);
+    account.removeDevice(QStringLiteral("device-other"));
+    QTRY_COMPARE(deletes, 1);
+    QTRY_COMPARE(reads, 3);
+    QTRY_VERIFY(!account.devicesLoading());
+    account.signOut();
+    account.refreshDevices();
+    QCOMPARE(reads, 3);
   }
 
   void cancelledConsentSignsOutQuietly() {

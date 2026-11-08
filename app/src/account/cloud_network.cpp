@@ -20,14 +20,27 @@ void CloudLibrary::request(const QString &path, const QByteArray &method, const 
         QNetworkRequest request(self->m_account->serviceUrl().resolved(QUrl(path)));
         request.setTransferTimeout(25000); request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
         request.setRawHeader("Authorization", "Bearer " + token.toUtf8()); request.setHeader(QNetworkRequest::ContentTypeHeader, image ? "image/webp" : "application/json");
+        const bool library = path == QLatin1String("/sync/library");
+        if (library && method == "GET" && self->m_serverRevision >= 0)
+            request.setRawHeader("If-None-Match", '"' + QByteArray::number(self->m_serverRevision) + '"');
         auto *reply = self->m_network.sendCustomRequest(request, method, body); self->m_reply = reply;
         auto bytes = std::make_shared<QByteArray>();
         connect(reply, &QIODevice::readyRead, self, [reply, bytes] { bytes->append(reply->readAll()); if (bytes->size() > 4 * 1024 * 1024) reply->abort(); });
-        connect(reply, &QNetworkReply::finished, self, [self, generation, owner, reply, bytes, done] {
+        connect(reply, &QNetworkReply::finished, self, [self, generation, owner, reply, bytes, done, library, method] {
             reply->deleteLater(); if (!self || generation != self->m_generation || owner != self->m_owner) return;
             bytes->append(reply->readAll()); const auto status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+            if (library && method == "GET" && status == 304 && self->m_serverRevision >= 0) {
+                done(QJsonDocument(QJsonObject{{"revision", self->m_serverRevision},
+                    {"library", self->m_data.value("base").toObject()}}).toJson(QJsonDocument::Compact));
+                return;
+            }
             if (reply->error() != QNetworkReply::NoError || status < 200 || status >= 300 || bytes->size() > 4 * 1024 * 1024) {
                 self->fail(status == 413 ? QStringLiteral("La copia supera el espacio de la nube. Tus datos locales se conservan.") : QStringLiteral("No se pudo sincronizar. Comprueba la conexión y reintenta.")); return;
+            }
+            if (library) {
+                const auto document = QJsonDocument::fromJson(*bytes).object();
+                if (document.value("library").isObject())
+                    self->m_serverRevision = document.value("revision").toInteger(-1);
             }
             done(*bytes);
         });

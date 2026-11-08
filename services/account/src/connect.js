@@ -144,6 +144,7 @@ export class ConnectHub {
     this.ctx = ctx;
     this.env = env;
     this.requests = new Map();
+    this.libraryReads = new Map();
     this.fetchTurn = (...args) => fetch(...args);
   }
 
@@ -151,7 +152,21 @@ export class ConnectHub {
     if (new URL(request.url).pathname === "/internal/library-sync") {
       const claims = JSON.parse(request.headers.get("x-numa-sync-claims") || "null");
       if (!claims?.sub || !claims?.did) return new Response(null, {status: 401});
-      try { return await synchronizeLibrary(request, this.env, this.ctx, claims); }
+      try {
+        if (request.method !== "GET") {
+          this.libraryReads.clear();
+          try { return await synchronizeLibrary(request, this.env, this.ctx, claims, change => this.notifyLibraryChanged(change)); }
+          finally { this.libraryReads.clear(); }
+        }
+        const key = JSON.stringify([claims.sub, request.headers.get("if-none-match")]);
+        let read = this.libraryReads.get(key);
+        if (!read) {
+          read = synchronizeLibrary(request, this.env, this.ctx, claims);
+          this.libraryReads.set(key, read);
+        }
+        try { return (await read).clone(); }
+        finally { if (this.libraryReads.get(key) === read) this.libraryReads.delete(key); }
+      }
       catch (error) {
         if (error instanceof HttpError) return json({error: error.code, error_description: error.message}, error.status, error.headers);
         console.error("library_sync_failed", error?.message);
@@ -160,13 +175,7 @@ export class ConnectHub {
     }
 
     if (request.method === "POST" && new URL(request.url).pathname === "/internal/library-changed") {
-      const { user, device, revision } = await request.json();
-      for (const socket of this.ctx.getWebSockets("library")) {
-        const state = socket.deserializeAttachment();
-        if (state?.userId !== user || state.deviceId === device) continue;
-        if (state.expiresAt <= nowSeconds()) { socket.close(4401, "token_expired"); continue; }
-        this.send(socket, { type: "library.changed", revision });
-      }
+      this.notifyLibraryChanged(await request.json());
       return new Response(null, { status: 204 });
     }
     const pair = new WebSocketPair();
@@ -185,6 +194,15 @@ export class ConnectHub {
       expiresAt: Number(request.headers.get("x-numa-expires")) || 0,
     });
     return new Response(null, { status: 101, webSocket: client, headers: { "sec-websocket-protocol": HUB_SUBPROTOCOL } });
+  }
+
+  notifyLibraryChanged({ user, device, revision }) {
+    for (const socket of this.ctx.getWebSockets("library")) {
+      const state = socket.deserializeAttachment();
+      if (state?.userId !== user || state.deviceId === device) continue;
+      if (state.expiresAt <= nowSeconds()) { socket.close(4401, "token_expired"); continue; }
+      this.send(socket, { type: "library.changed", revision });
+    }
   }
 
   accept(socket, { userId, deviceId, expiresAt }) {
