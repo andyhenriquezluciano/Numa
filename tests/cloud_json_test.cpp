@@ -58,7 +58,7 @@ private slots:
         QCOMPARE(song.value("thumbnail").toString(), QStringLiteral("https://image.test/song"));
     }
     void recoversAdoptedCoverWithoutMovingOrTrustingUnverifiedBytes() {
-        QTemporaryDir folder(QDir::currentPath() + "/build/tmp/cover-recovery-XXXXXX");
+        QTemporaryDir folder;
         QVERIFY(folder.isValid());
         const QByteArray bytes("saved-cover-content");
         const auto digest = QString::fromLatin1(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex());
