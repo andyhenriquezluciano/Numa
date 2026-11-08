@@ -23,3 +23,5 @@ Más control sobre tu música local y una experiencia más cómoda en todo el re
 - **Controles de reproducción más coherentes.** Pulsa el icono de volumen para silenciar y recuperar el volumen en los distintos modos. La tasa de bits respeta su ajuste, y repetir y aleatorio se desactivan cuando no hay canciones.
 
 - **Más cuidado en los tres temas.** Mejoramos botones, menús, contraste, indicadores y traducciones. Las ayudas de Cristal tienen un fondo oscuro semitransparente y los botones rosas de Rosé Pine y Dawn se oscurecen al pasar el cursor.
+
+- **Menos consultas innecesarias al servidor.** Agrupamos las consultas repetidas de dispositivos, evitamos avisos sin cambios y compartimos lecturas simultáneas de biblioteca. Cuando ya tienes la última copia, se confirma sin volver a descargarla completa.

@@ -1,7 +1,7 @@
 [
   {
     "version": "2.6",
-    "date": "2026-11-07",
+    "date": "2026-11-08",
     "title": "Tu música local, mejor integrada",
     "sections": [
       {
@@ -16,7 +16,8 @@
           "Biblioteca más cómoda de recorrer. Corregimos las carátulas negras, los colores al pasar el cursor y las barras de desplazamiento. Usa Mayús + rueda del ratón para moverte por las filas horizontales; los filtros de búsqueda siguen el estilo de la biblioteca.",
           "Mejor experiencia de ventana y modo compacto. Ajustamos el paso entre pantalla completa y ventana maximizada. El modo compacto reúne letras y volver a la ventana completa junto al volumen, y los controles de ventana tienen ayudas traducidas.",
           "Controles de reproducción más coherentes. Pulsa el icono de volumen para silenciar y recuperar el volumen en los distintos modos. La tasa de bits respeta su ajuste, y repetir y aleatorio se desactivan cuando no hay canciones.",
-          "Más cuidado en los tres temas. Mejoramos botones, menús, contraste, indicadores y traducciones. Las ayudas de Cristal tienen un fondo oscuro semitransparente y los botones rosas de Rosé Pine y Dawn se oscurecen al pasar el cursor."
+          "Más cuidado en los tres temas. Mejoramos botones, menús, contraste, indicadores y traducciones. Las ayudas de Cristal tienen un fondo oscuro semitransparente y los botones rosas de Rosé Pine y Dawn se oscurecen al pasar el cursor.",
+          "Menos consultas innecesarias al servidor. Agrupamos las consultas repetidas de dispositivos, evitamos avisos sin cambios y compartimos lecturas simultáneas de biblioteca. Cuando ya tienes la última copia, se confirma sin volver a descargarla completa."
         ]
       }
     ]
