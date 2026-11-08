@@ -23,6 +23,9 @@
 #include <QString>
 #include <QTimer>
 
+class QNetworkAccessManager;
+class QUrl;
+
 // The app's side of the bootstrapper IPC. Reads install.json and
 // update-state.json from the install root, and runs the bootstrapper
 // (NUMA_BOOTSTRAPPER) for every action. Inert in development builds,
@@ -77,6 +80,8 @@ signals:
 private:
     void refresh();
     void checkStandalone();
+    void fetchStandaloneMetadata(QNetworkAccessManager *network, const QUrl &url, bool fallback);
+    void checkStandaloneFallback(QNetworkAccessManager *network);
     void run(const QStringList &arguments, bool detached);
 
     QString m_bootstrapper;

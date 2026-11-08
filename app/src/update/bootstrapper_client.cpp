@@ -25,6 +25,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QProcess>
 #include <QDesktopServices>
@@ -137,12 +138,19 @@ void BootstrapperClient::checkForUpdates()
 void BootstrapperClient::checkStandalone()
 {
     auto *network = new QNetworkAccessManager(this);
-    QNetworkRequest request(QUrl(QStringLiteral("https://github.com/andyhenriquezluciano/Numa/releases/latest/download/latest-windows.json")));
+    fetchStandaloneMetadata(network, QUrl(QStringLiteral("https://github.com/andyhenriquezluciano/Numa/releases/latest/download/latest-windows.json")), false);
+}
+
+void BootstrapperClient::fetchStandaloneMetadata(QNetworkAccessManager *network, const QUrl &url, bool fallback)
+{
+    QNetworkRequest request(url);
     request.setTransferTimeout(20000);
     request.setRawHeader("User-Agent", "Numa-Windows");
+    if (fallback)
+        request.setRawHeader("Accept", "application/octet-stream");
     request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
     auto *reply = network->get(request);
-    connect(reply, &QNetworkReply::finished, this, [this, network, reply] {
+    connect(reply, &QNetworkReply::finished, this, [this, network, reply, fallback] {
         const QJsonObject metadata = QJsonDocument::fromJson(reply->read(512 * 1024)).object();
         const QString version = metadata.value(QStringLiteral("version")).toString();
         const QString installer = metadata.value(QStringLiteral("installerUrl")).toString();
@@ -152,6 +160,11 @@ void BootstrapperClient::checkStandalone()
             installer.startsWith(QLatin1String("https://github.com/andyhenriquezluciano/Numa/releases/download/")) &&
             QUrl(installer).path().endsWith(QLatin1String(".exe"));
         if (!valid) {
+            if (!fallback) {
+                reply->deleteLater();
+                checkStandaloneFallback(network);
+                return;
+            }
             m_state = QStringLiteral("error");
             m_error = tr("Could not check for updates. Please try again.");
         } else {
@@ -161,6 +174,39 @@ void BootstrapperClient::checkStandalone()
             m_state = QVersionNumber::compare(parsed, QVersionNumber::fromString(m_current)) > 0
                 ? QStringLiteral("available") : QStringLiteral("up-to-date");
         }
+        emit changed();
+        network->deleteLater();
+    });
+}
+
+void BootstrapperClient::checkStandaloneFallback(QNetworkAccessManager *network)
+{
+    // The release download gateway can fail while the public API still serves
+    // the same asset. Discover its ID so replacing an asset needs no app update.
+    QNetworkRequest request(QUrl(QStringLiteral("https://api.github.com/repos/andyhenriquezluciano/Numa/releases/latest")));
+    request.setTransferTimeout(20000);
+    request.setRawHeader("User-Agent", "Numa-Windows");
+    request.setRawHeader("Accept", "application/vnd.github+json");
+    request.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::AlwaysNetwork);
+    auto *reply = network->get(request);
+    connect(reply, &QNetworkReply::finished, this, [this, network, reply] {
+        const auto release = QJsonDocument::fromJson(reply->read(512 * 1024)).object();
+        if (reply->error() == QNetworkReply::NoError &&
+            !release.value(QStringLiteral("draft")).toBool(true) &&
+            !release.value(QStringLiteral("prerelease")).toBool(true)) {
+            for (const auto &value : release.value(QStringLiteral("assets")).toArray()) {
+                const auto asset = value.toObject();
+                const auto id = asset.value(QStringLiteral("id")).toInteger();
+                if (asset.value(QStringLiteral("name")).toString() == QLatin1String("latest-windows.json") &&
+                    asset.value(QStringLiteral("state")).toString() == QLatin1String("uploaded") && id > 0) {
+                    reply->deleteLater();
+                    fetchStandaloneMetadata(network, QUrl(QStringLiteral("https://api.github.com/repos/andyhenriquezluciano/Numa/releases/assets/%1").arg(id)), true);
+                    return;
+                }
+            }
+        }
+        m_state = QStringLiteral("error");
+        m_error = tr("Could not check for updates. Please try again.");
         emit changed();
         network->deleteLater();
     });
