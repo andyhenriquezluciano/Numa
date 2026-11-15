@@ -19,8 +19,8 @@ internal fun MiniPlayerArtwork(
 ) {
     Box(modifier.clip(RoundedCornerShape(10.dp))) {
         RemoteArtwork(dev.sfg.numa.mobile.artwork.trackArtworkUrl(track), track.title, Modifier.fillMaxSize())
-        if (animatedArtworkEnabled) {
-            AnimatedArtworkVideo(track.playerMotionArtwork(), isPlaying, Modifier.fillMaxSize())
+        if (animatedArtworkEnabled && isPlaying) {
+            AnimatedArtworkVideo(track.playerMotionArtwork(), active = true, modifier = Modifier.fillMaxSize())
         }
     }
 }

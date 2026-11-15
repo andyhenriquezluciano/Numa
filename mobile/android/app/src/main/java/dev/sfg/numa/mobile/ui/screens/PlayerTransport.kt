@@ -46,7 +46,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -58,6 +57,7 @@ import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -190,7 +190,7 @@ private fun TransportPill(
     Surface(
         onClick = onClick,
         enabled = enabled,
-        shape = PillShape,
+        shape = MaterialTheme.shapes.medium,
         color = Color.White.copy(alpha = if (enabled) 0.14f else 0.06f),
         contentColor = Color.White.copy(alpha = if (enabled) 1f else 0.35f),
         interactionSource = interactionSource,
@@ -216,7 +216,7 @@ private fun PlayPill(
     Surface(
         onClick = onClick,
         enabled = enabled,
-        shape = PillShape,
+        shape = MaterialTheme.shapes.medium,
         color = Color.White.copy(alpha = if (enabled) 1f else 0.4f),
         contentColor = PlayGlyph,
         interactionSource = interactionSource,
@@ -249,7 +249,6 @@ private fun PlayPill(
     }
 }
 
-private val PillShape = RoundedCornerShape(percent = 50)
 private val PILL_HEIGHT = 50.dp
 private val PlayGlyph = Color(0xFF111214)
 private const val SIDE_WEIGHT = 1f

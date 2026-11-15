@@ -140,6 +140,7 @@ private fun FrostedInactiveParty(
     onJoin: (String) -> Unit,
 ) {
     var codeInput by remember { mutableStateOf("") }
+    val controlShape = MaterialTheme.shapes.medium
     val context = LocalContext.current
     val accent = LocalAccent.current
 
@@ -185,7 +186,7 @@ private fun FrostedInactiveParty(
                 }
             }
         },
-        shape = RoundedCornerShape(14.dp),
+        shape = controlShape,
         colors =
             TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
@@ -195,7 +196,7 @@ private fun FrostedInactiveParty(
                 focusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 unfocusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             ),
-        modifier = Modifier.fillMaxWidth().desktopButtonSurface(),
+        modifier = Modifier.fillMaxWidth().desktopButtonSurface(controlShape),
     )
 
     Spacer(Modifier.height(14.dp))
@@ -205,10 +206,10 @@ private fun FrostedInactiveParty(
         Button(
             onClick = { onJoin(codeInput) },
             enabled = codeInput.length == ROOM_CODE_LENGTH && party.status != PartyStatus.CONNECTING,
-            shape = RoundedCornerShape(16.dp),
+            shape = controlShape,
             colors =
                 ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).desktopButtonSurface(),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).desktopButtonSurface(controlShape),
         ) {
             Text(uiText("Join party", "Unirse a la sala"), fontWeight = FontWeight.Bold, fontSize = 14.sp)
         }
@@ -217,9 +218,9 @@ private fun FrostedInactiveParty(
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface),
             onClick = onCreate,
             enabled = party.status != PartyStatus.CONNECTING,
-            shape = RoundedCornerShape(16.dp),
+            shape = controlShape,
             modifier =
-                Modifier.fillMaxWidth().heightIn(min = 48.dp).desktopButtonSurface(),
+                Modifier.fillMaxWidth().heightIn(min = 48.dp).desktopButtonSurface(controlShape),
         ) {
             Text(
                 uiText("Start a party", "Crear sala"),
@@ -233,6 +234,8 @@ private fun FrostedInactiveParty(
 
 @Composable
 private fun FrostedActiveParty(party: PartyState, onLeave: () -> Unit, onTransferHost: ((String) -> Unit)?) {
+    val controlShape = MaterialTheme.shapes.medium
+    val compactControlShape = MaterialTheme.shapes.small
     val context = LocalContext.current
     val accent = LocalAccent.current
 
@@ -307,12 +310,12 @@ private fun FrostedActiveParty(party: PartyState, onLeave: () -> Unit, onTransfe
                                 )
                                 .show()
                         },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = compactControlShape,
                         color = Color.Transparent,
                         modifier =
                             Modifier.weight(1f)
                                 .height(38.dp)
-                                .border(1.dp, CanopyColors.Rule, RoundedCornerShape(12.dp)),
+                                .border(1.dp, CanopyColors.Rule, compactControlShape),
                     ) {
                         Row(
                             modifier = Modifier.fillMaxSize(),
@@ -355,12 +358,12 @@ private fun FrostedActiveParty(party: PartyState, onLeave: () -> Unit, onTransfe
                                 Intent.createChooser(sendIntent, uiText("Share listening party link", "Compartir enlace de la sala"))
                             )
                         },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = compactControlShape,
                         color = Color.Transparent,
                         modifier =
                             Modifier.weight(1f)
                                 .height(38.dp)
-                                .border(1.dp, CanopyColors.Rule, RoundedCornerShape(12.dp)),
+                                .border(1.dp, CanopyColors.Rule, compactControlShape),
                     ) {
                         Row(
                             modifier = Modifier.fillMaxSize(),
@@ -417,10 +420,10 @@ private fun FrostedActiveParty(party: PartyState, onLeave: () -> Unit, onTransfe
     // Leave or End Party Button
     Button(
         onClick = onLeave,
-        shape = RoundedCornerShape(16.dp),
+        shape = controlShape,
         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = CanopyColors.Danger),
         modifier =
-            Modifier.fillMaxWidth().heightIn(min = 48.dp).desktopButtonSurface(),
+            Modifier.fillMaxWidth().heightIn(min = 48.dp).desktopButtonSurface(controlShape),
     ) {
         Text(
             text = if (party.isHost) uiText("End session", "Cerrar sala") else uiText("Leave Party", "Salir de la sala"),

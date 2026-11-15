@@ -59,6 +59,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -81,6 +82,7 @@ import dev.sfg.numa.mobile.ui.components.KawarpArtworkBackdrop
 import dev.sfg.numa.mobile.ui.components.RemoteArtwork
 import dev.sfg.numa.mobile.ui.components.ArtworkPalette
 import dev.sfg.numa.mobile.ui.components.rememberArtworkPalette
+import dev.sfg.numa.mobile.ui.components.rememberArtworkForeground
 import dev.sfg.numa.mobile.ui.components.smoothScrimBrush
 
 /**
@@ -199,26 +201,30 @@ fun FullBleedPlayerBackdrop(
     ) {
         // Edge-to-edge motion art covers the glow entirely, so skip its redraw loop.
         if (ambientGlowEnabled && !currentRich) {
-            val transition = rememberInfiniteTransition(label = "PlayerAmbience")
-            val glow by transition.animateFloat(
-                initialValue = 0.28f,
-                targetValue = 0.52f,
-                animationSpec = infiniteRepeatable(tween(9_000), RepeatMode.Reverse),
-                label = "PlayerAmbienceGlow",
-            )
+            val foreground = rememberArtworkForeground()
+            val glow = if (isPlaying && foreground) {
+                rememberInfiniteTransition(label = "PlayerAmbience").animateFloat(
+                    initialValue = 0.28f,
+                    targetValue = 0.52f,
+                    animationSpec = infiniteRepeatable(tween(9_000), RepeatMode.Reverse),
+                    label = "PlayerAmbienceGlow",
+                )
+            } else null
             // Ambient wash of the cover's dominant colour, breathing while a track plays.
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                animatedAccent.copy(alpha = if (isPlaying) glow else 0.24f),
-                                Color.Transparent,
+                    .drawBehind {
+                        drawRect(
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    animatedAccent.copy(alpha = glow?.value ?: 0.24f),
+                                    Color.Transparent,
+                                ),
+                                radius = AMBIENCE_RADIUS,
                             ),
-                            radius = AMBIENCE_RADIUS,
-                        ),
-                    ),
+                        )
+                    },
             )
         }
 

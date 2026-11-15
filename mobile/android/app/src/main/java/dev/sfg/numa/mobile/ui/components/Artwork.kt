@@ -177,8 +177,8 @@ fun AnimatedArtworkVideo(
     letterboxColor: Color = Color.Transparent,
 ) {
     if (url.isBlank()) return
-    val foreground = rememberArtworkForeground()
-    val playing = active && foreground
+    if (!rememberArtworkForeground()) return
+    val playing = active
     // GIF covers chosen by the user are not video; the platform decoder animates them.
     if (isGifArtwork(url)) {
         AnimatedGifArtwork(url, playing, modifier.background(letterboxColor), fitContent)
