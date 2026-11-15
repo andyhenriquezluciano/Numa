@@ -101,6 +101,7 @@ fun RemoteArtwork(
     contentScale: ContentScale = ContentScale.Crop,
     alignment: Alignment = Alignment.Center,
     fallbackUrl: String = "",
+    recoverUrl: (suspend (List<String>) -> String)? = null,
 ) {
     val context = LocalContext.current
     val candidates = remember(url, fallbackUrl) {
@@ -108,7 +109,20 @@ fun RemoteArtwork(
             dev.sfg.numa.mobile.artwork.artworkCandidates(fallbackUrl)).distinct()
     }
     var attempt by remember(candidates) { mutableStateOf(0) }
-    val source = candidates.getOrNull(attempt).orEmpty()
+    var recovered by remember(candidates, recoverUrl) { mutableStateOf("") }
+    val initialSource = candidates.getOrNull(attempt)
+    if (initialSource == null && recoverUrl != null) {
+        LaunchedEffect(candidates, recoverUrl) {
+            recovered = try {
+                recoverUrl(candidates).takeUnless { it in candidates }.orEmpty()
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                ""
+            }
+        }
+    }
+    val source = initialSource ?: recovered
     Box(modifier.background(NumaColors.Bark), contentAlignment = Alignment.Center) {
         if (source.isNotBlank()) {
             AsyncImage(
@@ -116,7 +130,9 @@ fun RemoteArtwork(
                 contentDescription = description,
                 contentScale = contentScale,
                 alignment = alignment,
-                onError = { if (attempt < candidates.lastIndex) attempt += 1 },
+                onError = {
+                    if (initialSource != null && candidates.getOrNull(attempt) == initialSource) attempt += 1
+                },
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -358,6 +374,7 @@ fun ArtworkTile(
     radius: Int = 14,
     alignment: Alignment = Alignment.Center,
     fallbackUrl: String = "",
+    recoverUrl: (suspend (List<String>) -> String)? = null,
 ) {
     RemoteArtwork(
         url = url,
@@ -365,5 +382,6 @@ fun ArtworkTile(
         modifier = modifier.clip(RoundedCornerShape(radius.dp)),
         alignment = alignment,
         fallbackUrl = fallbackUrl,
+        recoverUrl = recoverUrl,
     )
 }

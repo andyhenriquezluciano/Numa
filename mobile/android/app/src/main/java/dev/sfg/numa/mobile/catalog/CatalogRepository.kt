@@ -126,6 +126,18 @@ class CatalogRepository(
         return provider.invoke("catalog.track", payload().put("videoId", videoId)).providerTrack()?.artists.orEmpty()
     }
 
+    private val trackCoverCache = android.util.LruCache<String, String>(128)
+
+    /** Look up the exact song when saved artwork and the thumbnail CDN cannot supply a cover. */
+    suspend fun trackCover(videoId: String): String {
+        if (videoId.isBlank()) return ""
+        trackCoverCache.get(videoId)?.let { return it }
+        val cover = provider.invoke("catalog.track", payload().put("videoId", videoId))
+            .providerTrack()?.artworkUrl.orEmpty()
+        trackCoverCache.put(videoId, cover)
+        return cover
+    }
+
     suspend fun setArtistSubscription(channelId: String, subscribed: Boolean) {
         provider.invoke("library.artist.subscribe", payload().put("channelId", channelId).put("subscribed", subscribed))
     }

@@ -89,7 +89,7 @@ android {
         applicationId = 'dev.sfg.numa.mobile'
         minSdk = numaMinSdk
         targetSdk = 36
-        versionCode = 20060
+        versionCode = 20061
         versionName = '2.6'
         buildConfigField 'String', 'CODENAME', '"Ensues Worryingly"'
         // Only the build that is actually published may offer updates. Every other

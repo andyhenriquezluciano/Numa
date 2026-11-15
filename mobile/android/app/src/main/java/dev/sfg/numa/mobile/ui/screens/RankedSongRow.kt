@@ -90,6 +90,25 @@ internal fun RankedSongRow(
     onShare: ((Track) -> Unit)?,
 ) {
     var popupOpen by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val thumbnail = remember(track) { dev.sfg.numa.mobile.artwork.trackArtworkFallbackUrl(track) }
+    val recoverCover: (suspend (List<String>) -> String)? = remember(context, track, thumbnail) {
+        if (thumbnail.isBlank()) null else {
+            { attempted: List<String> ->
+                val graph = dev.sfg.numa.mobile.NumaGraph.from(context)
+                val cover = try {
+                    graph.catalog.trackCover(track.id)
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    ""
+                }
+                if (cover.isNotBlank() && cover !in attempted) cover else {
+                    graph.artwork.artwork(track)?.staticUrl.orEmpty()
+                }
+            }
+        }
+    }
 
     if (popupOpen) {
         dev.sfg.numa.mobile.ui.components.TrackActionsPopup(
@@ -136,7 +155,11 @@ internal fun RankedSongRow(
                     .size(48.dp)
                     .clip(RoundedCornerShape(12.dp))
             ) {
-                ArtworkTile(track.artworkUrl, track.title, Modifier.fillMaxSize(), 12)
+                ArtworkTile(
+                    track.artworkUrl, track.title, Modifier.fillMaxSize(), 12,
+                    fallbackUrl = thumbnail,
+                    recoverUrl = recoverCover,
+                )
             }
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
