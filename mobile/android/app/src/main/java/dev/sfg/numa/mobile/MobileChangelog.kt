@@ -30,23 +30,19 @@ object MobileChangelog {
         get() = dev.sfg.numa.mobile.ui.text.uiText(
             """
             ### Fixed
-            - **Artwork**: Recover missing covers from library metadata and retry alternative image sources.
-            - **Library and player**: Keep artwork centered in the full-screen player and make library hover feedback consistent.
-            - **Update prompt**: Add screen margins, translate the availability label, and keep the update button on one line.
-            - **Queue badge**: Match the active theme's glass controls.
-            - **Lyrics**: Lyrics follow the selected language. When Google web translation is unavailable, Google’s on-device translator is used; models download over Wi-Fi. Failures are shown instead of staying silent.
-            - **Lock-screen player**: Reads live playback directly, even without widgets. Includes a preview in Settings.
-            - **Word highlighting**: Sung lines brighten immediately and respect words that start before the paragraph boundary.
+            - **More resilient artwork**: Retry alternate sources and keep a placeholder when an image does not respond.
+            - **Notifications**: Tapping the player opens NÜMA directly.
+            - **Shared rooms**: Consistent button radii and a more comfortable layout.
+            - **Appearance**: Removed playlist background effects and reduced background animation work.
+            - **Local playlists**: Keep them device-only and recover their artwork more reliably.
             """.trimIndent(),
             """
             ### Corregido
-            - **Carátulas**: Recuperación desde la biblioteca y reintento con otras fuentes de imagen.
-            - **Biblioteca y reproductor**: Carátulas centradas en pantalla completa e interacción uniforme al pasar el cursor.
-            - **Aviso de actualización**: Más compacto, con márgenes, texto traducido y botón en una sola línea.
-            - **Cola**: Indicador integrado con los controles de cada tema.
-            - **Letras**: Letras en el idioma elegido. Si Google en línea no está disponible, usa el traductor de Google en el dispositivo; los modelos se descargan por Wi-Fi. Los fallos se muestran.
-            - **Reproductor al bloquear**: Consulta la reproducción directamente, incluso sin widgets. Incluye una vista previa en Ajustes.
-            - **Brillo de palabras**: La línea se ilumina de inmediato y respeta las palabras que empiezan antes del inicio del párrafo.
+            - **Carátulas más resistentes**: Reintenta fuentes alternativas y mantiene un marcador cuando una imagen no responde.
+            - **Notificaciones**: Al tocar el reproductor, NÜMA abre directamente la aplicación.
+            - **Salas compartidas**: Botones con radios coherentes y una distribución más cómoda.
+            - **Apariencia**: Se retiró el fondo dinámico de listas y se redujo el trabajo de animaciones en segundo plano.
+            - **Listas locales**: Se mantienen exclusivas del dispositivo y sus carátulas se recuperan con más fiabilidad.
             """.trimIndent(),
         )
 }

@@ -8,6 +8,20 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LibrarySyncTest {
+    @Test fun localPlaylistsStayOutOfAccountBackupsAndLegacyCloudReads() {
+        val local = Playlist(id = "local-playlist:phone", title = "Only this device")
+        val shared = Playlist(id = "PL-shared", title = "Shared")
+        val codec = dev.sfg.numa.mobile.library.LibraryBackupCodec
+        val snapshot = LibrarySnapshot(savedPlaylists = listOf(local, shared), hiddenPlaylistIds = setOf(local.id, "SE"))
+        val encoded = codec.encode(snapshot)
+        assertEquals(listOf(shared), codec.decode(encoded).savedPlaylists)
+        assertEquals(setOf("SE"), codec.decode(encoded).hiddenPlaylistIds)
+        val legacy = JSONObject(encoded.toString()).put("savedPlaylists", org.json.JSONArray()
+            .put(JSONObject().put("id", local.id).put("title", local.title))
+            .put(JSONObject().put("id", shared.id).put("title", shared.title)))
+        assertEquals(listOf(shared), codec.decode(legacy).savedPlaylists)
+    }
+
     private val song = Track("song", "Song", "Artist")
 
     @Test fun acceptsDesktopPlaylistAndCoverWhileKeepingAnInFlightLocalEdit() {

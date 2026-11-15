@@ -479,7 +479,8 @@ class NumaPlaybackService : MediaLibraryService() {
     private fun mainActivityIntent(): PendingIntent = PendingIntent.getActivity(
         this,
         0,
-        Intent(this, dev.sfg.numa.mobile.lockscreen.LockScreenActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+        Intent(this, dev.sfg.numa.connect.app.MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
     companion object {

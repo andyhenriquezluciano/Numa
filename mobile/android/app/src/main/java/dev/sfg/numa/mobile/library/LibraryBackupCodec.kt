@@ -5,6 +5,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 internal object LibraryBackupCodec {
+    private fun devicePlaylist(id: String): Boolean = libraryPlaylistId(id).startsWith("local-playlist:")
     fun encode(snapshot: LibrarySnapshot): JSONObject {
         val countsObj = JSONObject()
         snapshot.playCounts.forEach { (id, count) -> countsObj.put(id, count) }
@@ -13,7 +14,7 @@ internal object LibraryBackupCodec {
             .put("likedTracks", CatalogJson.tracks(snapshot.likedTracks))
             .put("savedAlbums", array(snapshot.savedAlbums, CatalogJson::album))
             .put("savedArtists", array(snapshot.savedArtists, CatalogJson::artist))
-            .put("savedPlaylists", array(snapshot.savedPlaylists, CatalogJson::playlist))
+            .put("savedPlaylists", array(snapshot.savedPlaylists.filterNot { devicePlaylist(it.id) }, CatalogJson::playlist))
             .put("recentlyPlayed", CatalogJson.tracks(snapshot.recentlyPlayed))
             .put("playCounts", countsObj)
             .put("listeningTotalMs", snapshot.listeningTotalMs)
@@ -21,7 +22,7 @@ internal object LibraryBackupCodec {
             .put("listeningDays", array(snapshot.listeningDays) {
                 JSONObject().put("date", it.date).put("trackId", it.trackId).put("listens", it.listens).put("heardMs", it.heardMs)
             })
-            .put("hiddenPlaylistIds", JSONArray(snapshot.hiddenPlaylistIds.toList()))
+            .put("hiddenPlaylistIds", JSONArray(snapshot.hiddenPlaylistIds.filterNot(::devicePlaylist)))
     }
 
     fun decode(root: JSONObject, hidden: Set<String> = root.optJSONArray("hiddenPlaylistIds")?.let { values ->
@@ -36,7 +37,7 @@ internal object LibraryBackupCodec {
                 savedAlbums = objects(root.optJSONArray("savedAlbums"), CatalogJson::album),
                 savedArtists = objects(root.optJSONArray("savedArtists"), CatalogJson::artist),
                 savedPlaylists = objects(root.optJSONArray("savedPlaylists"), CatalogJson::playlist)
-                    .filterNot { libraryPlaylistId(it.id) in hidden },
+                    .filterNot { devicePlaylist(it.id) || libraryPlaylistId(it.id) in hidden },
                 recentlyPlayed = CatalogJson.tracks(root.optJSONArray("recentlyPlayed")),
                 playCounts = countsMap,
                 listeningTotalMs = root.optLong("listeningTotalMs").coerceAtLeast(0),
@@ -45,7 +46,7 @@ internal object LibraryBackupCodec {
                     ListeningDay(it.getString("date"), it.getString("trackId"), it.optInt("listens").coerceAtLeast(0),
                         it.optLong("heardMs").coerceIn(0, 86_400_000))
                 },
-                hiddenPlaylistIds = hidden,
+                hiddenPlaylistIds = hidden.filterNot(::devicePlaylist).toSet(),
             )
     }
 

@@ -79,18 +79,6 @@ internal fun ThemeStyleSection(
     PanelDivider()
 
     Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-        AppearanceOptionTitle(uiText("Playlist background", "Fondo de las listas"), Icons.Rounded.Palette)
-        RowSubtitle(uiText("Choose the artwork used behind playlists.", "Elige la carátula que se usa como fondo en las listas."))
-        SettingsDropdownField(
-            options = listOf(false to uiText("Playlist artwork", "Carátula de la lista"), true to uiText("Playing song", "Canción en reproducción")),
-            selected = settings.playlistSongBackground,
-            onSelect = { onSettings(settings.copy(playlistSongBackground = it)) },
-        )
-    }
-
-    PanelDivider()
-
-    Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
         AppearanceOptionTitle(uiText("Border style", "Estilo de bordes"), Icons.Rounded.BorderStyle)
         val bordersSubtitle = when (settings.glassBorders) {
             GlassBorders.PREDETERMINADO -> uiText("Subtle borders on glass and buttons.", "Bordes sutiles en cristales y botones.")

@@ -104,7 +104,7 @@ fun RemoteArtwork(
     val context = LocalContext.current
     val candidates = remember(url) { dev.sfg.numa.mobile.artwork.artworkCandidates(url) }
     var attempt by remember(url) { mutableStateOf(0) }
-    val source = candidates.getOrNull(attempt).orEmpty()
+    val source = candidates.getOrNull(attempt.coerceAtMost((candidates.lastIndex).coerceAtLeast(0))).orEmpty()
     Box(modifier.background(NumaColors.Bark), contentAlignment = Alignment.Center) {
         NumaMark(Modifier.fillMaxSize(0.48f))
         if (source.isNotBlank()) {
@@ -113,7 +113,7 @@ fun RemoteArtwork(
                 contentDescription = description,
                 contentScale = contentScale,
                 alignment = alignment,
-                onError = { attempt += 1 },
+                onError = { if (attempt < candidates.lastIndex) attempt += 1 },
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -133,6 +133,7 @@ fun AmbientArtworkHaze(
     moving: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    val foreground = rememberArtworkForeground()
     val transition = rememberInfiniteTransition(label = "numa haze")
     val drift by transition.animateFloat(
         initialValue = -0.025f,
@@ -152,8 +153,9 @@ fun AmbientArtworkHaze(
                     alpha = 0.32f
                     scaleX = 1.34f
                     scaleY = 1.34f
-                    translationX = size.width * if (moving) drift else 0f
-                    translationY = size.height * if (moving) -drift else 0f
+                    val active = moving && foreground
+                    translationX = size.width * if (active) drift else 0f
+                    translationY = size.height * if (active) -drift else 0f
                 }
                 .blur(64.dp),
         )

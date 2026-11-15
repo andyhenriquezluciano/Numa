@@ -185,7 +185,7 @@ private fun FrostedInactiveParty(
                 }
             }
         },
-        shape = CircleShape,
+        shape = RoundedCornerShape(14.dp),
         colors =
             TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
@@ -205,7 +205,7 @@ private fun FrostedInactiveParty(
         Button(
             onClick = { onJoin(codeInput) },
             enabled = codeInput.length == ROOM_CODE_LENGTH && party.status != PartyStatus.CONNECTING,
-            shape = CircleShape,
+            shape = RoundedCornerShape(16.dp),
             colors =
                 ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface),
             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).desktopButtonSurface(),
@@ -217,7 +217,7 @@ private fun FrostedInactiveParty(
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface),
             onClick = onCreate,
             enabled = party.status != PartyStatus.CONNECTING,
-            shape = CircleShape,
+            shape = RoundedCornerShape(16.dp),
             modifier =
                 Modifier.fillMaxWidth().heightIn(min = 48.dp).desktopButtonSurface(),
         ) {
@@ -307,12 +307,12 @@ private fun FrostedActiveParty(party: PartyState, onLeave: () -> Unit, onTransfe
                                 )
                                 .show()
                         },
-                        shape = CircleShape,
+                        shape = RoundedCornerShape(12.dp),
                         color = Color.Transparent,
                         modifier =
                             Modifier.weight(1f)
                                 .height(38.dp)
-                                .border(1.dp, CanopyColors.Rule, CircleShape),
+                                .border(1.dp, CanopyColors.Rule, RoundedCornerShape(12.dp)),
                     ) {
                         Row(
                             modifier = Modifier.fillMaxSize(),
@@ -355,12 +355,12 @@ private fun FrostedActiveParty(party: PartyState, onLeave: () -> Unit, onTransfe
                                 Intent.createChooser(sendIntent, uiText("Share listening party link", "Compartir enlace de la sala"))
                             )
                         },
-                        shape = CircleShape,
+                        shape = RoundedCornerShape(12.dp),
                         color = Color.Transparent,
                         modifier =
                             Modifier.weight(1f)
                                 .height(38.dp)
-                                .border(1.dp, CanopyColors.Rule, CircleShape),
+                                .border(1.dp, CanopyColors.Rule, RoundedCornerShape(12.dp)),
                     ) {
                         Row(
                             modifier = Modifier.fillMaxSize(),
@@ -417,7 +417,7 @@ private fun FrostedActiveParty(party: PartyState, onLeave: () -> Unit, onTransfe
     // Leave or End Party Button
     Button(
         onClick = onLeave,
-        shape = CircleShape,
+        shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = CanopyColors.Danger),
         modifier =
             Modifier.fillMaxWidth().heightIn(min = 48.dp).desktopButtonSurface(),
