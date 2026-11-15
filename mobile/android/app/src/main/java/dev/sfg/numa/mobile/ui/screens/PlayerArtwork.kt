@@ -311,6 +311,7 @@ fun FullBleedPlayerBackdrop(
                     ) {
                         RemoteArtwork(
                             url = currentTrack.artworkUrl,
+                            fallbackUrl = dev.sfg.numa.mobile.artwork.trackArtworkFallbackUrl(currentTrack),
                             description = uiText("Artwork for ${currentTrack.title}", "Carátula de ${currentTrack.title}"),
                             modifier = Modifier.fillMaxSize(),
                             contentScale = androidx.compose.ui.layout.ContentScale.Crop,

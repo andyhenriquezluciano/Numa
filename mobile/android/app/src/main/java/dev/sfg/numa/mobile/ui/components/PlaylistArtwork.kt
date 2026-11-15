@@ -55,12 +55,12 @@ internal fun PlaylistArtwork(id: String, title: String, url: String, modifier: M
     val showArtwork = automaticCover.isNotBlank() || !customCover.isNullOrBlank() || artwork.isNotBlank() && (local || !isGeneratedPlaylistPlaceholder(artwork)) && !liked && !episodes
     val shape = if (fullView) RoundedCornerShape(0.dp) else RoundedCornerShape(14.dp)
     if (showArtwork) {
-        val source = dev.sfg.numa.mobile.artwork.highResolutionArtworkUrl(artwork, if (fullView) 1200 else 600)
-        val candidates = remember(source) { dev.sfg.numa.mobile.artwork.artworkCandidates(source, if (fullView) 1200 else 600) }
-        var attempt by remember(source) { mutableIntStateOf(0) }
+        val candidates = remember(artwork, fullView) {
+            dev.sfg.numa.mobile.artwork.artworkCandidates(artwork, if (fullView) 1200 else 600)
+        }
+        var attempt by remember(candidates) { mutableIntStateOf(0) }
         val candidate = candidates.getOrNull(attempt).orEmpty()
         Box(modifier.clip(shape).background(Color(0xFF14171A)), contentAlignment = Alignment.Center) {
-            NumaMark(Modifier.fillMaxSize(0.46f))
             if (candidate.isNotBlank()) {
                 val request = ImageRequest.Builder(context).data(candidate).crossfade(150).apply {
                     if (automaticCover.isNotBlank()) {
@@ -72,7 +72,7 @@ internal fun PlaylistArtwork(id: String, title: String, url: String, modifier: M
                     model = request,
                     contentDescription = title,
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                    onError = { attempt += 1 },
+                    onError = { if (attempt < candidates.lastIndex) attempt += 1 },
                     modifier = Modifier.fillMaxSize(),
                 )
             }

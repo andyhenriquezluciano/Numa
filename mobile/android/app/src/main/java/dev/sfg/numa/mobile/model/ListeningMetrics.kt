@@ -21,15 +21,20 @@ fun LibrarySnapshot.withRecordedListen(track: Track): LibrarySnapshot {
 }
 
 /** Merge display metadata without losing the recorded identity, order or counters. */
-internal fun LibrarySnapshot.metricTracks(): List<Track> =
-    (playedTracks + recentlyPlayed + likedTracks + savedAlbums.flatMap { it.tracks } + savedPlaylists.flatMap { it.tracks })
+internal fun LibrarySnapshot.metricTracks(): List<Track> {
+    val albumCovers = savedAlbums.filter { it.id.isNotBlank() && it.artworkUrl.isNotBlank() }
+        .associate { it.id to it.artworkUrl }
+    return (playedTracks + recentlyPlayed + likedTracks + savedAlbums.flatMap { it.tracks } + savedPlaylists.flatMap { it.tracks })
         .groupBy(Track::id).values.map { copies ->
             val first = copies.first()
+            val albumId = copies.firstOrNull { it.albumId.isNotBlank() }?.albumId.orEmpty()
             first.copy(
-                artworkUrl = copies.firstOrNull { it.artworkUrl.isNotBlank() }?.artworkUrl.orEmpty(),
-                albumId = copies.firstOrNull { it.albumId.isNotBlank() }?.albumId.orEmpty(),
+                artworkUrl = copies.firstOrNull { it.artworkUrl.isNotBlank() }?.artworkUrl
+                    ?: albumCovers[albumId].orEmpty(),
+                albumId = albumId,
                 artistId = copies.firstOrNull { it.artistId.isNotBlank() }?.artistId.orEmpty(),
                 artists = copies.firstOrNull { it.artists.isNotEmpty() }?.artists.orEmpty(),
                 album = copies.firstOrNull { it.album.isNotBlank() }?.album.orEmpty(),
             )
         }
+}

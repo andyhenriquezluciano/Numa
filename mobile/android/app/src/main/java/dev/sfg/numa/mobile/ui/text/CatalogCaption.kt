@@ -3,7 +3,7 @@ package dev.sfg.numa.mobile.ui.text
 private val serviceCaptions = listOf(
     "New releases" to "Novedades", "Your playlists" to "Tus listas", "Auto playlist" to "Lista automática",
     "Your queued episodes" to "Tus episodios guardados", "From your library" to "De tu biblioteca",
-    "Your library" to "Tu biblioteca", "Artist" to "Artista", "Playlist" to "Lista de reproducción",
+    "Library" to "Biblioteca", "Your library" to "Tu biblioteca", "Artist" to "Artista", "Playlist" to "Lista de reproducción",
     "Your daily discovery" to "Tu descubrimiento diario", "Personalized mixes" to "Mixes personalizados",
     "Listen together" to "Escuchar juntos", "Recaps" to "Recaps", "Listen again" to "Volver a escuchar",
     "Quick picks" to "Selección rápida", "Recommended for you" to "Recomendado para ti",

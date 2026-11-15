@@ -100,13 +100,16 @@ fun RemoteArtwork(
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
     alignment: Alignment = Alignment.Center,
+    fallbackUrl: String = "",
 ) {
     val context = LocalContext.current
-    val candidates = remember(url) { dev.sfg.numa.mobile.artwork.artworkCandidates(url) }
-    var attempt by remember(url) { mutableStateOf(0) }
-    val source = candidates.getOrNull(attempt.coerceAtMost((candidates.lastIndex).coerceAtLeast(0))).orEmpty()
+    val candidates = remember(url, fallbackUrl) {
+        (dev.sfg.numa.mobile.artwork.artworkCandidates(url) +
+            dev.sfg.numa.mobile.artwork.artworkCandidates(fallbackUrl)).distinct()
+    }
+    var attempt by remember(candidates) { mutableStateOf(0) }
+    val source = candidates.getOrNull(attempt).orEmpty()
     Box(modifier.background(NumaColors.Bark), contentAlignment = Alignment.Center) {
-        NumaMark(Modifier.fillMaxSize(0.48f))
         if (source.isNotBlank()) {
             AsyncImage(
                 model = artworkRequest(context, source),
@@ -354,11 +357,13 @@ fun ArtworkTile(
     modifier: Modifier = Modifier,
     radius: Int = 14,
     alignment: Alignment = Alignment.Center,
+    fallbackUrl: String = "",
 ) {
     RemoteArtwork(
         url = url,
         description = description,
         modifier = modifier.clip(RoundedCornerShape(radius.dp)),
         alignment = alignment,
+        fallbackUrl = fallbackUrl,
     )
 }

@@ -142,7 +142,7 @@ fun CanopyButton(
         modifier = modifier
             .pressScale(source, 0.92f)
             .heightIn(min = 44.dp)
-            .desktopButtonSurface()
+            .desktopButtonSurface(MaterialTheme.shapes.medium)
             .clickable(interactionSource = source, indication = null, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,

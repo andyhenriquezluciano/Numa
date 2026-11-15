@@ -35,10 +35,12 @@ internal fun artworkCandidates(url: String, pixels: Int = 540): List<String> = b
     }
 }.distinct()
 
-internal fun trackArtworkUrl(track: dev.sfg.numa.mobile.model.Track): String = track.artworkUrl.ifBlank {
-    if (!track.isLocal && !track.isQobuz && Regex("[A-Za-z0-9_-]{11}").matches(track.id))
+internal fun trackArtworkUrl(track: dev.sfg.numa.mobile.model.Track): String =
+    track.artworkUrl.ifBlank { trackArtworkFallbackUrl(track) }
+
+internal fun trackArtworkFallbackUrl(track: dev.sfg.numa.mobile.model.Track): String =
+    if (!track.isLocal && !track.isQobuz && !track.isUpload && Regex("[A-Za-z0-9_-]{11}").matches(track.id))
         "https://i.ytimg.com/vi/${track.id}/hqdefault.jpg" else ""
-}
 
 /** Requests a display-sized source instead of the tiny thumbnail embedded in list renderers. */
 internal fun highResolutionArtworkUrl(url: String, pixels: Int = 540): String = when {

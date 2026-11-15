@@ -156,7 +156,7 @@ fun NumaApp(viewModel: NumaViewModel) {
     val activeCoverUrl = if (isDetail && !(settings.playlistSongBackground && collection?.kind == dev.sfg.numa.mobile.model.CatalogKind.PLAYLIST && playerPlayback.currentTrack != null)) {
         detailArtworkUrl
     } else {
-        playerPlayback.currentTrack?.artworkUrl.orEmpty()
+        playerPlayback.currentTrack?.let { dev.sfg.numa.mobile.artwork.trackArtworkUrl(it) }.orEmpty()
     }
 
     // Sampled once here and handed to both the wash and the glass panes, so the cover the app is
@@ -225,9 +225,9 @@ fun NumaApp(viewModel: NumaViewModel) {
                                 palette = backdropPalette,
                                 animated = settings.animatedBackground && !playerOpen,
                             )
-                            // Home, Settings and Library wear the current song; the shader idles once playback pauses.
+                            // The main tabs share the current song's artwork; the shader idles when playback pauses.
                             dev.sfg.numa.mobile.ui.components.HomeBackdrop(
-                                visible = !playerOpen && (isDetail || route == Routes.HOME || route == Routes.SETTINGS || route == Routes.SETTINGS_HOME_LAYOUT || route == Routes.LIBRARY),
+                                visible = !playerOpen && (isDetail || route == Routes.HOME || route == Routes.SETTINGS || route == Routes.SETTINGS_HOME_LAYOUT || route == Routes.LIBRARY || route == Routes.ROOMS),
                                 artworkUrl = activeCoverUrl,
                                 isPlaying = (isDetail || playerPlayback.isPlaying) && settings.animatedBackground,
                             )

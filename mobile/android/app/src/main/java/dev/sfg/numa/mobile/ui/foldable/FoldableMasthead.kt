@@ -217,7 +217,7 @@ internal fun FoldableSectionHeader(title: String, onSeeAll: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = title,
+            text = dev.sfg.numa.mobile.ui.text.catalogCaption(title),
             style =
                 MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
@@ -227,7 +227,7 @@ internal fun FoldableSectionHeader(title: String, onSeeAll: () -> Unit) {
         )
         Row(
             modifier =
-                Modifier.clip(CircleShape)
+                Modifier.clip(MaterialTheme.shapes.medium)
                     .clickable(onClick = onSeeAll)
                     .padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,

@@ -183,7 +183,13 @@ fun TrackRow(
                 }
                 if (showArtwork && trackNumber == null) {
                     Box(contentAlignment = Alignment.Center) {
-                        ArtworkTile(dev.sfg.numa.mobile.artwork.trackArtworkUrl(track), uiText("Artwork for ${track.title}", "Carátula de ${track.title}"), Modifier.size(artworkSize), if (compact) 8 else 10)
+                        ArtworkTile(
+                            track.artworkUrl,
+                            uiText("Artwork for ${track.title}", "Carátula de ${track.title}"),
+                            Modifier.size(artworkSize),
+                            if (compact) 8 else 10,
+                            fallbackUrl = dev.sfg.numa.mobile.artwork.trackArtworkFallbackUrl(track),
+                        )
                         androidx.compose.animation.AnimatedVisibility(
                             visible = highlighted,
                             enter = fadeIn() + scaleIn(initialScale = 0.6f),

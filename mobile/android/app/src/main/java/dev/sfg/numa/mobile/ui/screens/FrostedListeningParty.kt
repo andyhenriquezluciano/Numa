@@ -167,7 +167,7 @@ private fun FrostedInactiveParty(
         },
         trailingIcon = {
             if (codeInput.isNotBlank()) {
-                IconButton(onClick = { codeInput = "" }) {
+                IconButton(onClick = { codeInput = "" }, shape = MaterialTheme.shapes.small) {
                     Icon(
                         Icons.Rounded.Close,
                         contentDescription = uiText("Clear", "Borrar"),
@@ -176,6 +176,7 @@ private fun FrostedInactiveParty(
                 }
             } else {
                 IconButton(
+                    shape = MaterialTheme.shapes.small,
                     onClick = {
                         getClipboardText(context)?.takeIf(String::isNotBlank)?.let {
                             codeInput = cleanRoomCode(it).take(ROOM_CODE_LENGTH)
@@ -409,7 +410,7 @@ private fun FrostedActiveParty(party: PartyState, onLeave: () -> Unit, onTransfe
         Spacer(Modifier.height(6.dp))
         FrostedPeerRow(peer = peer)
         if (party.isHost && onTransferHost != null) {
-            androidx.compose.material3.TextButton(onClick = { onTransferHost(peer.id) }) {
+            androidx.compose.material3.TextButton(onClick = { onTransferHost(peer.id) }, shape = compactControlShape) {
                 Text(uiText("Give control", "Dar control"), color = accent)
             }
         }

@@ -156,6 +156,7 @@ fun NowPlayingArtworkCard(
                 ) {
                     RemoteArtwork(
                         url = outTrack.artworkUrl,
+                        fallbackUrl = dev.sfg.numa.mobile.artwork.trackArtworkFallbackUrl(outTrack),
                         description = uiText("Artwork for ${outTrack.title}", "Carátula de ${outTrack.title}"),
                         modifier = Modifier.fillMaxSize(),
                     )
@@ -204,6 +205,7 @@ fun NowPlayingArtworkCard(
                 ) {
                     RemoteArtwork(
                         url = inTrack.artworkUrl,
+                        fallbackUrl = dev.sfg.numa.mobile.artwork.trackArtworkFallbackUrl(inTrack),
                         description = uiText("Artwork for ${inTrack.title}", "Carátula de ${inTrack.title}"),
                         modifier = Modifier.fillMaxSize(),
                     )
@@ -248,6 +250,7 @@ fun NowPlayingArtworkCard(
             ) {
                 RemoteArtwork(
                     url = currentTrack.artworkUrl,
+                    fallbackUrl = dev.sfg.numa.mobile.artwork.trackArtworkFallbackUrl(currentTrack),
                     description = uiText("Artwork for ${currentTrack.title}", "Carátula de ${currentTrack.title}"),
                     modifier = Modifier.fillMaxSize(),
                 )
