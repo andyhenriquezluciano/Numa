@@ -30,11 +30,11 @@ object MobileChangelog {
         get() = dev.sfg.numa.mobile.ui.text.uiText(
             """
             ### What's new
-            - **Clearer See all buttons on Home.** Section buttons in the Glass themes use a less transparent background so they are easier to see over artwork.
+            - **Home and Settings appearance.** See all buttons return to their previous glass finish. Settings dropdowns have less translucent surfaces that retain the artwork tint, and Settings buttons use 14 dp corners.
             """.trimIndent(),
             """
             ### Novedades
-            - **«Ver todo» se distingue mejor en Inicio.** Los botones de sección de los temas Cristal tienen un fondo menos transparente para que se vean mejor sobre cualquier carátula.
+            - **Apariencia de Inicio y Ajustes.** «Ver todo» recupera su cristal anterior. Los desplegables de Ajustes conservan el tinte de la carátula con un fondo más opaco y los botones usan esquinas de 14 dp.
             """.trimIndent(),
         )
 }

@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ExpandMore
@@ -56,7 +55,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.sfg.numa.mobile.ui.glass.GlassDropdownMenu
 import dev.sfg.numa.mobile.ui.glass.GlassDropdownMenuItem
-import dev.sfg.numa.mobile.ui.glass.desktopButtonSurface
+import dev.sfg.numa.mobile.ui.glass.GlassTone
+import dev.sfg.numa.mobile.ui.glass.glassPane
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 @Composable
@@ -73,7 +73,7 @@ internal fun <T> SettingsDropdownField(
     val density = LocalDensity.current
     val currentLabel = options.firstOrNull { it.first == selected }?.second ?: ""
     val rose = currentRosePine()
-    val shape = RoundedCornerShape(if (rose == null) 14.dp else 10.dp)
+    val shape = MaterialTheme.shapes.medium
     val accent = SettingsStyle.TileIcon
 
     Box(
@@ -89,7 +89,7 @@ internal fun <T> SettingsDropdownField(
                 .fillMaxWidth()
                 .heightIn(min = 48.dp)
                 .clip(shape)
-                .then(if (rose == null) Modifier.desktopButtonSurface(shape) else Modifier.background(rose.Surface))
+                .then(if (rose == null) Modifier.glassPane(shape, GlassTone.SETTINGS_PICKER) else Modifier.background(rose.Surface))
                 .clickable(role = androidx.compose.ui.semantics.Role.Button) { expanded = !expanded }
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -120,6 +120,8 @@ internal fun <T> SettingsDropdownField(
             onDismissRequest = { expanded = false },
             modifier = menuModifier,
             offset = DpOffset(0.dp, 4.dp),
+            tone = GlassTone.SETTINGS_PICKER,
+            shape = shape,
         ) {
             options.forEach { (value, optLabel) ->
                 val isSelected = value == selected

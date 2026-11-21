@@ -73,6 +73,9 @@ enum class GlassTone {
 
     /** Interactive chips, search inputs, pills, circular buttons, and compact controls. */
     CONTROL,
+
+    /** Settings fields and their option menus use a denser, artwork-tinted surface. */
+    SETTINGS_PICKER,
 }
 
 /**

@@ -17,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -93,6 +94,7 @@ private fun EqualizerContent(config: EqualizerConfig, onConfigChange: (Equalizer
         )
 
         // Presets Dropdown
+        val pickerShape = MaterialTheme.shapes.medium
         var expanded by remember { mutableStateOf(false) }
         ExposedDropdownMenuBox(
             expanded = expanded,
@@ -103,16 +105,22 @@ private fun EqualizerContent(config: EqualizerConfig, onConfigChange: (Equalizer
                 value = currentLabel,
                 onValueChange = {},
                 readOnly = true,
+                shape = pickerShape,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
                     focusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     unfocusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 ),
-                modifier = Modifier.menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth()
+                modifier = Modifier.menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                    .fillMaxWidth()
+                    .clip(pickerShape)
+                    .glassPane(pickerShape, GlassTone.SETTINGS_PICKER)
             )
             dev.sfg.numa.mobile.ui.glass.GlassDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
+                tone = GlassTone.SETTINGS_PICKER,
+                shape = pickerShape,
             ) {
                 EQ_PRESETS.forEach { preset ->
                     GlassDropdownMenuItem(

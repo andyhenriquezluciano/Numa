@@ -41,9 +41,20 @@ internal class GlassSpec(
 private fun buildSpec(
     theme: GlassTheme,
     borders: GlassBorders,
-    isControl: Boolean,
+    tone: GlassTone,
 ): GlassSpec {
     val borderAlpha = if (borders == GlassBorders.LIMPIO) 0f else 1f
+    if (tone == GlassTone.SETTINGS_PICKER &&
+        (theme == GlassTheme.CRISTAL || theme == GlassTheme.CRISTAL_OSCURO)
+    ) {
+        val dark = theme == GlassTheme.CRISTAL_OSCURO
+        val base = if (dark) Color(0xFF34383D) else Color(0xFF44484D)
+        return GlassSpec(
+            base = base, film = if (dark) 0.59f else 0.48f, tintMix = 0.32f, contrastUndercoat = 0.04f,
+            solidBase = base, solidFilm = 0.74f, solidTintMix = 0.32f, solidUndercoat = 0.08f,
+            borderAlpha = borderAlpha,
+        )
+    }
     return when (theme) {
         GlassTheme.CRISTAL -> {
             val film = 0.12f
@@ -68,7 +79,7 @@ private fun buildSpec(
             )
         }
         GlassTheme.ROSE_PINE, GlassTheme.ROSE_PINE_DAWN -> {
-            val base = if (isControl) dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Overlay else dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Surface
+            val base = if (tone == GlassTone.CONTROL) dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Overlay else dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Surface
             GlassSpec(
                 base = base, film = 1f, tintMix = 0f, contrastUndercoat = 0f,
                 solidBase = dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Base, solidFilm = 1f, solidTintMix = 0f, solidUndercoat = 0f,
@@ -81,4 +92,4 @@ private fun buildSpec(
 internal fun GlassTone.spec(
     theme: GlassTheme = GlassTheme.CRISTAL,
     borders: GlassBorders = GlassBorders.PREDETERMINADO,
-): GlassSpec = buildSpec(theme, borders, isControl = this == GlassTone.CONTROL)
+): GlassSpec = buildSpec(theme, borders, tone = this)

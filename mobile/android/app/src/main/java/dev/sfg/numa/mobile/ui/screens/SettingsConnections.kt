@@ -152,7 +152,7 @@ private fun ConnectionRow(
         } else {
             // Display-only: the whole row opens the detail page.
             Surface(
-                shape = CircleShape,
+                shape = MaterialTheme.shapes.medium,
                 color = SettingsStyle.ButtonFill,
                 border = BorderStroke(1.dp, SettingsStyle.ButtonBorder),
             ) {

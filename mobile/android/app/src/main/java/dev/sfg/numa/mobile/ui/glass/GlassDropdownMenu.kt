@@ -9,6 +9,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.model.GlassTheme
@@ -20,9 +21,10 @@ fun GlassDropdownMenu(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     offset: DpOffset = DpOffset(0.dp, 0.dp),
+    tone: GlassTone = GlassTone.OVERLAY,
+    shape: Shape = RoundedCornerShape(DesktopGlass.MenuRadius),
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val shape = RoundedCornerShape(DesktopGlass.MenuRadius)
     val snapshot = rememberModalGlassSnapshot(expanded)
     val style = LocalGlass.current
     val isRosePine = (style.theme == GlassTheme.ROSE_PINE || style.theme == GlassTheme.ROSE_PINE_DAWN)
@@ -40,7 +42,7 @@ fun GlassDropdownMenu(
                             .background(dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Surface, shape)
                     } else {
                         Modifier
-                            .glassPane(shape, GlassTone.OVERLAY, borderless = true)
+                            .glassPane(shape, tone, borderless = true)
                     }
                 ),
             shape = shape,

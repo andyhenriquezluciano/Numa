@@ -45,7 +45,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
@@ -248,7 +247,7 @@ internal fun ActionRow(
     }
 }
 
-/** Neutral outlined pill; [destructive] swaps the label to the danger colour. */
+/** Secondary settings action; [destructive] swaps the label to the danger colour. */
 @Composable
 internal fun SettingsPill(
     label: String,
@@ -256,11 +255,12 @@ internal fun SettingsPill(
     modifier: Modifier = Modifier,
     destructive: Boolean = false,
 ) {
+    val shape = MaterialTheme.shapes.medium
     Surface(
         onClick = onClick,
-        shape = CircleShape,
+        shape = shape,
         color = Color.Transparent,
-        modifier = modifier.defaultMinSize(minHeight = 44.dp).desktopButtonSurface(),
+        modifier = modifier.defaultMinSize(minHeight = 44.dp).desktopButtonSurface(shape),
     ) {
         Box(Modifier.padding(horizontal = 13.dp, vertical = 9.dp), contentAlignment = Alignment.Center) {
             Text(
