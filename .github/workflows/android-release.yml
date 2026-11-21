@@ -91,6 +91,34 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew --no-daemon assembleRelease
 
+      - name: Apply production signing rotation
+        env:
+          ANDROID_KEYSTORE_FILE: ${{ runner.temp }}/numa-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_ROTATED_KEYSTORE_FILE: ${{ runner.temp }}/numa-production.p12
+          ANDROID_ROTATED_KEYSTORE_BASE64: ${{ secrets.ANDROID_ROTATED_KEYSTORE_BASE64 }}
+          ANDROID_ROTATED_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_ROTATED_KEYSTORE_PASSWORD }}
+          ANDROID_ROTATED_KEY_ALIAS: numa-release
+          ANDROID_ROTATED_KEY_PASSWORD: ${{ secrets.ANDROID_ROTATED_KEYSTORE_PASSWORD }}
+          ANDROID_SIGNING_LINEAGE_BASE64: ${{ secrets.ANDROID_SIGNING_LINEAGE_BASE64 }}
+        run: |
+          set -euo pipefail
+          : "${ANDROID_ROTATED_KEYSTORE_BASE64:?Production signing keystore is required}"
+          : "${ANDROID_ROTATED_KEYSTORE_PASSWORD:?Production signing password is required}"
+          : "${ANDROID_SIGNING_LINEAGE_BASE64:?Production signing lineage is required}"
+          umask 077
+          lineage="$RUNNER_TEMP/numa-release.lineage"
+          printf '%s' "$ANDROID_ROTATED_KEYSTORE_BASE64" | base64 --decode > "$ANDROID_ROTATED_KEYSTORE_FILE"
+          printf '%s' "$ANDROID_SIGNING_LINEAGE_BASE64" | base64 --decode > "$lineage"
+          apksigner="$ANDROID_HOME/build-tools/36.0.0/lib/apksigner.jar"
+          if [[ ! -f "$apksigner" ]]; then sdkmanager 'build-tools;36.0.0'; fi
+          python3 scripts/release/sign_android_rotation.py \
+            --apksigner-jar "$apksigner" --lineage "$lineage" \
+            mobile/android/app/build/outputs/apk/release/app-release.apk \
+            mobile/android/app/build/outputs/apk/release/app-release-rotated.apk
+
       - name: Package APK, mapping and update metadata
         env:
           VERSION: ${{ needs.verify-tag.outputs.version }}
@@ -100,7 +128,7 @@ jobs:
           version_code="$(sed -n "s/^[[:space:]]*versionCode[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p" mobile/android/app/build.gradle)"
           test -n "$version_code"
           apk_name="Numa-${VERSION}.apk"
-          apk_source="mobile/android/app/build/outputs/apk/release/app-release.apk"
+          apk_source="mobile/android/app/build/outputs/apk/release/app-release-rotated.apk"
           mapping_source="mobile/android/app/build/outputs/mapping/release/mapping.txt"
           test -f "$apk_source"
           test -s "$mapping_source"

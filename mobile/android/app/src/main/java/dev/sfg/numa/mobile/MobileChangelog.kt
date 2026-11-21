@@ -30,15 +30,11 @@ object MobileChangelog {
         get() = dev.sfg.numa.mobile.ui.text.uiText(
             """
             ### What's new
-            - **Rosé Pine and Dawn across the app.** The player, queue, Settings and navigation use the theme palettes, with improved contrast for text and icons.
-            - **Consistent mini player.** All covers are square with rounded corners, and the transport buttons use the same radius as the full player.
-            - **Clearer search and video.** Search shows the selected filter, and video mode uses the theme background with a more readable quality menu and queue count.
+            - **Production signing.** NÜMA now uses a production signing key on Android 13 and later. Android 12 uses the compatible signature. Update your existing installation to keep your data and settings.
             """.trimIndent(),
             """
             ### Novedades
-            - **Rosé Pine y Dawn en toda la app.** El reproductor, la cola, Ajustes y la navegación usan las paletas del tema, con más contraste en textos e iconos.
-            - **Minirreproductor más uniforme.** Todas las carátulas son cuadradas con esquinas redondeadas y los controles usan el mismo radio que el reproductor principal.
-            - **Búsqueda y vídeo más legibles.** La búsqueda destaca el filtro activo y el modo de vídeo usa el fondo del tema, con un selector de calidad y un contador de cola más claros.
+            - **Firma de producción.** A partir de Android 13, NÜMA usa una nueva firma de producción. Android 12 conserva la firma compatible. Instala la actualización sobre tu versión actual para conservar tus datos y ajustes.
             """.trimIndent(),
         )
 }
