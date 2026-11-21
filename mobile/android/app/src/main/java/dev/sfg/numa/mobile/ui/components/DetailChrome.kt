@@ -45,7 +45,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.ripple
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Icon
@@ -89,7 +88,7 @@ fun rememberHeroScrimProgress(listState: LazyListState): State<Float> {
 }
 
 /**
- * Floating detail chrome: a frosted back circle and an action pill over the hero,
+ * Floating detail chrome: a frosted back button and action group over the hero,
  * backed by a scrim that darkens as [scrimProgress] rises so it stays legible over rows.
  */
 @Composable
@@ -100,6 +99,7 @@ fun DetailFloatingChrome(
     palette: ArtworkPalette? = null,
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
+    val controlShape = androidx.compose.material3.MaterialTheme.shapes.medium
     val topBrightness = palette?.top?.luminance()
     val isLightBackground = topBrightness != null && topBrightness >= 0.48f
     val targetShade = if (isLightBackground) 1f else 0f
@@ -132,9 +132,9 @@ fun DetailFloatingChrome(
             Box(
                 modifier = Modifier
                     .size(44.dp)
-                    .clip(CircleShape)
-                    .desktopButtonSurface(CircleShape)
-                    .topChromeButtonContrast(CircleShape, shade)
+                    .clip(controlShape)
+                    .desktopButtonSurface(controlShape)
+                    .topChromeButtonContrast(controlShape, shade)
                     .clickable(
                         interactionSource = backInteraction,
                         indication = ripple(bounded = true),
@@ -154,9 +154,9 @@ fun DetailFloatingChrome(
                 Row(
                     modifier = Modifier
                         .height(44.dp)
-                        .clip(CircleShape)
-                        .desktopButtonSurface(CircleShape)
-                        .topChromeButtonContrast(CircleShape, shade)
+                        .clip(controlShape)
+                        .desktopButtonSurface(controlShape)
+                        .topChromeButtonContrast(controlShape, shade)
                         .padding(horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -181,7 +181,7 @@ private fun Modifier.topChromeButtonContrast(
     drawContent()
 }
 
-/** One icon inside the [DetailFloatingChrome] pill. */
+/** One icon inside the [DetailFloatingChrome] action group. */
 @Composable
 fun ChromeAction(
     icon: ImageVector,

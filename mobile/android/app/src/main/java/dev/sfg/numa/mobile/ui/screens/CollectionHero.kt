@@ -89,7 +89,7 @@ import dev.sfg.numa.mobile.ui.components.CollectionTopBar
 import dev.sfg.numa.mobile.ui.components.DetailHeroFrame
 import dev.sfg.numa.mobile.ui.components.ExplicitBadge
 import dev.sfg.numa.mobile.ui.components.HeroAbout
-import dev.sfg.numa.mobile.ui.components.HeroCircleButton
+import dev.sfg.numa.mobile.ui.components.HeroActionButton
 import dev.sfg.numa.mobile.ui.components.HeroGutter
 import dev.sfg.numa.mobile.ui.components.HeroPlayRow
 import dev.sfg.numa.mobile.ui.components.collectionDownloadAction
@@ -197,11 +197,11 @@ internal fun CollectionHero(
             },
             playing = playback.sourcePlaylistId == detail.id && playback.isPlaying,
             playEnabled = detail.tracks.isNotEmpty(),
-            // Albums keep their cover's colour on the disc; playlists stay neutral.
+            // Albums keep their cover's colour on the button; playlists stay neutral.
             playFill = if (isAlbum) albumAccent else Color.White,
             playIconTint = palette.deep,
             leading = {
-                if (!dev.sfg.numa.mobile.local.isLocalPlaylistId(detail.id)) HeroCircleButton(
+                if (!dev.sfg.numa.mobile.local.isLocalPlaylistId(detail.id)) HeroActionButton(
                     onClick = { onShuffle(detail.tracks, detail.title) },
                     icon = Icons.Rounded.Shuffle,
                     contentDescription = uiText("Shuffle", "Aleatorio"),
@@ -211,7 +211,7 @@ internal fun CollectionHero(
             trailing = {
                 // A playlist on this phone is already in the library; there is nothing to add.
                 if (!dev.sfg.numa.mobile.local.isLocalPlaylistId(detail.id)) {
-                    HeroCircleButton(
+                    HeroActionButton(
                         onClick = { onSave(detail) },
                         icon = if (isSaved) Icons.Rounded.Check else Icons.Rounded.Add,
                         contentDescription = if (isSaved) uiText("Saved to library", "Guardado en la biblioteca") else uiText("Add to library", "Añadir a la biblioteca"),

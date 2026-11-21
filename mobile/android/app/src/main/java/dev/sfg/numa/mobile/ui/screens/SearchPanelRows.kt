@@ -34,7 +34,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
@@ -228,9 +227,10 @@ internal fun TopResultRow(item: CatalogItem, onOpen: () -> Unit, onPlay: () -> U
             )
         }
         if (isSong) {
+            val shape = MaterialTheme.shapes.medium
             IconButton(
                 onClick = onPlay,
-                modifier = Modifier.size(44.dp).background(SettingsStyle.SwitchOn, CircleShape),
+                modifier = Modifier.size(44.dp).clip(shape).background(SettingsStyle.SwitchOn),
             ) {
                 Icon(
                     Icons.Rounded.PlayArrow,

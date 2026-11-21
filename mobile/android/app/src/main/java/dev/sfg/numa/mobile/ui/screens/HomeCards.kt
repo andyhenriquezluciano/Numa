@@ -246,7 +246,7 @@ internal fun GlassSquircleCard(
             val playSource = remember { MutableInteractionSource() }
             Surface(
                 onClick = onPlay,
-                shape = CircleShape,
+                shape = MaterialTheme.shapes.medium,
                 color = Color.White.copy(alpha = 0.92f),
                 shadowElevation = 3.dp,
                 interactionSource = playSource,

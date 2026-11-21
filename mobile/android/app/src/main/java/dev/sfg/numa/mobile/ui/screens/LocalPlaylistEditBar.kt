@@ -113,13 +113,13 @@ internal fun PlaylistEditBar(local: LocalPlaylistEdit, onShuffle: () -> Unit, sh
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        dev.sfg.numa.mobile.ui.components.HeroCircleButton(
+        dev.sfg.numa.mobile.ui.components.HeroActionButton(
             onClick = local.onAddSongs, icon = androidx.compose.material.icons.Icons.AutoMirrored.Rounded.PlaylistAdd,
             contentDescription = uiText("Add songs", "Añadir canciones"))
-        dev.sfg.numa.mobile.ui.components.HeroCircleButton(onClick = onShuffle,
+        dev.sfg.numa.mobile.ui.components.HeroActionButton(onClick = onShuffle,
             icon = androidx.compose.material.icons.Icons.Rounded.Shuffle,
             contentDescription = uiText("Shuffle", "Aleatorio"), enabled = shuffleEnabled)
-        dev.sfg.numa.mobile.ui.components.HeroCircleButton(
+        dev.sfg.numa.mobile.ui.components.HeroActionButton(
             onClick = local.onAddFolder, icon = androidx.compose.material.icons.Icons.Rounded.CreateNewFolder,
             contentDescription = uiText("Add folder", "Añadir carpeta"))
     }

@@ -1,5 +1,5 @@
-## Android 2.8.1
+## Android 2.8.2
 
 ### Novedades
 
-- **Firma de producción.** A partir de Android 13, NÜMA usa una nueva firma de producción. Android 12 conserva la firma compatible. Instala esta actualización sobre tu versión actual para conservar tus datos y ajustes.
+- **Controles con esquinas redondeadas.** Reproducir, Pausar, Aleatorio y Volver usan el mismo radio que los controles principales de NÜMA. La barra de selección y las acciones del menú de canciones siguen ese estilo.

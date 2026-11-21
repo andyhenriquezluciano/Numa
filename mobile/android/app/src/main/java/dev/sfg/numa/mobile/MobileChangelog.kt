@@ -30,11 +30,11 @@ object MobileChangelog {
         get() = dev.sfg.numa.mobile.ui.text.uiText(
             """
             ### What's new
-            - **Production signing.** NÜMA now uses a production signing key on Android 13 and later. Android 12 uses the compatible signature. Update your existing installation to keep your data and settings.
+            - **Controls with rounded corners.** Play, Pause, Shuffle and Back use the same corner radius as NÜMA's main controls. The selection bar and track menu actions follow the same style.
             """.trimIndent(),
             """
             ### Novedades
-            - **Firma de producción.** A partir de Android 13, NÜMA usa una nueva firma de producción. Android 12 conserva la firma compatible. Instala la actualización sobre tu versión actual para conservar tus datos y ajustes.
+            - **Controles con esquinas redondeadas.** Reproducir, Pausar, Aleatorio y Volver usan el mismo radio que los controles principales de NÜMA. La barra de selección y las acciones del menú de canciones siguen ese estilo.
             """.trimIndent(),
         )
 }

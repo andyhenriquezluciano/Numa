@@ -95,6 +95,8 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -187,9 +189,9 @@ fun DetailHeroFrame(
     }
 }
 
-/** Frosted circle used for the secondary hero actions. */
+/** Frosted button used for the secondary hero actions. */
 @Composable
-fun HeroCircleButton(
+fun HeroActionButton(
     onClick: () -> Unit,
     icon: ImageVector,
     contentDescription: String,
@@ -199,12 +201,13 @@ fun HeroCircleButton(
     size: Dp = 48.dp,
 ) {
     val source = remember { MutableInteractionSource() }
+    val shape = MaterialTheme.shapes.medium
     Box(
         modifier = modifier
             .pressScale(source, 0.94f)
             .size(size)
-            .clip(CircleShape)
-            .desktopButtonSurface(CircleShape)
+            .clip(shape)
+            .desktopButtonSurface(shape)
             .clickable(
                 interactionSource = source,
                 indication = ripple(bounded = true),
@@ -224,8 +227,8 @@ fun HeroCircleButton(
 }
 
 /**
- * Hero transport: two 48dp circles flanking a 72dp play disc. [sideDrop] lowers the
- * flanking buttons so they sit grounded beside the larger disc.
+ * The hero transport places two secondary actions beside the main play button.
+ * [sideDrop] offsets the secondary buttons vertically.
  */
 @Composable
 fun HeroPlayRow(
@@ -246,7 +249,8 @@ fun HeroPlayRow(
     ) {
         Box(Modifier.size(48.dp).offset(y = sideDrop).riseIn(3, fromScale = 0.6f), contentAlignment = Alignment.Center) { leading() }
         val playSource = remember { MutableInteractionSource() }
-        // Three soft rings ripple out of the disc once the page lands, then it sits still.
+        val playShape = MaterialTheme.shapes.medium
+        // Three soft pulses follow the button outline when the page opens.
         val halo = remember { Animatable(0f) }
         var pulsed by rememberSaveable { mutableStateOf(false) }
         LaunchedEffect(playEnabled) {
@@ -272,7 +276,7 @@ fun HeroPlayRow(
         Surface(
             onClick = onPlay,
             enabled = playEnabled,
-            shape = CircleShape,
+            shape = playShape,
             color = if (playEnabled) effectivePlayFill else effectivePlayFill.copy(alpha = 0.3f),
             interactionSource = playSource,
             modifier = Modifier
@@ -280,10 +284,12 @@ fun HeroPlayRow(
                 .drawBehind {
                     val p = halo.value
                     if (p > 0f) {
-                        drawCircle(
-                            color = effectivePlayFill.copy(alpha = 0.45f * (1f - p)),
-                            radius = size.minDimension / 2f * (1f + 0.55f * p),
-                        )
+                        scale(1f + 0.55f * p) {
+                            drawOutline(
+                                playShape.createOutline(size, layoutDirection, this),
+                                effectivePlayFill.copy(alpha = 0.45f * (1f - p)),
+                            )
+                        }
                     }
                 }
                 .pressScale(playSource, 0.86f)

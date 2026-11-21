@@ -197,11 +197,13 @@ private fun PopupActionRow(icon: ImageVector, label: String, index: Int, onClick
     val pressed by source.collectIsPressedAsState()
     val hovered by source.collectIsHoveredAsState()
     val focused by source.collectIsFocusedAsState()
+    val shape = MaterialTheme.shapes.medium
     Surface(
         onClick = onClick,
         color = Color.Transparent,
+        shape = shape,
         interactionSource = source,
-        modifier = Modifier.fillMaxWidth().desktopMenuHighlight(pressed || hovered || focused),
+        modifier = Modifier.fillMaxWidth().desktopMenuHighlight(pressed || hovered || focused, shape),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 13.dp),

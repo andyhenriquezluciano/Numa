@@ -104,7 +104,7 @@ fun ArtistHero(
             playIconTint = palette.deep,
             sideDrop = 8.dp,
             leading = {
-                HeroCircleButton(
+                HeroActionButton(
                     onClick = { onShuffle(detail.tracks, detail.title) },
                     icon = Icons.Rounded.Shuffle,
                     contentDescription = uiText("Shuffle", "Aleatorio"),
@@ -112,7 +112,7 @@ fun ArtistHero(
                 )
             },
             trailing = {
-                HeroCircleButton(
+                HeroActionButton(
                     onClick = { onSave(detail) },
                     icon = if (isSaved) Icons.Filled.Favorite else Icons.Rounded.FavoriteBorder,
                     contentDescription = if (isSaved) uiText("Unfollow artist", "Dejar de seguir al artista") else uiText("Follow artist", "Seguir artista"),

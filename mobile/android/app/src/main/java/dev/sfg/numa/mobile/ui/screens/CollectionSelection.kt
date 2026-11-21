@@ -2,7 +2,6 @@ package dev.sfg.numa.mobile.ui.screens
 
 import android.content.Intent
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DoneAll
@@ -38,7 +37,7 @@ internal fun CollectionSelectionBar(
     var choosingPlaylist by remember { mutableStateOf(false) }
     var confirmingRemoval by remember { mutableStateOf(false) }
     Row(Modifier.fillMaxWidth().statusBarsPadding().padding(top = 76.dp, start = 16.dp, end = 16.dp)
-        .glassPane(RoundedCornerShape(24.dp)).padding(horizontal = 8.dp),
+        .glassPane(MaterialTheme.shapes.medium).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically) {
         IconButton(onClick = onClear) { Icon(Icons.Rounded.Close, uiText("Cancel selection", "Cancelar selección")) }
         Text(uiText("${selected.size} selected", "${selected.size} seleccionadas"), Modifier.weight(1f))
