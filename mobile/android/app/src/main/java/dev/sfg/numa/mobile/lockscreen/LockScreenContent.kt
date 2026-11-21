@@ -7,27 +7,13 @@ import androidx.compose.ui.layout.positionInRoot
 import dev.sfg.numa.mobile.ui.screens.FullBleedPlayerBackdrop
 import dev.sfg.numa.mobile.ui.screens.rememberFullBleedPalette
 import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.layout.ContentScale
-import coil3.compose.AsyncImage
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -37,9 +23,9 @@ import dev.sfg.numa.mobile.NumaGraph
 import dev.sfg.numa.mobile.artwork.TrackArtwork
 import dev.sfg.numa.mobile.model.PlaybackSnapshot
 import dev.sfg.numa.mobile.ui.components.*
-import dev.sfg.numa.mobile.ui.glass.desktopButtonSurface
+import dev.sfg.numa.mobile.ui.screens.PlayerTransportControls
 import dev.sfg.numa.mobile.ui.text.uiText
-import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 @UnstableApi
 @Composable
@@ -57,6 +43,10 @@ internal fun LockScreenContent(
     onClose: () -> Unit,
     onOpenApp: () -> Unit,
 ) {
+    val rose = currentRosePine()
+    val textColor = rose?.Text ?: Color.White
+    val secondaryText = rose?.SecondaryText ?: Color.White.copy(alpha = 0.76f)
+    val sectionSpacing = 12.dp
     val downloads by graph.downloads.downloads.collectAsState()
     val source = state.currentTrack
     val saved = downloads[source?.id]
@@ -85,16 +75,17 @@ internal fun LockScreenContent(
             .ifBlank { track.animatedArtworkVerticalUrl.ifBlank { track.animatedArtworkUrl } },
     )
     val hasMotion = renderedTrack?.animatedArtworkVerticalUrl.orEmpty().isNotBlank()
-    val framed = LockScreenPolicy.framedArtwork(animatedArtwork, expandedAnimatedArtwork, hasMotion)
-    val warpSupported = remember { dev.kawarp.KawarpEngine.isSupported() }
+    val framed = rose != null || LockScreenPolicy.framedArtwork(animatedArtwork, expandedAnimatedArtwork, hasMotion)
+    val warpSupported = rose == null && remember { dev.kawarp.KawarpEngine.isSupported() }
     val warped = warpSupported && animatedBackground && (framed || !animatedArtwork || !hasMotion)
     var videoFrame by remember(renderedTrack?.id) { mutableStateOf<Bitmap?>(null) }
     var controlsTop by remember { mutableStateOf<Float?>(null) }
     var headerBottom by remember { mutableStateOf(0f) }
     var backdropTop by remember { mutableStateOf(0f) }
     BoxWithConstraints(Modifier.fillMaxSize().onGloballyPositioned { backdropTop = it.positionInRoot().y }) {
-        val footerSpace = (maxHeight * 0.10f).coerceAtLeast(40.dp)
-        if (renderedTrack != null) {
+        if (rose != null) {
+            Box(Modifier.fillMaxSize().background(rose.Base))
+        } else if (renderedTrack != null) {
             val palette = if (framed || !hasMotion) rememberArtworkPalette(cover)
                 else rememberFullBleedPalette(renderedTrack, videoFrame)
             FullBleedPlayerBackdrop(
@@ -114,10 +105,13 @@ internal fun LockScreenContent(
         }
         if (framed && renderedTrack != null) {
             val density = androidx.compose.ui.platform.LocalDensity.current
-            val room = with(density) { (controlsTop ?: (maxHeight.toPx() * 0.56f)).toDp() }
-            val artworkSize = minOf(maxWidth - 48.dp, (room - 88.dp).coerceAtLeast(48.dp))
-            Box(Modifier.fillMaxWidth().height(room).padding(top = 64.dp, bottom = 12.dp),
-                contentAlignment = Alignment.Center) {
+            val artworkTop = with(density) { (headerBottom - backdropTop).coerceAtLeast(0f).toDp() }
+            val artworkBottom = with(density) { controlsTop?.minus(backdropTop)?.toDp() } ?: maxHeight * 0.56f
+            val artworkSize = minOf(maxWidth - 48.dp, artworkBottom - artworkTop - sectionSpacing * 2)
+            if (artworkSize > 0.dp) Box(
+                Modifier.fillMaxWidth().height(artworkBottom.coerceAtLeast(0.dp)).padding(bottom = sectionSpacing),
+                contentAlignment = Alignment.BottomCenter,
+            ) {
                 dev.sfg.numa.mobile.ui.screens.NowPlayingArtworkCard(
                     track = renderedTrack.copy(animatedArtworkUrl = motion?.videoUrl.orEmpty()
                         .ifBlank { renderedTrack.animatedArtworkUrl.ifBlank { renderedTrack.animatedArtworkVerticalUrl } }),
@@ -131,57 +125,58 @@ internal fun LockScreenContent(
             IconButton(onClick = onOpenApp) {
                 NumaMark(Modifier.size(22.dp))
             }
-            IconButton(onClick = onClose, colors = IconButtonDefaults.iconButtonColors(contentColor = Color.White)) {
+            IconButton(onClick = onClose, colors = IconButtonDefaults.iconButtonColors(contentColor = textColor)) {
                 Icon(Icons.Rounded.Close, uiText("Return to lock screen", "Volver al bloqueo"), Modifier.size(22.dp))
             }
         }
         Column(
             Modifier.align(Alignment.BottomCenter).fillMaxWidth()
                 .onGloballyPositioned { controlsTop = it.positionInRoot().y }
-                .navigationBarsPadding().padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+                .navigationBarsPadding().padding(start = 24.dp, end = 24.dp, bottom = sectionSpacing),
+            verticalArrangement = Arrangement.spacedBy(sectionSpacing),
         ) {
-            Text(track?.title ?: uiText("No song playing", "No hay ninguna canción"),
-                color = Color.White, fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleLarge.copy(fontSize = 22.sp), maxLines = 2)
-            Text(track?.artist.orEmpty(), color = Color.White.copy(alpha = 0.76f),
-                style = MaterialTheme.typography.bodyMedium, maxLines = 2)
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(track?.title ?: uiText("No song playing", "No hay ninguna canción"),
+                    color = textColor, fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 22.sp), maxLines = 2)
+                track?.artist?.takeIf { it.isNotBlank() }?.let {
+                    Text(it, color = rose?.InfoInk ?: secondaryText,
+                        style = MaterialTheme.typography.bodyMedium, maxLines = 2)
+                }
+            }
             val duration = state.durationMs.coerceAtLeast(0)
-            ThinGlassSlider(
-                value = if (duration > 0) (state.positionMs.toFloat() / duration).coerceIn(0f, 1f) else 0f,
-                onValueChange = { onSeek((it * duration).toLong()) },
-                enabled = duration > 0, compact = true,
-                modifier = Modifier.offset(y = 10.dp),
+            Column {
+                ThinGlassSlider(
+                    value = if (duration > 0) (state.positionMs.toFloat() / duration).coerceIn(0f, 1f) else 0f,
+                    onValueChange = { onSeek((it * duration).toLong()) },
+                    enabled = duration > 0,
+                    compact = true,
+                    followTheme = true,
+                    description = uiText("Playback position", "Posición de reproducción"),
+                )
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(clock(state.positionMs), color = secondaryText, fontSize = 11.sp)
+                    Text("-" + clock((duration - state.positionMs).coerceAtLeast(0)),
+                        color = secondaryText, fontSize = 11.sp)
+                }
+            }
+            PlayerTransportControls(
+                isPlaying = state.isPlaying,
+                status = state.status,
+                shuffle = state.shuffle,
+                repeatMode = state.repeatMode,
+                localControls = true,
+                onToggle = onToggle,
+                onPrevious = onPrevious,
+                onNext = onNext,
+                onShuffle = {},
+                onRepeat = {},
+                showModes = false,
             )
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(clock(state.positionMs), color = Color.White.copy(alpha = 0.65f), fontSize = 11.sp)
-                Text("-" + clock((duration - state.positionMs).coerceAtLeast(0)),
-                    color = Color.White.copy(alpha = 0.65f), fontSize = 11.sp)
-            }
-            Row(Modifier.fillMaxWidth().padding(top = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                FilledIconButton(onClick = onPrevious, modifier = Modifier.weight(1f).height(50.dp),
-                    shape = CircleShape,
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.18f), contentColor = Color.White)) {
-                    Icon(Icons.Rounded.SkipPrevious, uiText("Previous", "Anterior"), Modifier.size(22.dp))
-                }
-                FilledIconButton(onClick = onToggle, modifier = Modifier.weight(1f).height(50.dp),
-                    shape = CircleShape,
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White, contentColor = Color(0xFF101214))) {
-                    Icon(if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                        if (state.isPlaying) uiText("Pause", "Pausar") else uiText("Play", "Reproducir"),
-                        Modifier.size(25.dp))
-                }
-                FilledIconButton(onClick = onNext, modifier = Modifier.weight(1f).height(50.dp),
-                    shape = CircleShape,
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.White.copy(alpha = 0.18f), contentColor = Color.White)) {
-                    Icon(Icons.Rounded.SkipNext, uiText("Next", "Siguiente"), Modifier.size(22.dp))
-                }
-            }
-            LockScreenLyrics(
+            if (track != null) LockScreenLyrics(
                 state = state,
                 graph = graph,
-                modifier = Modifier.fillMaxWidth().height(footerSpace).padding(top = 12.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
             )
         }
     }

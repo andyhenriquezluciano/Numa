@@ -11,15 +11,18 @@ import android.os.Bundle
 import android.os.PowerManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import dev.sfg.numa.connect.app.MainActivity
 import dev.sfg.numa.mobile.NumaGraph
+import dev.sfg.numa.mobile.model.GlassTheme
 import dev.sfg.numa.mobile.playback.LocalPlaybackController
 import dev.sfg.numa.mobile.ui.theme.NumaTheme
 import kotlinx.coroutines.flow.first
@@ -71,7 +74,13 @@ class LockScreenActivity : FragmentActivity() {
             setContent {
                 val state by playback.snapshot.collectAsStateWithLifecycle()
                 val preferences by graph.settings.settings.collectAsStateWithLifecycle()
-                NumaTheme {
+                val lightBackground = preferences.glassTheme == GlassTheme.ROSE_PINE_DAWN
+                LaunchedEffect(lightBackground) {
+                    val bars = WindowCompat.getInsetsController(window, window.decorView)
+                    bars.isAppearanceLightStatusBars = lightBackground
+                    bars.isAppearanceLightNavigationBars = lightBackground
+                }
+                NumaTheme(settings = preferences) {
                     LockScreenContent(state, graph, interactive, preferences.animatedArtwork, preferences.expandedAnimatedArtwork, preferences.animatedBackground,
                         playback::toggle, playback::previous, playback::next, playback::seek,
                         onClose = { finish() }, onOpenApp = ::unlockAndOpen)

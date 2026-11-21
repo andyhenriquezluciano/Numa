@@ -16,10 +16,12 @@ import dev.sfg.numa.mobile.NumaGraph
 import dev.sfg.numa.mobile.model.LyricLine
 import dev.sfg.numa.mobile.model.PlaybackSnapshot
 import dev.sfg.numa.mobile.ui.text.uiText
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 import kotlinx.coroutines.CancellationException
 
 @Composable
 internal fun LockScreenLyrics(state: PlaybackSnapshot, graph: NumaGraph, modifier: Modifier = Modifier) {
+    val rose = currentRosePine()
     val track = state.currentTrack?.let { if (state.durationMs > 0) it.copy(durationMs = state.durationMs) else it }
     val lines by produceState<List<LyricLine>?>(null, track?.id, track?.durationMs) {
         value = null
@@ -45,14 +47,14 @@ internal fun LockScreenLyrics(state: PlaybackSnapshot, graph: NumaGraph, modifie
         else -> current.text.ifBlank { "♪" }
     }
     val next = if (index >= 0) available.getOrNull(index + 1)?.text.orEmpty() else ""
-    Box(modifier, contentAlignment = Alignment.Center) {
+    Box(modifier, contentAlignment = Alignment.TopCenter) {
         AnimatedContent(text to next, label = "LockScreenLyric") { (line, upcoming) ->
             Column(horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(line, color = Color.White.copy(alpha = 0.9f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(line, color = rose?.Text ?: Color.White.copy(alpha = 0.9f),
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                     textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                if (upcoming.isNotBlank()) Text(upcoming, color = Color.White.copy(alpha = 0.5f),
+                if (upcoming.isNotBlank()) Text(upcoming, color = rose?.SecondaryText ?: Color.White.copy(alpha = 0.5f),
                     style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center,
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
