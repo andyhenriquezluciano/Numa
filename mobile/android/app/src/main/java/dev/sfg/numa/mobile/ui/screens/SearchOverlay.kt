@@ -28,7 +28,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -91,6 +90,7 @@ import dev.sfg.numa.mobile.ui.components.TrackRowShimmer
 import dev.sfg.numa.mobile.ui.glass.GlassTone
 import dev.sfg.numa.mobile.ui.glass.glassPane
 import dev.sfg.numa.mobile.ui.scroll.NumaLazyColumn as LazyColumn
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 // Light enough that the panes have something to blur.
 private val GlassScrim = Color(0x59080B09)
@@ -146,12 +146,17 @@ internal fun SearchOverlay(
         // The IME outlives the composable otherwise and hovers over the screen we just revealed.
         DisposableEffect(Unit) { onDispose { keyboard?.hide() } }
 
+        val rose = currentRosePine()
+        val backdrop = if (rose != null) {
+            Modifier.background(rose.Base)
+        } else {
+            Modifier.glassPane(RoundedCornerShape(0.dp), GlassTone.CHROME, borderless = true).background(GlassScrim)
+        }
         Box(Modifier.fillMaxSize()) {
             Box(
                 Modifier
                     .fillMaxSize()
-                    .glassPane(RoundedCornerShape(0.dp), GlassTone.CHROME)
-                    .background(GlassScrim)
+                    .then(backdrop)
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = actions.onClose),
             )
             Column(
@@ -179,18 +184,18 @@ internal fun SearchOverlay(
 @Composable
 private fun SearchBar(query: String, actions: SearchActions, focus: FocusRequester) {
     val shape = RoundedCornerShape(16.dp)
+    val accent = SettingsStyle.Sage
     Row(verticalAlignment = Alignment.CenterVertically) {
         Row(
             Modifier
                 .weight(1f)
                 .height(52.dp)
                 .clip(shape)
-                .glassPane(shape, GlassTone.CONTROL)
-                .border(1.dp, SettingsStyle.Sage.copy(alpha = 0.55f), shape)
+                .glassPane(shape, GlassTone.CONTROL, borderless = true)
                 .padding(start = 16.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(Icons.Rounded.Search, null, tint = SettingsStyle.Sage, modifier = Modifier.size(20.dp))
+            Icon(Icons.Rounded.Search, null, tint = accent, modifier = Modifier.size(20.dp))
             Box(Modifier.weight(1f).padding(horizontal = 12.dp), contentAlignment = Alignment.CenterStart) {
                 val textStyle = MaterialTheme.typography.bodyLarge.copy(color = SettingsStyle.Title)
                 if (query.isEmpty()) {
@@ -201,7 +206,7 @@ private fun SearchBar(query: String, actions: SearchActions, focus: FocusRequest
                     onValueChange = actions.onQueryChange,
                     singleLine = true,
                     textStyle = textStyle,
-                    cursorBrush = SolidColor(SettingsStyle.Sage),
+                    cursorBrush = SolidColor(accent),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = { actions.onSubmit(query) }),
                     modifier = Modifier.fillMaxWidth().focusRequester(focus),
@@ -217,7 +222,7 @@ private fun SearchBar(query: String, actions: SearchActions, focus: FocusRequest
             Modifier.height(52.dp).clickable(onClick = actions.onClose).padding(horizontal = 12.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Text(uiText("Cancel", "Cancelar"), style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold), color = SettingsStyle.Sage)
+            Text(uiText("Cancel", "Cancelar"), style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold), color = accent)
         }
     }
 }

@@ -18,20 +18,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.sfg.numa.connect.R
 import dev.sfg.numa.mobile.ui.text.uiText
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 @Composable
 internal fun PlayerQueueDestination(count: Int, active: Boolean, onClick: () -> Unit) {
+    val rose = currentRosePine()
     Box(Modifier.size(48.dp)) {
         IconButton(onClick, Modifier.matchParentSize()) {
             Icon(painterResource(R.drawable.ic_desktop_queue),
                 if (active) uiText("Hide queue", "Ocultar cola") else uiText("Queue", "Cola"),
-                Modifier.size(24.dp), tint = Color.White.copy(alpha = if (active) 1f else 0.75f))
+                Modifier.size(24.dp), tint = if (rose != null) {
+                    if (active) rose.GoldInk else rose.SecondaryText
+                } else Color.White.copy(alpha = if (active) 1f else 0.75f))
         }
         if (count > 0) {
             Box(Modifier.align(Alignment.TopEnd).defaultMinSize(minWidth = 22.dp, minHeight = 20.dp)
                 .glassPane(CircleShape, GlassTone.CONTROL).padding(horizontal = 4.dp),
                 contentAlignment = Alignment.Center) {
-                Text(if (count > 99) "99+" else count.toString(), color = MaterialTheme.colorScheme.onSurface,
+                Text(if (count > 99) "99+" else count.toString(), color = rose?.Text ?: MaterialTheme.colorScheme.onSurface,
                     fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
             }
         }

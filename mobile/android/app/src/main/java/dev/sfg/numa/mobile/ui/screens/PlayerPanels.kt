@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -156,6 +158,7 @@ fun LyricsNotice(
     isLoading: Boolean = false,
     icon: ImageVector? = null,
 ) {
+    val rose = currentRosePine()
     Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -164,7 +167,7 @@ fun LyricsNotice(
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(28.dp),
-                    color = Color.White.copy(alpha = 0.70f),
+                    color = rose?.AccentInk ?: Color.White.copy(alpha = 0.70f),
                     strokeWidth = 2.5.dp,
                 )
             } else if (icon != null) {
@@ -172,13 +175,13 @@ fun LyricsNotice(
                     imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier.size(32.dp),
-                    tint = Color.White.copy(alpha = 0.50f),
+                    tint = rose?.SecondaryText ?: Color.White.copy(alpha = 0.50f),
                 )
             }
             Text(
                 lyricNoticeMessage(message),
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.White.copy(alpha = 0.70f),
+                color = rose?.SecondaryText ?: Color.White.copy(alpha = 0.70f),
                 textAlign = TextAlign.Center,
             )
         }

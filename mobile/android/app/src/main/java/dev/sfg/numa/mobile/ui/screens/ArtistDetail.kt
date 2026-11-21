@@ -26,6 +26,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 import dev.sfg.numa.mobile.ui.text.uiText
 
 import androidx.compose.foundation.background
@@ -89,6 +91,7 @@ internal fun ArtistDetailContent(
     onShareCollection: ((BrowseDetail) -> Unit)? = null,
     onFetchSectionItems: (suspend (String, String) -> List<CatalogItem>)? = null,
 ) {
+    val rose = currentRosePine()
     val palette = rememberArtworkPalette(detail.artworkUrl)
     val listState = rememberLazyListState()
     val scrimProgress = rememberHeroScrimProgress(listState)
@@ -112,18 +115,17 @@ internal fun ArtistDetailContent(
         activeSectionSheet = SectionSheetState(title, items, browseId, params)
     }
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(
-                // Portrait tint holds through the hero, then eases into the app chrome.
-                Brush.verticalGradient(
-                    0f to palette.top.copy(alpha = 0.6f),
-                    0.4f to palette.deep,
-                    1f to CanopyColors.Chrome,
-                ),
-            ),
-    ) {
+    val backdrop = if (rose != null) {
+        Modifier.background(rose.Base)
+    } else {
+        // Portrait tint holds through the hero, then eases into the app chrome.
+        Modifier.background(Brush.verticalGradient(
+            0f to palette.top.copy(alpha = 0.6f),
+            0.4f to palette.deep,
+            1f to CanopyColors.Chrome,
+        ))
+    }
+    Box(Modifier.fillMaxSize().then(backdrop)) {
         LazyColumn(modifier = Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = 128.dp)) {
             item {
                 ArtistHero(

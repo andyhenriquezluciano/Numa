@@ -1,5 +1,8 @@
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -39,14 +42,16 @@ internal fun LazyListScope.listeningMetrics(
     val rankById = ranked.mapIndexed { index, track -> track.id to index + 1 }.toMap()
     val songs = filterTracks(ranked, query)
     item {
+        val rose = currentRosePine()
+        val accent = rose?.InfoInk ?: LocalAccent.current
         Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
             MetricsPeriod.entries.forEach { value ->
                 FilterChip(selected = period == value, onClick = { onPeriod(value) },
                     border = if (dev.sfg.numa.mobile.ui.glass.LocalGlass.current.borders == dev.sfg.numa.mobile.model.GlassBorders.LIMPIO)
                         null else FilterChipDefaults.filterChipBorder(enabled = true, selected = period == value),
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = dev.sfg.numa.mobile.ui.theme.LocalAccent.current.copy(alpha = 0.18f),
-                        selectedLabelColor = dev.sfg.numa.mobile.ui.theme.LocalAccent.current),
+                        selectedContainerColor = rose?.InfoSurface ?: accent.copy(alpha = 0.18f),
+                        selectedLabelColor = accent),
                     label = { Text(when (value) {
                         MetricsPeriod.WEEK -> uiText("7 days", "7 días")
                         MetricsPeriod.MONTH -> uiText("30 days", "30 días")

@@ -52,6 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -59,11 +60,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.sfg.numa.mobile.model.Artist
 import dev.sfg.numa.mobile.model.CatalogItem
+import dev.sfg.numa.mobile.model.GlassTheme
 import dev.sfg.numa.mobile.ui.components.ArtworkTile
+import dev.sfg.numa.mobile.ui.components.PlaylistArtwork
 import dev.sfg.numa.mobile.ui.motion.bounceClickable
 import dev.sfg.numa.mobile.ui.motion.pressScale
 import dev.sfg.numa.mobile.ui.motion.riseIn
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.LocalGlassTheme
+import dev.sfg.numa.mobile.ui.theme.rosePinePalette
 import androidx.compose.foundation.interaction.MutableInteractionSource
 
 internal val HomeCardWidth = 156.dp
@@ -126,11 +131,14 @@ private fun QuickGridCard(
         else -> ""
     }
     val shape = RoundedCornerShape(10.dp)
+    val theme = LocalGlassTheme.current
+    val cardColor = if (theme == GlassTheme.ROSE_PINE_DAWN) rosePinePalette(theme).Highlight
+        else Color.White.copy(alpha = 0.07f)
     val source = remember { MutableInteractionSource() }
     Surface(
         onClick = item.onClick,
         shape = shape,
-        color = Color.White.copy(alpha = 0.07f),
+        color = cardColor,
         interactionSource = source,
         modifier = Modifier
             .pressScale(source, 0.95f)
@@ -151,7 +159,7 @@ private fun QuickGridCard(
                     )
             ) {
                 if (playlistId.isNotBlank()) {
-                    dev.sfg.numa.mobile.ui.components.PlaylistArtwork(playlistId, item.title, item.artworkUrl, Modifier.fillMaxSize())
+                    PlaylistArtwork(playlistId, item.title, item.artworkUrl, Modifier.fillMaxSize(), shape = RectangleShape)
                 } else if (item.artworkUrl.isNotBlank()) {
                     ArtworkTile(item.artworkUrl, item.title, Modifier.fillMaxSize(), 0)
                 } else if (item.icon != null) {

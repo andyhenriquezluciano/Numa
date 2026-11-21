@@ -24,8 +24,6 @@ import dev.sfg.numa.mobile.ui.text.uiText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -36,18 +34,13 @@ import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.BorderClear
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import dev.sfg.numa.mobile.model.GlassBorders
 import dev.sfg.numa.mobile.model.GlassTheme
 import dev.sfg.numa.mobile.model.NumaSettings
-import dev.sfg.numa.mobile.ui.theme.CanopyColors
 
 @Composable
 internal fun ThemeStyleSection(
@@ -87,28 +80,12 @@ internal fun ThemeStyleSection(
         RowSubtitle(bordersSubtitle)
         SettingsDropdownField(
             options = listOf(
-                GlassBorders.PREDETERMINADO to uiText("Default", "Predeterminado"),
-                GlassBorders.LIMPIO to uiText("Clean", "Limpio"),
+                GlassBorders.PREDETERMINADO to uiText("On", "Activo"),
+                GlassBorders.LIMPIO to uiText("Off", "Inactivo"),
             ),
             selected = settings.glassBorders,
             iconFor = { if (it == GlassBorders.LIMPIO) Icons.Rounded.BorderClear else Icons.Rounded.BorderStyle },
             onSelect = { onSettings(settings.copy(glassBorders = it)) },
-        )
-
-        Spacer(Modifier.height(14.dp))
-        val comboName = when {
-            settings.glassTheme == GlassTheme.ROSE_PINE_DAWN -> "Rosé Pine Dawn"
-            settings.glassTheme == GlassTheme.CRISTAL && settings.glassBorders == GlassBorders.LIMPIO -> uiText("Clear glass", "Cristal Limpio (Clear Glass)")
-            settings.glassTheme == GlassTheme.CRISTAL_OSCURO && settings.glassBorders == GlassBorders.LIMPIO -> uiText("Clean dark glass", "Cristal Oscuro Limpio")
-            settings.glassTheme == GlassTheme.ROSE_PINE && settings.glassBorders == GlassBorders.LIMPIO -> uiText("Clean Rosé Pine", "Rosé Pine Limpio")
-            settings.glassTheme == GlassTheme.ROSE_PINE -> uiText("Minimal Rosé Pine", "Rosé Pine Minimal")
-            settings.glassTheme == GlassTheme.CRISTAL_OSCURO -> uiText("Dark glass", "Cristal Oscuro")
-            else -> uiText("Classic glass", "Cristal Clásico")
-        }
-        Text(
-            text = uiText("Active mode: $comboName", "Modo activo: $comboName"),
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Normal),
-            color = SettingsStyle.Caption,
         )
     }
 }
@@ -116,7 +93,7 @@ internal fun ThemeStyleSection(
 @Composable
 private fun AppearanceOptionTitle(title: String, icon: ImageVector) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Icon(icon, null, Modifier.size(22.dp), tint = CanopyColors.Accent)
+        Icon(icon, null, Modifier.size(22.dp), tint = SettingsStyle.TileIcon)
         RowTitle(title)
     }
 }

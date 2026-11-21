@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 import dev.sfg.numa.mobile.ui.glass.GlassContentLayer
 import dev.sfg.numa.mobile.ui.glass.FloatingGlassControls
 import dev.sfg.numa.mobile.ui.glass.rememberFloatingGlassScene
@@ -109,6 +111,7 @@ internal fun CollectionDetailContent(
     onTogglePlayback: (() -> Unit)? = null,
 ) {
     var selectedIds by remember(detail.id) { mutableStateOf(emptySet<String>()) }
+    val rose = currentRosePine()
     var selectionActions by remember(detail.id) { mutableStateOf(false) }
     val selectedTracks = detail.tracks.filter { it.id in selectedIds }.distinctBy { it.id }
     fun toggleSelection(track: Track) { selectedIds = if (track.id in selectedIds) selectedIds - track.id else selectedIds + track.id }
@@ -206,12 +209,12 @@ internal fun CollectionDetailContent(
                             Surface(
                                 onClick = { searchQuery = "" },
                                 shape = RoundedCornerShape(12.dp),
-                                color = Color.White.copy(alpha = 0.12f),
+                                color = rose?.Overlay ?: Color.White.copy(alpha = 0.12f),
                             ) {
                                 Text(
                                     text = uiText("Clear", "Borrar"),
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                                    color = Color.White,
+                                    color = rose?.Text ?: Color.White,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                 )
                             }
@@ -303,14 +306,14 @@ internal fun CollectionDetailContent(
                                     Text(
                                         text = "Released ${detail.year}",
                                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                                        color = Color.White.copy(alpha = 0.50f),
+                                        color = rose?.SecondaryText ?: Color.White.copy(alpha = 0.50f),
                                     )
                                     Spacer(Modifier.height(2.dp))
                                 }
                                 Text(
                                     text = countSummary,
                                     style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                                    color = Color.White.copy(alpha = 0.50f),
+                                    color = rose?.SecondaryText ?: Color.White.copy(alpha = 0.50f),
                                 )
                             }
                         }

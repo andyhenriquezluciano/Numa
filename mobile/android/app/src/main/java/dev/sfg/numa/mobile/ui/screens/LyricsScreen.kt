@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 
 
 import dev.sfg.numa.mobile.ui.glass.glassPane
@@ -70,6 +72,7 @@ internal fun LyricLines(
     contentPadding: PaddingValues = PaddingValues(horizontal = 24.dp, vertical = 32.dp),
     accent: Color = CanopyColors.LyricActive,
 ) {
+    val rose = currentRosePine()
     // Playback snapshots arrive twice a second. Keep one frame-clock coroutine alive between
     // them and fold small clock corrections in gently; restarting the animation at every
     // snapshot makes the highlight visibly hop backwards on some devices.
@@ -163,12 +166,12 @@ internal fun LyricLines(
                         Icon(
                             imageVector = Icons.Rounded.Info,
                             contentDescription = null,
-                            tint = Color.White.copy(alpha = 0.65f),
+                            tint = rose?.SecondaryText ?: Color.White.copy(alpha = 0.65f),
                             modifier = Modifier.size(16.dp),
                         )
                         Text(
                             text = uiText("These lyrics aren’t synced to the music.", "Estas letras no están sincronizadas con la música."),
-                            color = Color.White.copy(alpha = 0.72f),
+                            color = rose?.SecondaryText ?: Color.White.copy(alpha = 0.72f),
                             style = MaterialTheme.typography.labelMedium,
                         )
                     }
@@ -206,6 +209,7 @@ internal fun LyricLines(
 
                         // One flat rest level like desktop, so upcoming lines stay readable.
                         val targetAlpha = when {
+                            rose != null -> if (active || !synced || browsing) 1f else 0.84f
                             !synced -> UNSYNCED_ALPHA
                             active -> 1.0f
                             browsing -> BROWSING_ALPHA
@@ -257,7 +261,7 @@ internal fun LyricLines(
                             } else {
                                 Text(
                                     text = line.text,
-                                    color = Color.White,
+                                    color = rose?.Text ?: Color.White,
                                     textAlign = if (isAlternate) TextAlign.End else TextAlign.Start,
                                     modifier = Modifier.fillMaxWidth(),
                                     // Unsynced lyrics read as prose, matching desktop's smaller medium weight.
@@ -296,7 +300,7 @@ internal fun LyricLines(
                     dev.sfg.numa.mobile.ui.glass.GlassTone.CONTROL), contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.Sync,
                     contentDescription = uiText("Resume lyrics", "Reanudar letras"),
-                    tint = Color.White, modifier = Modifier.size(16.dp))
+                    tint = rose?.Text ?: Color.White, modifier = Modifier.size(16.dp))
                 }
             }
         }
@@ -323,7 +327,7 @@ private fun InstrumentalPauseRow(
         label = "BasePulse",
     )
 
-    val inactiveColor = Color.White.copy(alpha = 0.24f)
+    val inactiveColor = (currentRosePine()?.Text ?: Color.White).copy(alpha = 0.24f)
 
     Box(
         modifier = modifier

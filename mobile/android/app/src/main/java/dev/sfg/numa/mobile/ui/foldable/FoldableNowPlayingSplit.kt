@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.foldable
 
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 import dev.sfg.numa.mobile.ui.text.uiText
 
 import androidx.compose.foundation.background
@@ -132,7 +134,8 @@ internal fun FoldableNowPlayingSplit(
     onBestMixUpcoming: ((onProgress: (String) -> Unit, onComplete: () -> Unit) -> Unit)?,
 ) {
     val motion = track.animatedArtworkVerticalUrl.ifBlank { track.animatedArtworkUrl }
-    val hasRichArtwork = animatedArtworkEnabled && motion.isNotBlank()
+    val rose = currentRosePine()
+    val hasRichArtwork = rose == null && animatedArtworkEnabled && motion.isNotBlank()
     val activeProgress = mixProgress ?: 0f
     val incomingTrack = remember(playback.queue, transition?.incomingTrackId) {
         val id = transition?.incomingTrackId
@@ -289,7 +292,7 @@ internal fun FoldableNowPlayingSplit(
                         Icon(
                             imageVector = Icons.Rounded.Close,
                             contentDescription = uiText("Close panel", "Cerrar panel"),
-                            tint = Color.White.copy(alpha = 0.75f),
+                            tint = rose?.SecondaryText ?: Color.White.copy(alpha = 0.75f),
                             modifier = Modifier.size(20.dp),
                         )
                     }
@@ -301,7 +304,7 @@ internal fun FoldableNowPlayingSplit(
                         .weight(1f)
                         .fillMaxWidth()
                         .then(
-                            if (panel == PlayerPanel.QUEUE) {
+                            if (panel == PlayerPanel.QUEUE && rose == null) {
                                 Modifier
                                     .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
                                     .drawWithContent {
@@ -372,9 +375,10 @@ private fun FoldablePanelTab(
     accent: Color,
     onClick: () -> Unit,
 ) {
-    val bg = if (selected) accent.copy(alpha = 0.28f) else Color.White.copy(alpha = 0.08f)
-    val fg = if (selected) Color.White else Color.White.copy(alpha = 0.65f)
-    val border = if (selected) accent.copy(alpha = 0.55f) else Color.Transparent
+    val rose = currentRosePine()
+    val bg = if (selected) rose?.Highlight ?: accent.copy(alpha = 0.28f) else rose?.Overlay ?: Color.White.copy(alpha = 0.08f)
+    val fg = if (selected) rose?.Text ?: Color.White else rose?.SecondaryText ?: Color.White.copy(alpha = 0.65f)
+    val border = if (selected && rose == null) accent.copy(alpha = 0.55f) else Color.Transparent
 
     Row(
         modifier = Modifier
@@ -398,13 +402,13 @@ private fun FoldablePanelTab(
             Box(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(if (selected) accent else Color.White.copy(alpha = 0.25f))
+                    .background(if (selected) rose?.Rose ?: accent else rose?.Surface ?: Color.White.copy(alpha = 0.25f))
                     .padding(horizontal = 6.dp, vertical = 1.dp),
             ) {
                 Text(
                     text = badge,
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White,
+                    color = if (selected) rose?.OnRose ?: Color.White else fg,
                 )
             }
         }

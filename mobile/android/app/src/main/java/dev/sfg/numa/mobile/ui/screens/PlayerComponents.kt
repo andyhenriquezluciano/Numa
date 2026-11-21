@@ -82,6 +82,7 @@ import androidx.compose.ui.unit.sp
 import dev.sfg.numa.mobile.model.PlaybackSnapshot
 import dev.sfg.numa.mobile.ui.components.TrackActionsPopup
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 @Composable
 fun ExplicitBadge(modifier: Modifier = Modifier) {
@@ -101,6 +102,7 @@ fun ExplicitBadge(modifier: Modifier = Modifier) {
 /** Animated popping favorite button. */
 @Composable
 fun AnimatedFavoriteButton(liked: Boolean, onLiked: () -> Unit, modifier: Modifier = Modifier) {
+    val rose = currentRosePine()
     val heartScale by
         animateFloatAsState(
             targetValue = if (liked) 1.15f else 1.0f,
@@ -123,7 +125,7 @@ fun AnimatedFavoriteButton(liked: Boolean, onLiked: () -> Unit, modifier: Modifi
         Icon(
             imageVector = if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
             contentDescription = if (liked) uiText("Remove from liked songs", "Quitar Me gusta") else uiText("Save to liked songs", "Marcar Me gusta"),
-            tint = if (liked) CanopyColors.Favorite else Color.White.copy(alpha = 0.75f),
+            tint = if (liked) rose?.FavoriteInk ?: CanopyColors.Favorite else rose?.SecondaryText ?: Color.White.copy(alpha = 0.75f),
             modifier = Modifier.size(28.dp),
         )
     }
@@ -145,17 +147,18 @@ fun TrackActionButtons(
 
 @Composable
 fun OverflowButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val rose = currentRosePine()
     Surface(
         onClick = onClick,
         shape = CircleShape,
-        color = Color.White.copy(alpha = 0.12f),
+        color = rose?.Overlay ?: Color.White.copy(alpha = 0.12f),
         modifier = modifier.size(36.dp),
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
                 imageVector = Icons.Filled.MoreHoriz,
                 contentDescription = uiText("More options", "Más opciones"),
-                tint = Color.White.copy(alpha = 0.85f),
+                tint = rose?.Text ?: Color.White.copy(alpha = 0.85f),
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -164,6 +167,7 @@ fun OverflowButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
 
 @Composable
 fun PlayerTopHandle(onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+    val tint = currentRosePine()?.SecondaryText ?: Color.White.copy(alpha = 0.45f)
     Box(
         modifier =
             modifier
@@ -179,7 +183,7 @@ fun PlayerTopHandle(onDismiss: () -> Unit, modifier: Modifier = Modifier) {
                 Modifier.width(38.dp)
                     .height(5.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.45f))
+                    .background(tint)
         )
     }
 }
@@ -203,6 +207,7 @@ fun TrackInfoRow(
     /** Off where the player header already carries the overflow menu. */
     showMenu: Boolean = true,
 ) {
+    val rose = currentRosePine()
     var menuOpen by remember { mutableStateOf(false) }
 
     if (menuOpen) {
@@ -265,7 +270,7 @@ fun TrackInfoRow(
                             ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        color = Color.White,
+                        color = rose?.Text ?: Color.White,
                         modifier =
                             Modifier.weight(1f, fill = false)
                                 .then(
@@ -286,7 +291,7 @@ fun TrackInfoRow(
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = currentTrack.artist,
-                    color = Color.White.copy(alpha = 0.65f),
+                    color = rose?.InfoInk ?: Color.White.copy(alpha = 0.65f),
                     style =
                         MaterialTheme.typography.bodyLarge.copy(
                             fontSize = 16.sp,
@@ -325,6 +330,7 @@ fun PlayerBottomDestinations(
     onQueue: () -> Unit,
     queueActive: Boolean = false,
 ) {
+    val rose = currentRosePine()
     Row(
         modifier = modifier.fillMaxWidth().padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -338,7 +344,7 @@ fun PlayerBottomDestinations(
             Icon(
                 painter = painterResource(R.drawable.ic_desktop_lyrics),
                 contentDescription = if (lyricsActive) uiText("Hide lyrics", "Ocultar letras") else uiText("Lyrics", "Letras"),
-                tint = if (lyricsActive) Color.White else Color.White.copy(alpha = 0.75f),
+                tint = if (lyricsActive) rose?.CategoryInk ?: Color.White else rose?.SecondaryText ?: Color.White.copy(alpha = 0.75f),
                 modifier = Modifier.size(24.dp),
             )
         }

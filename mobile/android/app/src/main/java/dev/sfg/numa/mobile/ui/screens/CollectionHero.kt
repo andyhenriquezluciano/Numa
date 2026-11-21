@@ -28,6 +28,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 
 
 import dev.sfg.numa.mobile.ui.text.uiText
@@ -123,6 +125,7 @@ internal fun CollectionHero(
     smartCrossfadeEnabled: Boolean = false,
 ) {
     val isAlbum = detail.kind == CatalogKind.ALBUM
+    val rose = currentRosePine()
     val automatic by dev.sfg.numa.mobile.NumaGraph.from(LocalContext.current).automaticPlaylistCovers.state.collectAsState()
     val coverAnimation = animatedArtworkUrl.takeUnless { dev.sfg.numa.mobile.artwork.coverPlaylistKey(detail.id) in automatic.enabled }.orEmpty()
     val albumAccent = remember(palette.accent) { palette.accent.legibleOnDarkChrome() }
@@ -153,7 +156,7 @@ internal fun CollectionHero(
                     lineHeight = 34.sp,
                     letterSpacing = (-0.5).sp,
                 ),
-                color = CanopyColors.Text,
+                color = rose?.Text ?: CanopyColors.Text,
                 textAlign = TextAlign.Center,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -166,13 +169,13 @@ internal fun CollectionHero(
         }
         if (artistName.isNotBlank()) {
             Spacer(Modifier.height(8.dp))
-            ArtistChip(artistName, artistPortraitUrl, artistAccent, onOpenArtist)
+            ArtistChip(artistName, artistPortraitUrl, rose?.AccentInk ?: artistAccent, onOpenArtist)
         }
         Spacer(Modifier.height(8.dp))
         Text(
             text = infoLine,
             style = MaterialTheme.typography.bodyMedium,
-            color = CanopyColors.Text.copy(alpha = 0.7f),
+            color = rose?.SecondaryText ?: CanopyColors.Text.copy(alpha = 0.7f),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = HeroGutter),
         )
@@ -212,7 +215,7 @@ internal fun CollectionHero(
                         onClick = { onSave(detail) },
                         icon = if (isSaved) Icons.Rounded.Check else Icons.Rounded.Add,
                         contentDescription = if (isSaved) uiText("Saved to library", "Guardado en la biblioteca") else uiText("Add to library", "Añadir a la biblioteca"),
-                        tint = if (isSaved) CanopyColors.Accent else CanopyColors.Text,
+                        tint = if (isSaved) rose?.AccentInk ?: CanopyColors.Accent else rose?.Text ?: CanopyColors.Text,
                     )
                 }
             },

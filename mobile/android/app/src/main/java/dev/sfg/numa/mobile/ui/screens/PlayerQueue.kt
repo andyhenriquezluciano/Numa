@@ -65,11 +65,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.model.PlaybackSnapshot
 import dev.sfg.numa.mobile.model.RepeatMode
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 /**
  * The queue as a mode of the player rather than a destination: the transport below stays put and
  * the list takes the space the artwork was using, so reordering never loses sight of what is
- * playing. Styled for the artwork backdrop, so everything here is white-on-translucent.
+ * playing. Rosé Pine uses a flat list with a separate row for the current track.
  */
 @Composable
 fun PlayerQueuePanel(
@@ -94,6 +95,7 @@ fun PlayerQueuePanel(
     sleepTimerEndOfTrack: Boolean = false,
     onSleepTimer: () -> Unit = {},
 ) {
+    val rose = currentRosePine()
     val history = playback.history.takeLast(4)
     val historyStart = playback.currentIndex - history.size
     val listState = rememberLazyListState(
@@ -131,6 +133,7 @@ fun PlayerQueuePanel(
         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
     ) {
         item {
+            if (rose != null) QueueSectionHeader(uiText("Queue", "Cola"))
             QueueTopControls(
                 compact = compact,
                 shuffle = playback.shuffle,
@@ -158,6 +161,16 @@ fun PlayerQueuePanel(
                 )
             }
         }
+        if (rose != null) playback.currentTrack?.let { track ->
+            item(key = "current-track") {
+                QueueSectionHeader(uiText("Now playing", "Reproduciendo"))
+                QueueTrackRow(
+                    track = track, index = playback.currentIndex, queueSize = playback.queue.size,
+                    editable = false, isHistory = false, isCurrent = true,
+                    onPlay = {}, onRemove = onRemove, onMove = onMove,
+                )
+            }
+        }
         item {
             QueueSectionHeader(
                 title = uiText("Playing next", "A continuación"),
@@ -179,10 +192,10 @@ fun PlayerQueuePanel(
         }
         item {
             dev.sfg.numa.mobile.model.LocalBestMixJob.current?.takeIf { it.key == dev.sfg.numa.mobile.model.BestMixJob.QUEUE_KEY }?.let {
-                Text(it.status, color = Color.White, style = MaterialTheme.typography.bodySmall,
+                Text(it.status, color = rose?.Text ?: Color.White, style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
                 Text(uiText("Analyzing available audio. Offline, the queue stays unchanged. Tap × to cancel.", "Se analiza el audio disponible. Si falta conexión, se conserva la cola. Pulsa × para cancelar."),
-                    color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.bodySmall,
+                    color = rose?.SecondaryText ?: Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
             }
         }
@@ -201,7 +214,7 @@ fun PlayerQueuePanel(
     }
 }
 
-/** Tiles for the queue's standing modes: shuffle and repeat, then sleep timer and autoplay. */
+/** Repeat and autoplay controls, with icon-only buttons when space is limited. */
 @Composable
 fun QueueTopControls(
     shuffle: Boolean,
@@ -245,6 +258,7 @@ fun QueueTopControls(
                 else -> uiText("On", "Activado")
             },
             active = autoplayEnabled, tint = AutoplayTint,
+            automatic = true,
             onClick = { onAutoplayEnabled(!autoplayEnabled) }, modifier = Modifier.weight(1f),
         )
     }
@@ -259,10 +273,18 @@ private fun QueueModeTile(
     tint: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    automatic: Boolean = false,
 ) {
+    val rose = currentRosePine()
+    val activeTint = if (automatic) rose?.InfoInk ?: tint else rose?.AccentInk ?: tint
+    val activeFill = if (automatic) rose?.InfoSurface else rose?.Highlight
+    val container = if (active) activeFill ?: Color.White.copy(alpha = 0.16f)
+        else rose?.HighlightLow ?: Color.White.copy(alpha = 0.07f)
+    val iconBackground = if (active) activeTint.copy(alpha = 0.25f)
+        else rose?.Surface ?: Color.White.copy(alpha = 0.10f)
     Surface(
         onClick = onClick,
-        color = Color.White.copy(alpha = if (active) 0.16f else 0.07f),
+        color = container,
         shape = RoundedCornerShape(20.dp),
         modifier = modifier.height(68.dp),
     ) {
@@ -273,13 +295,13 @@ private fun QueueModeTile(
             Box(
                 modifier = Modifier
                     .size(36.dp)
-                    .background(if (active) tint.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.10f), CircleShape),
+                    .background(iconBackground, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     icon,
                     contentDescription = null,
-                    tint = if (active) tint else Color.White.copy(alpha = 0.6f),
+                    tint = if (active) activeTint else rose?.SecondaryText ?: Color.White.copy(alpha = 0.6f),
                     modifier = Modifier.size(20.dp),
                 )
             }
@@ -288,13 +310,13 @@ private fun QueueModeTile(
                 Text(
                     title,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-                    color = Color.White,
+                    color = rose?.Text ?: Color.White,
                     maxLines = 1,
                 )
                 Text(
                     status,
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (active) tint else Color.White.copy(alpha = 0.55f),
+                    color = if (active) activeTint else rose?.SecondaryText ?: Color.White.copy(alpha = 0.55f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )

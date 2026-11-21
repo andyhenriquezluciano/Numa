@@ -121,7 +121,7 @@ internal fun HomeSectionTitle(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = (-0.01).em,
                     color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
             }

@@ -66,10 +66,12 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.size.Size
 import dev.sfg.numa.connect.R
+import dev.sfg.numa.mobile.artwork.artworkCandidates
 import dev.sfg.numa.mobile.artwork.highResolutionArtworkUrl
 import dev.sfg.numa.mobile.download.AnimatedArtworkCache
 import dev.sfg.numa.mobile.ui.theme.NumaColors
 import androidx.media3.common.util.UnstableApi
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -101,37 +103,39 @@ fun RemoteArtwork(
     contentScale: ContentScale = ContentScale.Crop,
     alignment: Alignment = Alignment.Center,
     fallbackUrl: String = "",
-    recoverUrl: (suspend (List<String>) -> String)? = null,
+    recoverySources: List<suspend () -> List<String>> = emptyList(),
 ) {
     val context = LocalContext.current
-    val candidates = remember(url, fallbackUrl) {
-        (dev.sfg.numa.mobile.artwork.artworkCandidates(url) +
-            dev.sfg.numa.mobile.artwork.artworkCandidates(fallbackUrl)).distinct()
+    val initialCandidates = remember(url, fallbackUrl) {
+        (artworkCandidates(url) + artworkCandidates(fallbackUrl)).distinct()
     }
-    var attempt by remember(candidates) { mutableStateOf(0) }
-    var recovered by remember(candidates, recoverUrl) { mutableStateOf("") }
-    val initialSource = candidates.getOrNull(attempt)
-    if (initialSource == null && recoverUrl != null) {
-        LaunchedEffect(candidates, recoverUrl) {
-            recovered = try {
-                recoverUrl(candidates).takeUnless { it in candidates }.orEmpty()
-            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+    var candidates by remember(initialCandidates, recoverySources) { mutableStateOf(initialCandidates) }
+    var attempt by remember(initialCandidates, recoverySources) { mutableStateOf(0) }
+    var recoveryIndex by remember(initialCandidates, recoverySources) { mutableStateOf(0) }
+    val source = candidates.getOrNull(attempt)
+    val recover = recoverySources.getOrNull(recoveryIndex)
+    if (source == null && recover != null) {
+        LaunchedEffect(initialCandidates, recoverySources, recoveryIndex) {
+            val recovered = try {
+                recover().flatMap { artworkCandidates(it) }
+            } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
-                ""
+                emptyList()
             }
+            candidates = (candidates + recovered).distinct()
+            recoveryIndex += 1
         }
     }
-    val source = initialSource ?: recovered
     Box(modifier.background(NumaColors.Bark), contentAlignment = Alignment.Center) {
-        if (source.isNotBlank()) {
+        if (source != null) {
             AsyncImage(
                 model = artworkRequest(context, source),
                 contentDescription = description,
                 contentScale = contentScale,
                 alignment = alignment,
-                onError = {
-                    if (initialSource != null && candidates.getOrNull(attempt) == initialSource) attempt += 1
+                onError = { error ->
+                    if (candidates.getOrNull(attempt) == error.result.request.data) attempt += 1
                 },
                 modifier = Modifier.fillMaxSize(),
             )
@@ -374,7 +378,7 @@ fun ArtworkTile(
     radius: Int = 14,
     alignment: Alignment = Alignment.Center,
     fallbackUrl: String = "",
-    recoverUrl: (suspend (List<String>) -> String)? = null,
+    recoverySources: List<suspend () -> List<String>> = emptyList(),
 ) {
     RemoteArtwork(
         url = url,
@@ -382,6 +386,6 @@ fun ArtworkTile(
         modifier = modifier.clip(RoundedCornerShape(radius.dp)),
         alignment = alignment,
         fallbackUrl = fallbackUrl,
-        recoverUrl = recoverUrl,
+        recoverySources = recoverySources,
     )
 }

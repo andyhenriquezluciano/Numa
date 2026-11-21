@@ -22,7 +22,6 @@ package dev.sfg.numa.mobile.ui.glass
 import androidx.compose.ui.graphics.Color
 import dev.sfg.numa.mobile.model.GlassBorders
 import dev.sfg.numa.mobile.model.GlassTheme
-import dev.sfg.numa.mobile.ui.theme.RosePineColors
 
 /**
  * PopupBloomSurface film and SettingsButton film, including the first frame without a capture.

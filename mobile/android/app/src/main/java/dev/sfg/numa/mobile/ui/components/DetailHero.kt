@@ -29,6 +29,8 @@
 
 package dev.sfg.numa.mobile.ui.components
 
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 import dev.sfg.numa.mobile.ui.glass.glassArtworkSource
 
 
@@ -52,6 +54,9 @@ import dev.sfg.numa.mobile.ui.motion.pressScale
 import dev.sfg.numa.mobile.ui.motion.riseIn
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.ripple
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -126,6 +131,9 @@ fun DetailHeroFrame(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     // Art settles from a slight zoom as the page opens, like a camera finding focus.
+    val rose = currentRosePine()
+    val solidTheme = rose != null
+    val titleOverlap = if (solidTheme) 32.dp else HeroTitleOverlap
     var settled by rememberSaveable { mutableStateOf(false) }
     val settle = remember { Animatable(if (settled) 1f else 1.12f) }
     LaunchedEffect(Unit) {
@@ -153,7 +161,7 @@ fun DetailHeroFrame(
                         brush = Brush.verticalGradient(
                             colors = listOf(Color.Black, Color.Transparent),
                             startY = size.height * 0.4f,
-                            endY = size.height,
+                            endY = if (solidTheme) (size.height - titleOverlap.toPx()).coerceAtLeast(size.height * 0.5f) else size.height,
                         ),
                         blendMode = BlendMode.DstIn,
                     )
@@ -165,10 +173,13 @@ fun DetailHeroFrame(
                 AnimatedArtworkVideo(url = animatedArtworkUrl, active = true, modifier = Modifier.fillMaxSize())
             }
         }
+        if (rose != null) {
+            Box(Modifier.fillMaxWidth().windowInsetsTopHeight(WindowInsets.statusBars).background(rose.Base))
+        }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = artHeight - HeroTitleOverlap, bottom = 16.dp)
+                .padding(top = artHeight - titleOverlap, bottom = 16.dp)
                 .riseIn(index = 2, distance = 36f),
             horizontalAlignment = Alignment.CenterHorizontally,
             content = content,
@@ -255,7 +266,7 @@ fun HeroPlayRow(
             dev.sfg.numa.mobile.model.GlassTheme.CRISTAL -> playFill
         }
         val effectiveIconTint = when (glassStyle.theme) {
-            dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE, dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN -> dev.sfg.numa.mobile.ui.theme.rosePinePalette(glassStyle.theme).Base
+            dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE, dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN -> dev.sfg.numa.mobile.ui.theme.rosePinePalette(glassStyle.theme).OnRose
             else -> playIconTint
         }
         Surface(

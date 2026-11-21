@@ -1,28 +1,57 @@
 package dev.sfg.numa.mobile.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.model.RepeatMode
 import dev.sfg.numa.mobile.ui.text.uiText
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 @Composable
 internal fun CompactQueueModes(repeat: RepeatMode, onRepeat: (() -> Unit)?, autoplay: Boolean, onAutoplay: ((Boolean) -> Unit)?) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-        onRepeat?.let { IconButton(onClick = it, modifier = Modifier.size(48.dp)) {
-            Icon(if (repeat == RepeatMode.ONE) Icons.Rounded.RepeatOne else Icons.Rounded.Repeat,
-                uiText("Repeat", "Repetir"), tint = modeTint(repeat != RepeatMode.OFF))
-        } }
-        onAutoplay?.let { IconButton(onClick = { it(!autoplay) }, modifier = Modifier.size(48.dp)) {
-            Icon(Icons.Rounded.AllInclusive, uiText("Autoplay", "Reproducción automática"), tint = modeTint(autoplay))
-        } }
+        if (onRepeat != null) QueueModeButton(
+            if (repeat == RepeatMode.ONE) Icons.Rounded.RepeatOne else Icons.Rounded.Repeat,
+            uiText("Repeat", "Repetir"),
+            active = repeat != RepeatMode.OFF,
+            onClick = onRepeat,
+        )
+        if (onAutoplay != null) QueueModeButton(
+            Icons.Rounded.AllInclusive,
+            uiText("Autoplay", "Reproducción automática"),
+            active = autoplay,
+            onClick = { onAutoplay(!autoplay) },
+            automatic = true,
+        )
     }
 }
 
-private fun modeTint(enabled: Boolean) = if (enabled) Color(0xFFB49AFF) else Color.White.copy(alpha = 0.65f)
+@Composable
+private fun QueueModeButton(icon: ImageVector, label: String, active: Boolean, onClick: () -> Unit, automatic: Boolean = false) {
+    val rose = currentRosePine()
+    val activeTint = if (automatic) rose?.InfoInk else rose?.AccentInk
+    val tint = if (active) activeTint ?: Color(0xFFB49AFF) else rose?.SecondaryText ?: Color.White.copy(alpha = 0.65f)
+    val tile = if (rose != null) {
+        val fill = when {
+            !active -> rose.HighlightLow
+            automatic -> rose.InfoSurface
+            else -> rose.Highlight
+        }
+        Modifier.size(34.dp, 38.dp).background(fill, RoundedCornerShape(9.dp))
+    } else Modifier
+    IconButton(onClick = onClick, modifier = Modifier.size(48.dp)) {
+        Box(tile, contentAlignment = Alignment.Center) {
+            Icon(icon, label, tint = tint)
+        }
+    }
+}

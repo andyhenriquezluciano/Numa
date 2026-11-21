@@ -60,11 +60,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.coerceAtMost
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.sfg.numa.mobile.NumaGraph
+import dev.sfg.numa.mobile.artwork.trackArtworkFallbackUrl
 import dev.sfg.numa.mobile.model.Artist
 import dev.sfg.numa.mobile.ui.motion.popOnChange
 import dev.sfg.numa.mobile.ui.motion.pressScale
@@ -73,6 +76,7 @@ import dev.sfg.numa.mobile.model.Track
 import dev.sfg.numa.mobile.ui.components.ArtworkTile
 import dev.sfg.numa.mobile.ui.components.ExplicitBadge
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 /**
  * Apple Music style ranked / latest song row with explicit badge, heart like, and options menu.
@@ -88,26 +92,17 @@ internal fun RankedSongRow(
     onAddToQueue: ((Track) -> Unit)?,
     onAddToPlaylist: ((Track) -> Unit)?,
     onShare: ((Track) -> Unit)?,
+    allowArtworkRecovery: Boolean,
 ) {
     var popupOpen by remember { mutableStateOf(false) }
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val thumbnail = remember(track) { dev.sfg.numa.mobile.artwork.trackArtworkFallbackUrl(track) }
-    val recoverCover: (suspend (List<String>) -> String)? = remember(context, track, thumbnail) {
-        if (thumbnail.isBlank()) null else {
-            { attempted: List<String> ->
-                val graph = dev.sfg.numa.mobile.NumaGraph.from(context)
-                val cover = try {
-                    graph.catalog.trackCover(track.id)
-                } catch (cancelled: kotlinx.coroutines.CancellationException) {
-                    throw cancelled
-                } catch (_: Exception) {
-                    ""
-                }
-                if (cover.isNotBlank() && cover !in attempted) cover else {
-                    graph.artwork.artwork(track)?.staticUrl.orEmpty()
-                }
-            }
-        }
+    val context = LocalContext.current
+    val rose = currentRosePine()
+    val thumbnail = if (allowArtworkRecovery) trackArtworkFallbackUrl(track) else ""
+    val recoverySources = remember(context, track, thumbnail) {
+        if (thumbnail.isBlank()) emptyList() else listOf<suspend () -> List<String>>(
+            { listOf(NumaGraph.from(context).catalog.trackCover(track.id)) },
+            { NumaGraph.from(context).artwork.staticCoverUrls(track) },
+        )
     }
 
     if (popupOpen) {
@@ -158,7 +153,7 @@ internal fun RankedSongRow(
                 ArtworkTile(
                     track.artworkUrl, track.title, Modifier.fillMaxSize(), 12,
                     fallbackUrl = thumbnail,
-                    recoverUrl = recoverCover,
+                    recoverySources = recoverySources,
                 )
             }
             Spacer(Modifier.width(12.dp))
@@ -196,7 +191,7 @@ internal fun RankedSongRow(
                 Icon(
                     if (liked) Icons.Filled.Favorite else Icons.Rounded.FavoriteBorder,
                     contentDescription = if (liked) uiText("Unlike", "Quitar Me gusta") else uiText("Like", "Me gusta"),
-                    tint = if (liked) CanopyColors.Favorite else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (liked) rose?.FavoriteInk ?: CanopyColors.Favorite else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     // A like deserves a little heartbeat; an unlike leaves quietly.
                     modifier = Modifier.size(18.dp).popOnChange(liked, peak = 1.5f, onlyOn = true),
                 )

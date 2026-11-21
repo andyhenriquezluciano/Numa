@@ -50,6 +50,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
@@ -191,7 +192,7 @@ internal fun PhonePlayerBody(
                         Modifier.pointerInput(Unit) { detectTapGestures(onDoubleTap = { onLiked() }) }
                     } else Modifier,
                 )
-                .then(if (queueOpen) Modifier.queueEdgeFade() else Modifier),
+                .then(if (queueOpen && currentRosePine() == null) Modifier.queueEdgeFade() else Modifier),
             contentAlignment = Alignment.Center,
         ) {
             when {

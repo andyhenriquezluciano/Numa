@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.local.isLocalPlaylistId
 import coil3.compose.AsyncImage
@@ -30,7 +32,14 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 
 @Composable
-internal fun PlaylistArtwork(id: String, title: String, url: String, modifier: Modifier = Modifier, fullView: Boolean = false) {
+internal fun PlaylistArtwork(
+    id: String,
+    title: String,
+    url: String,
+    modifier: Modifier = Modifier,
+    fullView: Boolean = false,
+    shape: Shape = if (fullView) RectangleShape else RoundedCornerShape(14.dp),
+) {
     val local = isLocalPlaylistId(id)
     val context = androidx.compose.ui.platform.LocalContext.current
     val graph = runCatching { dev.sfg.numa.mobile.NumaGraph.from(context) }.getOrNull()
@@ -53,7 +62,6 @@ internal fun PlaylistArtwork(id: String, title: String, url: String, modifier: M
     val liked = identity == "LM" || identity == "FEmusic_liked_videos"
     val episodes = identity == "SE"
     val showArtwork = automaticCover.isNotBlank() || !customCover.isNullOrBlank() || artwork.isNotBlank() && (local || !isGeneratedPlaylistPlaceholder(artwork)) && !liked && !episodes
-    val shape = if (fullView) RoundedCornerShape(0.dp) else RoundedCornerShape(14.dp)
     if (showArtwork) {
         val candidates = remember(artwork, fullView) {
             dev.sfg.numa.mobile.artwork.artworkCandidates(artwork, if (fullView) 1200 else 600)

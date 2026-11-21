@@ -69,18 +69,44 @@ class ArtworkRepository(
         .build()
 
     private data class Provider(val id: String, val baseUrl: String)
-    private val cache = object : LinkedHashMap<String, TrackArtwork?>(128, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, TrackArtwork?>?): Boolean = size > 128
-    }
+    private val cache = artworkCache<TrackArtwork?>()
+    private val staticCoverCache = artworkCache<List<String>>()
 
     suspend fun artwork(track: Track): TrackArtwork? = withContext(Dispatchers.IO) {
-        val order = sourceOrder().distinct().let { saved -> saved + ArtworkSource.entries.filterNot(saved::contains) }
-        val key = "${normalize(track.title)}::${normalize(track.artist)}::${normalize(track.album)}::${order.joinToString()}"
-        if (key.startsWith("::") || track.title.isBlank() || track.artist.isBlank()) return@withContext null
+        if (track.title.isBlank() || track.artist.isBlank()) return@withContext null
+        val order = orderedSources()
+        val key = cacheKey(track, order)
+        if (key.startsWith("::")) return@withContext null
         synchronized(cache) { if (cache.containsKey(key)) return@withContext cache[key]?.copy(trackId = track.id) }
         val resolved = orderedArtwork(track, order)
         synchronized(cache) { cache[key] = resolved }
         resolved
+    }
+
+    suspend fun staticCoverUrls(track: Track): List<String> = withContext(Dispatchers.IO) {
+        if (track.title.isBlank() || track.artist.isBlank()) return@withContext emptyList()
+        // Spotify Canvas provides motion only. Keep every still cover in preference order
+        // so callers can try the next one if the preferred image fails to load.
+        val order = orderedSources().filter(providers::containsKey)
+        val key = cacheKey(track, order)
+        if (key.startsWith("::")) return@withContext emptyList()
+        synchronized(staticCoverCache) { staticCoverCache[key]?.let { return@withContext it } }
+        val covers = coroutineScope {
+            order.map { source -> async { fetch(providers.getValue(source), track)?.staticUrl } }
+                .mapNotNull { it.await()?.takeIf(String::isNotBlank) }
+                .distinct()
+        }
+        if (covers.isNotEmpty()) synchronized(staticCoverCache) { staticCoverCache[key] = covers }
+        covers
+    }
+
+    private fun orderedSources(): List<ArtworkSource> = (sourceOrder() + ArtworkSource.entries).distinct()
+
+    private fun cacheKey(track: Track, order: List<ArtworkSource>): String =
+        "${normalize(track.title)}::${normalize(track.artist)}::${normalize(track.album)}::${order.joinToString()}"
+
+    private fun <T> artworkCache() = object : LinkedHashMap<String, T>(128, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, T>?): Boolean = size > 128
     }
 
     private suspend fun orderedArtwork(track: Track, order: List<ArtworkSource>): TrackArtwork? = coroutineScope {

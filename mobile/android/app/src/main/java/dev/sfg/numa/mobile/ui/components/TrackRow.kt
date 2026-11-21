@@ -69,19 +69,21 @@ import dev.sfg.numa.mobile.model.Track
 import dev.sfg.numa.mobile.ui.motion.PlayingBars
 import dev.sfg.numa.mobile.ui.motion.pressScale
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 /** Badge for explicit songs. */
 @Composable
 fun ExplicitBadge(modifier: Modifier = Modifier) {
+    val rose = currentRosePine()
     Surface(
-        color = Color.White.copy(alpha = 0.16f),
+        color = rose?.Overlay ?: Color.White.copy(alpha = 0.16f),
         shape = RoundedCornerShape(3.dp),
         modifier = modifier.size(14.dp),
     ) {
         Box(contentAlignment = Alignment.Center) {
         Text(
             text = "E",
-            color = Color.White.copy(alpha = 0.85f),
+            color = rose?.Text ?: Color.White.copy(alpha = 0.85f),
             style = MaterialTheme.typography.labelSmall.copy(
                 fontSize = 9.sp,
                 lineHeight = 9.sp,
@@ -131,8 +133,10 @@ fun TrackRow(
     compact: Boolean = false,
 ) {
     var popupOpen by remember { mutableStateOf(false) }
+    val rose = currentRosePine()
+    val accent = rose?.AccentInk ?: LocalAccent.current
     val bgColor by animateColorAsState(
-        if (highlighted || selected) LocalAccent.current.copy(alpha = 0.15f) else Color.Transparent,
+        if (highlighted || selected) rose?.Highlight ?: accent.copy(alpha = 0.15f) else Color.Transparent,
         label = "TrackRowBg"
     )
     val artworkSize = if (compact) 40.dp else 46.dp
@@ -221,11 +225,11 @@ fun TrackRow(
                             label = "TrackNumberToBars",
                         ) { playing ->
                             if (playing) {
-                                PlayingBars(LocalAccent.current, size = 14.dp)
+                                PlayingBars(accent, size = 14.dp)
                             } else {
                                 Text(
                                     text = (trackNumber ?: 1).toString(),
-                                    color = Color.White.copy(alpha = 0.45f),
+                                    color = rose?.SecondaryText ?: Color.White.copy(alpha = 0.45f),
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         fontWeight = FontWeight.Medium,
                                         fontSize = 15.sp,
@@ -243,7 +247,7 @@ fun TrackRow(
                     ) {
                         Text(
                             track.title,
-                            color = if (highlighted) LocalAccent.current else Color.White,
+                            color = if (highlighted) accent else rose?.Text ?: Color.White,
                             style = titleStyle,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -265,7 +269,7 @@ fun TrackRow(
                         Spacer(Modifier.height(2.dp))
                         Text(
                             subtitle,
-                            color = Color.White.copy(alpha = 0.60f),
+                            color = rose?.SecondaryText ?: Color.White.copy(alpha = 0.60f),
                             style = subtitleStyle,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -285,13 +289,13 @@ fun TrackRow(
                     when (phase) {
                         1 -> CircularProgressIndicator(
                             modifier = Modifier.size(14.dp),
-                            color = LocalAccent.current,
+                            color = rose?.InfoInk ?: accent,
                             strokeWidth = 2.dp,
                         )
                         2 -> Icon(
                             Icons.Rounded.DownloadDone,
                             contentDescription = uiText("Downloaded offline", "Disponible sin conexión"),
-                            tint = LocalAccent.current.copy(alpha = 0.85f),
+                            tint = rose?.InfoInk ?: accent.copy(alpha = 0.85f),
                             modifier = Modifier.size(16.dp),
                         )
                         else -> Unit
@@ -301,7 +305,7 @@ fun TrackRow(
                 else if (trailingText.isNotBlank()) {
                     Text(
                         trailingText,
-                        color = Color.White.copy(alpha = 0.45f),
+                        color = rose?.SecondaryText ?: Color.White.copy(alpha = 0.45f),
                         style = subtitleStyle,
                         modifier = Modifier.padding(horizontal = 6.dp)
                     )
@@ -310,7 +314,7 @@ fun TrackRow(
                     Icon(
                         Icons.Rounded.MoreHoriz,
                         contentDescription = uiText("Actions for ${track.title}", "Acciones para ${track.title}"),
-                        tint = Color.White.copy(alpha = 0.55f),
+                        tint = rose?.SecondaryText ?: Color.White.copy(alpha = 0.55f),
                         modifier = Modifier.size(20.dp),
                     )
                 }
@@ -322,7 +326,7 @@ fun TrackRow(
                     .fillMaxWidth()
                     .padding(start = if (showArtwork && trackNumber == null) 72.dp else 48.dp, end = 16.dp)
                     .height(0.5.dp)
-                    .background(Color.White.copy(alpha = 0.08f))
+                    .background(rose?.SecondaryText?.copy(alpha = 0.18f) ?: Color.White.copy(alpha = 0.08f))
             )
         }
     }

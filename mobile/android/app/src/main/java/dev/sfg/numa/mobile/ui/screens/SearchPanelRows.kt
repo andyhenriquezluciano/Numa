@@ -61,6 +61,8 @@ import androidx.compose.ui.unit.sp
 import dev.sfg.numa.mobile.model.CatalogItem
 import dev.sfg.numa.mobile.model.SearchResults
 import dev.sfg.numa.mobile.ui.components.ArtworkTile
+import dev.sfg.numa.mobile.ui.theme.RosePinePalette
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 /** Result groups the filter chips switch between. */
 internal enum class SearchScope(val label: String) {
@@ -126,6 +128,7 @@ internal fun PanelCaption(text: String, action: String? = null, onAction: () -> 
 
 @Composable
 internal fun ScopeChips(selected: SearchScope, onSelect: (SearchScope) -> Unit) {
+    val rose = currentRosePine()
     androidx.compose.foundation.lazy.LazyRow(
         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -138,7 +141,7 @@ internal fun ScopeChips(selected: SearchScope, onSelect: (SearchScope) -> Unit) 
                 Modifier
                     .height(36.dp)
                     .clip(shape)
-                    .background(if (on) SettingsStyle.Selected else Color.Transparent, shape)
+                    .background(if (on) rose?.Rose ?: SettingsStyle.Selected else Color.Transparent, shape)
                     .border(1.dp, if (on) Color.Transparent else SettingsStyle.ButtonBorder, shape)
                     .clickable { onSelect(scope) }
                     .padding(horizontal = 14.dp),
@@ -147,7 +150,7 @@ internal fun ScopeChips(selected: SearchScope, onSelect: (SearchScope) -> Unit) 
                 Text(
                     scope.label,
                     style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
-                    color = if (on) SettingsStyle.Title else SettingsStyle.SegmentIdle,
+                    color = if (on) rose?.OnRose ?: SettingsStyle.Title else rose?.Text ?: SettingsStyle.SegmentIdle,
                 )
             }
         }
@@ -229,7 +232,12 @@ internal fun TopResultRow(item: CatalogItem, onOpen: () -> Unit, onPlay: () -> U
                 onClick = onPlay,
                 modifier = Modifier.size(44.dp).background(SettingsStyle.SwitchOn, CircleShape),
             ) {
-                Icon(Icons.Rounded.PlayArrow, uiText("Play", "Reproducir"), tint = Color.White, modifier = Modifier.size(22.dp))
+                Icon(
+                    Icons.Rounded.PlayArrow,
+                    uiText("Play", "Reproducir"),
+                    tint = currentRosePine()?.OnRose ?: Color.White,
+                    modifier = Modifier.size(22.dp),
+                )
             }
         } else {
             Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = SettingsStyle.Chevron, modifier = Modifier.size(20.dp))
@@ -237,24 +245,30 @@ internal fun TopResultRow(item: CatalogItem, onOpen: () -> Unit, onPlay: () -> U
     }
 }
 
-private class BrowseEntry(val label: String, val icon: ImageVector, val id: String)
+private class BrowseEntry(
+    val label: String,
+    val icon: ImageVector,
+    val id: String,
+    val themeTint: (RosePinePalette) -> Color,
+)
 
 // Same shelves the old chips opened; browse ids are YouTube Music's own.
 private val browseEntries = listOf(
-    BrowseEntry(uiText("New releases", "Novedades"), Icons.Rounded.Flare, "FEmusic_new_releases"),
-    BrowseEntry(uiText("Charts", "Tendencias"), Icons.AutoMirrored.Rounded.TrendingUp, "FEmusic_charts"),
-    BrowseEntry(uiText("Moods", "Estados de ánimo"), Icons.Rounded.SentimentSatisfied, "FEmusic_moods_and_genres"),
+    BrowseEntry(uiText("New releases", "Novedades"), Icons.Rounded.Flare, "FEmusic_new_releases") { it.GoldInk },
+    BrowseEntry(uiText("Charts", "Tendencias"), Icons.AutoMirrored.Rounded.TrendingUp, "FEmusic_charts") { it.InfoInk },
+    BrowseEntry(uiText("Moods", "Estados de ánimo"), Icons.Rounded.SentimentSatisfied, "FEmusic_moods_and_genres") { it.CategoryInk },
 )
 
 @Composable
 internal fun BrowseTiles(onOpen: (String) -> Unit) {
+    val rose = currentRosePine()
     val shape = RoundedCornerShape(12.dp)
     Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 14.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         browseEntries.forEach { entry ->
             Column(
                 Modifier
                     .weight(1f)
-                    .height(64.dp)
+                    .height(76.dp)
                     .clip(shape)
                     .background(SettingsStyle.Tile, shape)
                     .border(1.dp, SettingsStyle.TileBorder, shape)
@@ -262,12 +276,12 @@ internal fun BrowseTiles(onOpen: (String) -> Unit) {
                     .padding(10.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
-                Icon(entry.icon, null, tint = SettingsStyle.TileIcon, modifier = Modifier.size(18.dp))
+                Icon(entry.icon, null, tint = rose?.let(entry.themeTint) ?: SettingsStyle.TileIcon, modifier = Modifier.size(18.dp))
                 Text(
                     entry.label,
                     style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp, fontWeight = FontWeight.Medium),
                     color = SettingsStyle.Title,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
             }

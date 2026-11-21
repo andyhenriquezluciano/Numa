@@ -223,6 +223,7 @@ fun HomeScreen(
             onAddToQueue = onAddToQueue,
             onAddToPlaylist = onAddToPlaylist,
             onShare = onShare,
+            allowArtworkRecovery = !effectiveOffline,
         )
     }
 

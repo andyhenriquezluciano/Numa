@@ -42,6 +42,7 @@ import dev.sfg.numa.mobile.ui.glass.DesktopGlass
 import dev.sfg.numa.mobile.ui.glass.desktopButtonSurface
 import dev.sfg.numa.mobile.ui.text.uiText
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 @Composable
 internal fun VideoQualityButton(
@@ -50,6 +51,7 @@ internal fun VideoQualityButton(
     modifier: Modifier = Modifier,
     onMenuOpenChange: (Boolean) -> Unit = {},
 ) {
+    val rose = currentRosePine()
     var open by remember { mutableStateOf(false) }
     LaunchedEffect(open) { onMenuOpenChange(open) }
     DisposableEffect(Unit) { onDispose { onMenuOpenChange(false) } }
@@ -59,12 +61,12 @@ internal fun VideoQualityButton(
             .clickable(onClickLabel = uiText("Video quality", "Calidad de vídeo")) { open = true }
             .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Rounded.Tune, null, tint = Color.White, modifier = Modifier.padding(end = 6.dp).size(16.dp))
+            Icon(Icons.Rounded.Tune, null, tint = rose?.InfoInk ?: Color.White, modifier = Modifier.padding(end = 6.dp).size(16.dp))
             Text(if (state.height > 0) heightLabel(state.height) else uiText("Quality", "Calidad"),
-                color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                color = rose?.InfoInk ?: Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
         GlassDropdownMenu(open, { open = false }, modifier = Modifier.width(280.dp).heightIn(max = 280.dp)) {
-            Text(uiText("Video quality", "Calidad de vídeo"), color = DesktopGlass.Text,
+            Text(uiText("Video quality", "Calidad de vídeo"), color = rose?.Text ?: DesktopGlass.Text,
                 fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp))
             choices.chunked(2).forEach { pair ->
                 Row(Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 3.dp),
@@ -85,14 +87,15 @@ internal fun VideoQualityButton(
 
 @Composable
 private fun QualityChoice(label: String, chosen: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val rose = currentRosePine()
     Row(modifier.heightIn(min = 44.dp).clip(RoundedCornerShape(8.dp))
-        .background(if (chosen) DesktopGlass.ItemHighlight else Color.Transparent)
+        .background(if (chosen) rose?.InfoSurface ?: DesktopGlass.ItemHighlight else Color.Transparent)
         .clickable(onClick = onClick).padding(horizontal = 10.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(label, modifier = Modifier.weight(1f), color = DesktopGlass.Text, fontSize = 14.sp,
+        Text(label, modifier = Modifier.weight(1f), color = rose?.Text ?: DesktopGlass.Text, fontSize = 14.sp,
             fontWeight = if (chosen) FontWeight.SemiBold else FontWeight.Normal, maxLines = 1)
         if (chosen) Icon(Icons.Rounded.Check, uiText("Selected", "Seleccionado"),
-            modifier = Modifier.size(18.dp), tint = CanopyColors.Accent)
+            modifier = Modifier.size(18.dp), tint = rose?.InfoInk ?: CanopyColors.Accent)
     }
 }
 

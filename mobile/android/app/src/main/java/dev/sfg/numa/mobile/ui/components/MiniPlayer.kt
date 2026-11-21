@@ -41,6 +41,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -62,7 +63,6 @@ import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -71,8 +71,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -83,6 +83,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -97,6 +100,12 @@ import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.model.PlaybackSnapshot
 import dev.sfg.numa.mobile.ui.glass.GlassTone
 import dev.sfg.numa.mobile.ui.glass.glassPane
+import dev.sfg.numa.mobile.model.GlassBorders
+import dev.sfg.numa.mobile.model.GlassTheme
+import dev.sfg.numa.mobile.ui.theme.LocalGlassBorders
+import dev.sfg.numa.mobile.ui.theme.LocalGlassTheme
+import dev.sfg.numa.mobile.ui.theme.RosePineBorderWidth
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
 import dev.sfg.numa.mobile.ui.motion.pressScale
@@ -161,7 +170,18 @@ fun MiniPlayer(
         (head.positionMs.toFloat() / end).coerceIn(0f, 1f)
     }
     // The pill picks up the cover's colours so it reads as part of the artwork.
-    val palette = rememberArtworkPalette(track.artworkUrl)
+    val rose = currentRosePine()
+    val palette = if (rose == null) rememberArtworkPalette(track.artworkUrl) else null
+    val isDawn = LocalGlassTheme.current == GlassTheme.ROSE_PINE_DAWN
+    val showBorder = LocalGlassBorders.current == GlassBorders.PREDETERMINADO
+    val pane = if (rose == null) {
+        Modifier.glassPane(MiniPlayerShape, GlassTone.CHROME, borderless = true)
+    } else {
+        Modifier.background(if (isDawn) rose.Overlay else rose.Surface, MiniPlayerShape)
+            .then(if (showBorder) Modifier.border(RosePineBorderWidth, rose.Rose, MiniPlayerShape) else Modifier)
+    }
+    val controlsTint = rose?.Text ?: Color.White
+    val skipFill = rose?.let { if (isDawn) it.Surface else it.Overlay } ?: Color.White.copy(alpha = 0.14f)
 
     val dragModifier = Modifier.draggable(
         enabled = dismissEnabled,
@@ -212,7 +232,7 @@ fun MiniPlayer(
                 alpha = 1f - dismissProgress
             }
             .then(dragModifier)
-            .glassPane(MiniPlayerShape, GlassTone.CHROME, borderless = true)
+            .then(pane)
             .clip(MiniPlayerShape)
             .clickable(onClick = onClick)
     ) {
@@ -220,7 +240,7 @@ fun MiniPlayer(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp)
-                .background(
+                .then(if (palette != null) Modifier.background(
                     Brush.horizontalGradient(
                         listOf(
                             lerp(palette.accent, Color.White, 0.18f),
@@ -230,7 +250,7 @@ fun MiniPlayer(
                     // Left as a wash over the pane rather than an opaque fill, so the frost the
                     // pill is cut from is still the thing you see.
                     alpha = 0.28f,
-                ),
+                ) else Modifier),
         ) {
             Row(
                 modifier = Modifier
@@ -281,18 +301,14 @@ fun MiniPlayer(
                     }
                 }
                 Spacer(Modifier.width(6.dp))
-                IconButton(onClick = onPrevious, modifier = Modifier.size(48.dp)) {
-                    Icon(Icons.Rounded.SkipPrevious, uiText("Previous", "Anterior"), tint = Color.White, modifier = Modifier.size(21.dp))
-                }
-                val buttonColor = lerp(palette.accent, Color.White, 0.62f)
-                val toggleSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                IconButton(
+                MiniSkipButton(Icons.Rounded.SkipPrevious, uiText("Previous", "Anterior"), controlsTint, skipFill, onPrevious)
+                val buttonColor = rose?.Rose ?: lerp(checkNotNull(palette).accent, Color.White, 0.62f)
+                val toggleSource = remember { MutableInteractionSource() }
+                MiniTransportButton(
                     onClick = onTogglePlay,
+                    fill = buttonColor,
                     interactionSource = toggleSource,
-                    modifier = Modifier
-                        .pressScale(toggleSource, 0.82f)
-                        .size(48.dp)
-                        .drawBehind { drawCircle(buttonColor, radius = 21.dp.toPx()) }
+                    modifier = Modifier.pressScale(toggleSource, 0.82f),
                 ) {
                     // Glyphs scale past each other so play and pause never just blink.
                     AnimatedContent(
@@ -307,14 +323,12 @@ fun MiniPlayer(
                             imageVector = if (playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                             contentDescription = if (playing) uiText("Pause", "Pausar") else uiText("Play", "Reproducir"),
                             // Keep the glyph readable whatever hue the cover produced.
-                            tint = if (buttonColor.luminance() > 0.5f) Color.Black else Color.White,
+                            tint = rose?.OnRose ?: if (buttonColor.luminance() > 0.5f) Color.Black else Color.White,
                             modifier = Modifier.size(20.dp),
                         )
                     }
                 }
-                IconButton(onClick = onNext, modifier = Modifier.size(48.dp)) {
-                    Icon(Icons.Rounded.SkipNext, uiText("Next", "Siguiente"), tint = Color.White, modifier = Modifier.size(21.dp))
-                }
+                MiniSkipButton(Icons.Rounded.SkipNext, uiText("Next", "Siguiente"), controlsTint, skipFill, onNext)
             }
 
             Box(
@@ -326,15 +340,55 @@ fun MiniPlayer(
                     progress = progress,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(4.dp)
+                        .height(if (rose == null) 4.dp else 2.dp)
                         .onSizeChanged { barWidthPx = it.width.toFloat() },
-                    color = Color.White,
-                    trackColor = Color.White.copy(alpha = 0.24f),
+                    color = rose?.Rose ?: Color.White,
+                    trackColor = rose?.HighlightMed ?: Color.White.copy(alpha = 0.24f),
                     strokeCap = StrokeCap.Round,
                     gapSize = 0.dp,
                     drawStopIndicator = {},
                 )
 
+            }
+        }
+    }
+}
+
+@Composable
+private fun MiniSkipButton(
+    icon: ImageVector,
+    label: String,
+    tint: Color,
+    fill: Color,
+    onClick: () -> Unit,
+) {
+    MiniTransportButton(onClick = onClick, fill = fill) {
+        Icon(icon, label, tint = tint, modifier = Modifier.size(21.dp))
+    }
+}
+
+@Composable
+private fun MiniTransportButton(
+    onClick: () -> Unit,
+    fill: Color,
+    modifier: Modifier = Modifier,
+    interactionSource: MutableInteractionSource? = null,
+    content: @Composable () -> Unit,
+) {
+    val shape = MaterialTheme.shapes.medium
+    Surface(
+        onClick = onClick,
+        modifier = modifier.size(48.dp).semantics { role = Role.Button },
+        shape = shape,
+        color = Color.Transparent,
+        interactionSource = interactionSource,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier.size(40.dp).background(fill, shape),
+                contentAlignment = Alignment.Center,
+            ) {
+                content()
             }
         }
     }

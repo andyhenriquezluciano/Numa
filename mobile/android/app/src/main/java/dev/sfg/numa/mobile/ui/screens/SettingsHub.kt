@@ -117,15 +117,16 @@ internal fun SettingsHub(
     SectionLabel(uiText("Settings", "Configuración"), 1)
     SettingsPanel(index = 5) {
         ActionRow(title = SettingsPage.Accounts.displayTitle(), subtitle = SettingsPage.Accounts.displayBlurb(),
-            icon = SettingsPage.Accounts.icon, onClick = { onOpen(SettingsPage.Accounts) })
+            icon = SettingsPage.Accounts.icon, iconTint = SettingsPage.Accounts.iconTint(), onClick = { onOpen(SettingsPage.Accounts) })
         PanelDivider()
         ActionRow(title = SettingsPage.Lyrics.displayTitle(), subtitle = SettingsPage.Lyrics.displayBlurb(),
-            icon = SettingsPage.Lyrics.icon, onClick = { onOpen(SettingsPage.Lyrics) })
+            icon = SettingsPage.Lyrics.icon, iconTint = SettingsPage.Lyrics.iconTint(), onClick = { onOpen(SettingsPage.Lyrics) })
         PanelDivider()
         ActionRow(
             title = SettingsPage.Audio.displayTitle(),
             subtitle = uiText("Quality, volume, transitions and queue", "Calidad, volumen, transiciones y cola"),
             icon = SettingsPage.Audio.icon,
+            iconTint = SettingsPage.Audio.iconTint(),
             onClick = { onOpen(SettingsPage.Audio) },
         )
         PanelDivider()
@@ -133,6 +134,7 @@ internal fun SettingsHub(
             title = SettingsPage.Storage.displayTitle(),
             subtitle = uiText("Artwork and offline storage", "Carátulas y almacenamiento sin conexión"),
             icon = SettingsPage.Storage.icon,
+            iconTint = SettingsPage.Storage.iconTint(),
             onClick = { onOpen(SettingsPage.Storage) },
         )
         PanelDivider()
@@ -140,6 +142,7 @@ internal fun SettingsHub(
             title = SettingsPage.Appearance.displayTitle(),
             subtitle = uiText("Themes, borders, artwork and backgrounds", "Temas, bordes, carátulas y fondos"),
             icon = SettingsPage.Appearance.icon,
+            iconTint = SettingsPage.Appearance.iconTint(),
             onClick = { onOpen(SettingsPage.Appearance) },
         )
         PanelDivider()
@@ -147,6 +150,7 @@ internal fun SettingsHub(
             title = SettingsPage.Connections.displayTitle(),
             subtitle = uiText("Discord, Last.fm, Spotify and Qobuz", "Discord, Last.fm, Spotify y Qobuz"),
             icon = SettingsPage.Connections.icon,
+            iconTint = SettingsPage.Connections.iconTint(),
             onClick = { onOpen(SettingsPage.Connections) },
         )
     }
@@ -176,6 +180,7 @@ private fun SearchResults(query: String, onOpen: (SettingsPage) -> Unit) {
                     title = settingsText(entry.title),
                     subtitle = "${entry.page.displayTitle()} · ${settingsText(entry.subtitle)}",
                     icon = entry.page.icon,
+                    iconTint = entry.page.iconTint(),
                     onClick = { onOpen(entry.page) },
                 )
             }

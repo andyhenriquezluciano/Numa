@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 
 
 import dev.sfg.numa.mobile.ui.text.uiText
@@ -98,7 +100,7 @@ internal fun LyricPeek(
         ) { line ->
             Text(
                 text = line,
-                color = Color.White.copy(alpha = if (line == INSTRUMENTAL) 0.40f else 0.72f),
+                color = currentRosePine()?.SecondaryText ?: Color.White.copy(alpha = if (line == INSTRUMENTAL) 0.40f else 0.72f),
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                 textAlign = TextAlign.Center,
                 maxLines = 2,

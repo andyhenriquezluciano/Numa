@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 import androidx.compose.foundation.shape.CircleShape
 
 
@@ -71,6 +73,7 @@ internal fun PlayerHeader(
     onDownload: (() -> Unit)?,
     onRemoveDownload: (() -> Unit)?,
 ) {
+    val rose = currentRosePine()
     var menuOpen by remember { mutableStateOf(false) }
     if (menuOpen) {
         TrackActionsPopup(
@@ -96,7 +99,7 @@ internal fun PlayerHeader(
             Icon(
                 Icons.Rounded.ExpandMore,
                 contentDescription = uiText("Close player", "Cerrar reproductor"),
-                tint = Color.White,
+                tint = rose?.Text ?: Color.White,
                 modifier = Modifier.size(30.dp),
             )
         }
@@ -106,7 +109,7 @@ internal fun PlayerHeader(
         ) {
             Text(
                 text = uiText("PLAYING FROM", "REPRODUCIENDO DESDE"),
-                color = Color.White.copy(alpha = 0.60f),
+                color = rose?.SecondaryText ?: Color.White.copy(alpha = 0.60f),
                 style = MaterialTheme.typography.labelSmall.copy(
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 1.2.sp,
@@ -114,7 +117,7 @@ internal fun PlayerHeader(
             )
             Text(
                 text = playingFrom,
-                color = Color.White,
+                color = rose?.Text ?: Color.White,
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -125,7 +128,7 @@ internal fun PlayerHeader(
             Icon(
                 Icons.Filled.MoreHoriz,
                 contentDescription = uiText("More options", "Más opciones"),
-                tint = Color.White,
+                tint = rose?.Text ?: Color.White,
                 modifier = Modifier.size(26.dp),
             )
         }

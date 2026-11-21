@@ -88,6 +88,7 @@ import dev.sfg.numa.mobile.app.MusicVideoState
 import dev.sfg.numa.mobile.model.PlaybackSnapshot
 import dev.sfg.numa.mobile.model.Track
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 import kotlinx.coroutines.delay
 
 /** Transport callbacks shared by the portrait and fullscreen video layouts. */
@@ -164,14 +165,17 @@ private fun MusicVideoPortrait(
     actions: MusicVideoActions,
     onFullscreen: () -> Unit,
 ) {
-    val palette = rememberFullBleedPalette(track)
+    val rose = currentRosePine()
+    val palette = if (rose == null) rememberFullBleedPalette(track) else null
     var pictureAspect by remember(track.id) { mutableStateOf(16f / 9f) }
-    BoxWithConstraints(Modifier.fillMaxSize().background(palette.deep)) {
+    BoxWithConstraints(Modifier.fillMaxSize().background(rose?.Base ?: checkNotNull(palette).deep)) {
         val pictureHeight = (maxWidth / pictureAspect.coerceIn(0.7f, 2.8f)).coerceAtMost(maxHeight * 0.44f)
-        ArtworkBackdrop(palette, false, Modifier.fillMaxSize())
-        KawarpArtworkBackdrop(track.artworkUrl, playback.isPlaying, Modifier.fillMaxSize(),
-            renderScale = 0.25f)
-        Box(Modifier.fillMaxSize().background(Color(0x57030704)))
+        if (palette != null) {
+            ArtworkBackdrop(palette, false, Modifier.fillMaxSize())
+            KawarpArtworkBackdrop(track.artworkUrl, playback.isPlaying, Modifier.fillMaxSize(),
+                renderScale = 0.25f)
+            Box(Modifier.fillMaxSize().background(Color(0x57030704)))
+        }
         Column(Modifier.fillMaxSize().systemBarsPadding()) {
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
@@ -212,7 +216,7 @@ private fun MusicVideoPortrait(
                     )
                     Text(
                         track.artist,
-                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = rose?.InfoInk ?: androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 16.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -222,7 +226,7 @@ private fun MusicVideoPortrait(
                     Icon(
                         if (liked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                         if (liked) uiText("Unlike", "Quitar Me gusta") else uiText("Like", "Me gusta"),
-                        tint = if (liked) CanopyColors.Favorite else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                        tint = if (liked) rose?.FavoriteInk ?: CanopyColors.Favorite else rose?.SecondaryText ?: androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }

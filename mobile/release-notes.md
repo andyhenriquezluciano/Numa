@@ -1,9 +1,7 @@
-## Android 2.6
+## Android 2.8
 
 ### Novedades
 
-- **Carátulas más fiables.** «Canciones recientes» recupera la carátula del catálogo cuando la imagen guardada no carga. Al cambiar de canción, la carátula ya no muestra el logo de NÜMA mientras carga.
-- **Notificaciones más útiles.** Al tocar el reproductor, NÜMA abre directamente la aplicación.
-- **Inicio y Salas.** «Biblioteca» aparece en español, «Ver todo» y otros botones usan las esquinas del tema, y Salas sigue la carátula de fondo en los temas Cristal.
-- **Menos trabajo gráfico.** Se retiró la opción de fondo de listas. El fondo ambiental se queda quieto al pausar, el minirreproductor muestra una carátula fija y las carátulas animadas liberan el decodificador al pasar a segundo plano.
-- **Listas locales.** Se mantienen en el dispositivo donde las creaste y se excluyen de la sincronización de biblioteca.
+- **Rosé Pine y Dawn en toda la app.** Los dos temas aplican sus paletas al reproductor, la cola, Ajustes y la navegación. El texto, los iconos y los indicadores tienen colores propios y mejor contraste.
+- **Minirreproductor más uniforme.** Todas las carátulas son cuadradas con esquinas redondeadas. Los botones de anterior, reproducción y siguiente usan el mismo radio que el reproductor principal.
+- **Búsqueda y vídeo más legibles.** Los filtros de búsqueda destacan la opción activa y el modo de vídeo usa el fondo del tema. Se mejoró la legibilidad del selector de calidad y del contador de la cola.

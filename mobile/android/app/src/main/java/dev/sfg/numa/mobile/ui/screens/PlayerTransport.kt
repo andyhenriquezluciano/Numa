@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.model.PlaybackStatus
 import dev.sfg.numa.mobile.model.RepeatMode
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 import dev.sfg.numa.mobile.ui.theme.legibleOnDarkChrome
 
 /**
@@ -187,12 +188,15 @@ private fun TransportPill(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val rose = currentRosePine()
     Surface(
         onClick = onClick,
         enabled = enabled,
         shape = MaterialTheme.shapes.medium,
-        color = Color.White.copy(alpha = if (enabled) 0.14f else 0.06f),
-        contentColor = Color.White.copy(alpha = if (enabled) 1f else 0.35f),
+        color = if (rose != null) {
+            if (enabled) rose.Overlay else rose.Surface
+        } else Color.White.copy(alpha = if (enabled) 0.14f else 0.06f),
+        contentColor = (rose?.Text ?: Color.White).copy(alpha = if (enabled) 1f else 0.35f),
         interactionSource = interactionSource,
         modifier = modifier.height(PILL_HEIGHT),
     ) {
@@ -202,8 +206,6 @@ private fun TransportPill(
     }
 }
 
-/** Solid white so the one control that matters most never sinks into the artwork behind it. */
-// Every other button on this screen is a suggestion. This one is a lifestyle.
 @Composable
 private fun PlayPill(
     isPlaying: Boolean,
@@ -213,12 +215,14 @@ private fun PlayPill(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val rose = currentRosePine()
+    val glyph = rose?.OnRose ?: PlayGlyph
     Surface(
         onClick = onClick,
         enabled = enabled,
         shape = MaterialTheme.shapes.medium,
-        color = Color.White.copy(alpha = if (enabled) 1f else 0.4f),
-        contentColor = PlayGlyph,
+        color = (rose?.Rose ?: Color.White).copy(alpha = if (enabled) 1f else 0.4f),
+        contentColor = glyph,
         interactionSource = interactionSource,
         modifier = modifier.height(PILL_HEIGHT),
     ) {
@@ -226,7 +230,7 @@ private fun PlayPill(
             if (isBuffering) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(25.dp),
-                    color = PlayGlyph,
+                    color = glyph,
                     strokeWidth = 3.dp,
                 )
             } else {
@@ -264,11 +268,12 @@ private fun TransportToggleOption(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
+    val rose = currentRosePine()
     val activeColor by animateColorAsState(
         targetValue = when {
-            !enabled -> Color.White.copy(alpha = 0.25f)
-            active -> LocalAccent.current.legibleOnDarkChrome()
-            else -> Color.White.copy(alpha = 0.60f)
+            !enabled -> (rose?.Text ?: Color.White).copy(alpha = 0.25f)
+            active -> rose?.AccentInk ?: LocalAccent.current.legibleOnDarkChrome()
+            else -> rose?.SecondaryText ?: Color.White.copy(alpha = 0.60f)
         },
         label = "ToggleActiveColor",
     )

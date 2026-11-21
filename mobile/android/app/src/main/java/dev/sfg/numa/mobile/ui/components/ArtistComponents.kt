@@ -26,6 +26,8 @@
 
 package dev.sfg.numa.mobile.ui.components
 
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 
 import dev.sfg.numa.mobile.ui.text.uiText
 
@@ -70,6 +72,7 @@ fun ArtistHero(
     onSave: (BrowseDetail) -> Unit,
     isSaved: Boolean,
 ) {
+    val rose = currentRosePine()
     val nameAccent = remember(palette.accent) { palette.accent.legibleOnDarkChrome() }
     val name = detail.title.trim()
     DetailHeroFrame(artworkUrl = detail.artworkUrl, description = name) {
@@ -87,7 +90,7 @@ fun ArtistHero(
                 lineHeight = 52.sp,
                 letterSpacing = (-1).sp,
             ),
-            color = nameAccent,
+            color = rose?.AccentInk ?: nameAccent,
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -113,7 +116,7 @@ fun ArtistHero(
                     onClick = { onSave(detail) },
                     icon = if (isSaved) Icons.Filled.Favorite else Icons.Rounded.FavoriteBorder,
                     contentDescription = if (isSaved) uiText("Unfollow artist", "Dejar de seguir al artista") else uiText("Follow artist", "Seguir artista"),
-                    tint = if (isSaved) dev.sfg.numa.mobile.ui.theme.LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                    tint = if (isSaved) rose?.FavoriteInk ?: dev.sfg.numa.mobile.ui.theme.LocalAccent.current else rose?.SecondaryText ?: androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
             },
         )

@@ -31,6 +31,7 @@ import dev.sfg.numa.mobile.playback.playerModeAvailability
 import dev.sfg.numa.mobile.ui.text.uiText
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 internal data class PlayerVideoOptions(
     val state: MusicVideoState,
@@ -71,6 +72,7 @@ internal fun PlayerVideoMenu() {
             icon = Icons.Rounded.Videocam,
             label = uiText("Video", "Vídeo"),
             selected = state.playing,
+            video = true,
             enabled = availability.video,
             checking = state.checking && !blockedByRoom && !casting,
             unavailable = when {
@@ -92,9 +94,11 @@ private fun PlayerModeButton(
     enabled: Boolean,
     unavailable: String,
     checking: Boolean = false,
+    video: Boolean = false,
     onClick: () -> Unit,
 ) {
-    val accent = LocalAccent.current
+    val rose = currentRosePine()
+    val accent = (if (video) rose?.InfoInk else rose?.AccentInk) ?: LocalAccent.current
     val iconTint = if (!enabled) androidx.compose.material3.MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f) else if (selected) accent else androidx.compose.material3.MaterialTheme.colorScheme.onSurface
     val status = if (!enabled) unavailable else if (selected) uiText("Selected", "Seleccionado") else uiText("Available", "Disponible")
     IconButton(

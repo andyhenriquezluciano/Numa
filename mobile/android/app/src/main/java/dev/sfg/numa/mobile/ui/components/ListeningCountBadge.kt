@@ -14,14 +14,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.ui.text.uiText
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 @Composable
 internal fun ListeningCountBadge(count: Int) {
-    val accent = LocalAccent.current
-    Column(Modifier.widthIn(min = 54.dp).background(accent.copy(alpha = 0.13f), RoundedCornerShape(13.dp))
+    val rose = currentRosePine()
+    val accent = rose?.InfoInk ?: LocalAccent.current
+    Column(Modifier.widthIn(min = 54.dp).background(rose?.InfoSurface ?: accent.copy(alpha = 0.13f), RoundedCornerShape(13.dp))
         .padding(horizontal = 9.dp, vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Text("$count", color = accent, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         Text(if (count == 1) uiText("listen", "escucha") else uiText("listens", "escuchas"),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f), style = MaterialTheme.typography.labelSmall)
+            color = rose?.SecondaryText ?: MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f), style = MaterialTheme.typography.labelSmall)
     }
 }

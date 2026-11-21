@@ -63,6 +63,7 @@ import dev.sfg.numa.mobile.ui.foldable.FoldableNowPlayingBody
 import dev.sfg.numa.mobile.ui.foldable.isFoldableActive
 import dev.sfg.numa.mobile.audio.isFoldableHardware
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 /** Full player: backdrop, then the phone, tablet or foldable body, plus the collapse flight. */
 @Composable
@@ -190,7 +191,8 @@ fun NowPlayingScreen(
         val id = transition?.trackId
         if (id.isNullOrBlank()) track else playback.queue.firstOrNull { it.id == id } ?: track
     }
-    val incomingPalette = incomingTrack?.let { rememberFullBleedPalette(it) }
+    val rose = currentRosePine()
+    val incomingPalette = if (rose == null) incomingTrack?.let { rememberFullBleedPalette(it) } else null
 
     val isFoldable = isFoldableActive()
     val wideLayout = with(LocalDensity.current) {
@@ -249,19 +251,19 @@ fun NowPlayingScreen(
                     shape = RoundedCornerShape(lerp(0f, 34f, progress).dp)
                     clip = true
                 }
-                .background(CanopyColors.PlayerBackdrop),
+                .background(rose?.Base ?: CanopyColors.PlayerBackdrop),
         ) {
             // One sample feeds the backdrop and the lyrics, so sung words carry the same
             // colour the artwork bleeds into rather than a second, squarer sample of the cover.
             val verticalVideo = track.animatedArtworkVerticalUrl.ifBlank { track.animatedArtworkUrl }
-            val hasRichArtwork = animatedArtworkEnabled && expandedAnimatedArtwork && verticalVideo.isNotBlank()
+            val hasRichArtwork = rose == null && animatedArtworkEnabled && expandedAnimatedArtwork && verticalVideo.isNotBlank()
             var videoFrame by remember(verticalVideo) { mutableStateOf<Bitmap?>(null) }
             var artworkSeam by remember { mutableStateOf<Float?>(null) }
             var artworkRoom by remember { mutableStateOf<Float?>(null) }
             var artworkTop by remember { mutableStateOf(0f) }
-            val palette = rememberFullBleedPalette(track, videoFrame)
-            val lyricAccent = palette.accent.lyricAccent()
-            PlayerBackdropLayer(
+            val palette = if (rose == null) rememberFullBleedPalette(track, videoFrame) else null
+            val lyricAccent = rose?.AccentInk ?: checkNotNull(palette).accent.lyricAccent()
+            if (palette != null) PlayerBackdropLayer(
                 track = track,
                 isPlaying = playback.isPlaying,
                 panel = panel,

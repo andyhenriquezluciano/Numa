@@ -69,7 +69,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.model.GlassBorders
 import dev.sfg.numa.mobile.model.GlassTheme
-import dev.sfg.numa.mobile.ui.theme.RosePineColors
+import dev.sfg.numa.mobile.ui.theme.RosePineBorderWidth
 import dev.sfg.numa.mobile.ui.glass.GlassTone
 import dev.sfg.numa.mobile.ui.glass.LocalGlass
 import dev.sfg.numa.mobile.ui.glass.glassPane
@@ -77,6 +77,8 @@ import dev.sfg.numa.mobile.ui.motion.popOnChange
 import dev.sfg.numa.mobile.ui.navigation.Routes
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import dev.sfg.numa.mobile.ui.theme.RosePinePalette
+import dev.sfg.numa.mobile.ui.theme.rosePinePalette
 
 data class BottomDestination(val route: String, val label: String, val icon: ImageVector)
 
@@ -87,6 +89,13 @@ private val destinations = listOf(
 )
 
 private val settingsDestination = BottomDestination(Routes.SETTINGS, "Ajustes", Icons.Rounded.Person)
+
+internal fun RosePinePalette.navigationInk(route: String): Color = when (route) {
+    Routes.LIBRARY -> GoldInk
+    Routes.ROOMS -> InfoInk
+    Routes.SETTINGS -> CategoryInk
+    else -> AccentInk
+}
 
 /**
  * Height the mini player and nav bar occupy together. Screens reserve this much bottom content
@@ -103,6 +112,7 @@ fun NumaBottomBar(currentRoute: String?, onSelect: (String) -> Unit, showSetting
     val theme = glassStyle.theme
     val showBorders = glassStyle.borders != GlassBorders.LIMPIO
     val isRosePine = (theme == GlassTheme.ROSE_PINE || theme == GlassTheme.ROSE_PINE_DAWN)
+    val rose = if (isRosePine) rosePinePalette(theme) else null
     val isDarkGlass = theme == GlassTheme.CRISTAL_OSCURO
     // 0 to 1 as the Settings tab grows in and out of the row.
     val settingsReveal by animateFloatAsState(
@@ -134,8 +144,8 @@ fun NumaBottomBar(currentRoute: String?, onSelect: (String) -> Unit, showSetting
                 if (isRosePine) {
                     Modifier
                         .clip(BottomBarShape)
-                        .background(dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Surface, BottomBarShape)
-                        .then(if (showBorders) Modifier.border(1.dp, dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Rose, BottomBarShape) else Modifier)
+                        .background(rosePinePalette(theme).Surface, BottomBarShape)
+                        .then(if (showBorders) Modifier.border(RosePineBorderWidth, rosePinePalette(theme).Rose, BottomBarShape) else Modifier)
                 } else {
                     Modifier
                         .clip(BottomBarShape)
@@ -181,7 +191,7 @@ fun NumaBottomBar(currentRoute: String?, onSelect: (String) -> Unit, showSetting
             )
 
             if (indicatorAlpha > 0.001f) {
-                val indicatorColor = if (isRosePine) dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Rose else tintColor
+                val indicatorColor = rose?.navigationInk(allDestinations[activeIndex.coerceAtMost(allDestinations.lastIndex)].route) ?: tintColor
 
                 Box(
                     modifier = Modifier
@@ -233,11 +243,11 @@ fun NumaBottomBar(currentRoute: String?, onSelect: (String) -> Unit, showSetting
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = if (isRosePine) dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Rose else tintColor,
-                                selectedTextColor = if (isRosePine) dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Text else Color.White,
+                                selectedIconColor = rose?.navigationInk(destination.route) ?: tintColor,
+                                selectedTextColor = rose?.Text ?: Color.White,
                                 indicatorColor = Color.Transparent,
-                                unselectedIconColor = if (isRosePine) dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Muted else Color.White.copy(alpha = 0.72f),
-                                unselectedTextColor = if (isRosePine) dev.sfg.numa.mobile.ui.theme.rosePinePalette(theme).Muted else Color.White.copy(alpha = 0.72f),
+                                unselectedIconColor = rose?.SecondaryText ?: Color.White.copy(alpha = 0.72f),
+                                unselectedTextColor = rose?.SecondaryText ?: Color.White.copy(alpha = 0.72f),
                             ),
                         )
                     }

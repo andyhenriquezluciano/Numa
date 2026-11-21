@@ -31,12 +31,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.sfg.numa.mobile.app.NumaApp
 import dev.sfg.numa.mobile.app.NumaViewModel
 import dev.sfg.numa.mobile.auth.NumaAccountService
+import dev.sfg.numa.mobile.model.GlassTheme
 import dev.sfg.numa.mobile.ui.theme.NumaTheme
 
 /** Thin Android entry point; app behavior lives in repositories and state holders. */
@@ -61,6 +65,17 @@ class MainActivity : FragmentActivity() {
         requestNotificationPermission()
         setContent {
             val settings by viewModel.settings.collectAsStateWithLifecycle()
+            val systemDark = isSystemInDarkTheme()
+            val darkSystemIcons = when (settings.glassTheme) {
+                GlassTheme.ROSE_PINE_DAWN -> true
+                GlassTheme.ROSE_PINE -> false
+                else -> !systemDark
+            }
+            SideEffect {
+                val bars = WindowCompat.getInsetsController(window, window.decorView)
+                bars.isAppearanceLightStatusBars = darkSystemIcons
+                bars.isAppearanceLightNavigationBars = darkSystemIcons
+            }
             NumaTheme(settings) {
                 NumaApp(viewModel)
             }

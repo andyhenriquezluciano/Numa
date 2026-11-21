@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 
 
 import android.os.SystemClock
@@ -101,6 +103,7 @@ fun PlayerScrubber(
     isQobuz: Boolean = false,
 ) {
     val clock = LocalPlayerClock.current
+    val rose = currentRosePine()
     val trackId = playback.currentTrack?.id
     val marker = transition?.takeIf {
         it.trackId.isNotBlank() && it.trackId == trackId && it.startMs > 0 && it.startMs < playback.durationMs
@@ -213,6 +216,8 @@ fun PlayerScrubber(
                         thumbPx = thumbRadius.value.toPx(),
                         rainbow = rainbow,
                         glow = glow,
+                        fillColor = rose?.Rose ?: Color.White,
+                        trackColor = rose?.HighlightMed ?: TrackIdle,
                     )
                 },
         )
@@ -256,7 +261,7 @@ fun PlayerScrubber(
 private fun TimeLabel(text: String) {
     Text(
         text = text,
-        color = Color.White.copy(alpha = 0.60f),
+        color = currentRosePine()?.SecondaryText ?: Color.White.copy(alpha = 0.60f),
         style = MaterialTheme.typography.labelSmall.copy(
             fontSize = 12.sp,
             fontFamily = FontFamily.Default,
@@ -293,6 +298,8 @@ private fun DrawScope.drawScrubberTrack(
     thumbPx: Float,
     rainbow: Brush?,
     glow: Float,
+    fillColor: Color,
+    trackColor: Color,
 ) {
     val top = (size.height - heightPx) / 2f
     val radius = CornerRadius(heightPx / 2f)
@@ -309,22 +316,21 @@ private fun DrawScope.drawScrubberTrack(
     if (rainbow != null) {
         for (step in 1..3) bar(playedWidth, rainbow, alpha = glow * 0.22f, grow = step * 3.dp.toPx())
     }
-    bar(size.width, SolidColor(TrackIdle))
-    if (buffered > 0f) bar(size.width * buffered, SolidColor(TrackBuffered))
+    bar(size.width, SolidColor(trackColor))
+    if (buffered > 0f) bar(size.width * buffered, SolidColor(fillColor.copy(alpha = 0.18f)))
     if (played > 0f) {
-        bar(playedWidth, SolidColor(Color.White))
+        bar(playedWidth, SolidColor(fillColor))
         // Rainbow rides over the white fill so the bar keeps its normal colour the instant the mix ends.
         if (rainbow != null) bar(playedWidth, rainbow, alpha = glow)
     }
     if (thumbPx > 0.5f) {
         val centre = Offset(playedWidth, size.height / 2f)
         drawCircle(Color.Black.copy(alpha = 0.25f), thumbPx + 1.5.dp.toPx(), centre)
-        drawCircle(Color.White, thumbPx, centre)
+        drawCircle(fillColor, thumbPx, centre)
     }
 }
 
 private val TrackIdle = Color.White.copy(alpha = 0.20f)
-private val TrackBuffered = Color.White.copy(alpha = 0.18f)
 
 /** Long enough for a stream to land the seek and publish; short enough to recover from a refusal. */
 private const val SEEK_HOLD_MS = 1_500L

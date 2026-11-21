@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 import dev.sfg.numa.mobile.ui.text.uiText
 
 
@@ -83,9 +85,10 @@ internal fun TranslatedLyricLine(
     positionMs: State<Float>,
 ) {
     val align = if (isAlternate) TextAlign.End else TextAlign.Start
+    val rose = currentRosePine()
     Text(
         text = translation,
-        color = Color.White,
+        color = rose?.Text ?: Color.White,
         textAlign = align,
         modifier = Modifier.fillMaxWidth(),
         style = (if (synced) lyricTextStyle() else unsyncedLyricStyle()).copy(
@@ -104,7 +107,7 @@ internal fun TranslatedLyricLine(
     } else {
         Text(
             text = line.text,
-            color = Color.White.copy(alpha = 0.72f),
+            color = rose?.SecondaryText ?: Color.White.copy(alpha = 0.72f),
             textAlign = align,
             modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             style = if (synced) lyricTextStyle(adlib = true) else unsyncedLyricStyle().copy(fontSize = 14.sp, lineHeight = 20.sp),
@@ -124,7 +127,9 @@ internal fun LyricTranslateChip(modifier: Modifier = Modifier) {
         }
     }
     val loading = enabled && state.status in setOf(Status.TRANSLATING, Status.DOWNLOADING)
-    val tint = Color.White.copy(alpha = if (enabled) 0.95f else 0.6f)
+    val rose = currentRosePine()
+    val tint = if (enabled) rose?.AccentInk ?: Color.White.copy(alpha = 0.95f)
+        else rose?.Text ?: Color.White.copy(alpha = 0.6f)
     val shape = RoundedCornerShape(12.dp)
     val label = when {
         loading && state.status == Status.DOWNLOADING -> uiText("Preparing translation…", "Preparando traducción…")
@@ -152,7 +157,7 @@ internal fun LyricTranslateChip(modifier: Modifier = Modifier) {
     ) {
         Box(Modifier.size(34.dp)
             .glassPane(shape, dev.sfg.numa.mobile.ui.glass.GlassTone.CONTROL)
-            .then(if (enabled) Modifier.background(Color.White.copy(alpha = 0.06f), shape) else Modifier),
+            .then(if (enabled) Modifier.background(rose?.Highlight ?: Color.White.copy(alpha = 0.06f), shape) else Modifier),
             contentAlignment = Alignment.Center) {
         if (loading) {
             androidx.compose.material3.CircularProgressIndicator(

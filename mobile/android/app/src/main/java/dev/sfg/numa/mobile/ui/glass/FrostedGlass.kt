@@ -59,6 +59,8 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import kotlin.math.ceil
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import dev.sfg.numa.mobile.ui.theme.RosePineBorderWidth
+import dev.sfg.numa.mobile.ui.theme.rosePinePalette
 
 /**
  * Cuts a frosted pane out of the backdrop recorded by [glassWashSource] / [glassSceneSource].
@@ -180,10 +182,18 @@ private class GlassPaneNode(
         if (size.minDimension > 0.5f) {
             if ((style.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE || style.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN)) {
                 val shapeOutline = outline()
-                val fill = if (tone == GlassTone.CONTROL || tone == GlassTone.OVERLAY) dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Overlay else dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Surface
+                val palette = rosePinePalette(style.theme)
+                val fill = if (tone == GlassTone.CONTROL || tone == GlassTone.OVERLAY) palette.Overlay else palette.Surface
                 drawOutline(shapeOutline, fill)
                 if (!borderless && tone != GlassTone.CONTROL && style.borders == dev.sfg.numa.mobile.model.GlassBorders.PREDETERMINADO) {
-                    drawOutline(shapeOutline, dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Rose, style = Stroke(1f * density))
+                    // Outline strokes are centred; clip the outer half to match Modifier.border.
+                    val stroke = Stroke(RosePineBorderWidth.toPx() * 2f)
+                    val path = clip
+                    if (path == null) {
+                        clipRect { drawOutline(shapeOutline, palette.Rose, style = stroke) }
+                    } else {
+                        clipPath(path) { drawOutline(shapeOutline, palette.Rose, style = stroke) }
+                    }
                 }
                 drawContent()
                 return

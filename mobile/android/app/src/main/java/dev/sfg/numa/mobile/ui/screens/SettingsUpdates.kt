@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import dev.sfg.numa.connect.BuildConfig
 import dev.sfg.numa.mobile.UpdateState
 import dev.sfg.numa.mobile.ui.text.uiText
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 @Composable
 internal fun SettingsUpdateRow(state: UpdateState, onCheck: () -> Unit) {
@@ -35,6 +36,7 @@ internal fun SettingsUpdateRow(state: UpdateState, onCheck: () -> Unit) {
         title = uiText("Check for updates", "Buscar actualizaciones"),
         subtitle = subtitle,
         icon = Icons.Rounded.SystemUpdate,
+        iconTint = currentRosePine()?.GoldInk ?: SettingsStyle.TileIcon,
         enabled = enabled,
         help = null,
         modifier = Modifier.clickable(enabled = enabled, role = Role.Button, onClick = onCheck),

@@ -27,6 +27,7 @@ import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.ui.graphics.vector.ImageVector
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 import java.text.Normalizer
 import java.util.Locale
 
@@ -40,6 +41,17 @@ internal enum class SettingsPage(val title: String, val blurb: String, val icon:
     Connections("Integraciones", "Servicios externos y dispositivos de reproducción.", Icons.Rounded.Link),
     Storage("Descargas", "Calidad, carátulas y almacenamiento sin conexión.", Icons.Rounded.Storage),
 }
+
+@androidx.compose.runtime.Composable
+internal fun SettingsPage.iconTint() = currentRosePine()?.let { palette ->
+    when (this) {
+        SettingsPage.Accounts -> palette.FavoriteInk
+        SettingsPage.Lyrics, SettingsPage.Appearance -> palette.CategoryInk
+        SettingsPage.Audio, SettingsPage.Connections -> palette.InfoInk
+        SettingsPage.Storage -> palette.GoldInk
+        SettingsPage.Home -> palette.AccentInk
+    }
+} ?: SettingsStyle.TileIcon
 
 @androidx.compose.runtime.Composable
 internal fun SettingsPage.displayTitle(): String = dev.sfg.numa.mobile.ui.text.uiText(when (this) {

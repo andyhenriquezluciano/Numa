@@ -69,7 +69,8 @@ import dev.sfg.numa.mobile.ui.glass.LocalGlass
 import dev.sfg.numa.mobile.ui.glass.glassPane
 import dev.sfg.numa.mobile.ui.navigation.Routes
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
-import dev.sfg.numa.mobile.ui.theme.RosePineColors
+import dev.sfg.numa.mobile.ui.theme.rosePinePalette
+import dev.sfg.numa.mobile.ui.components.navigationInk
 import dev.sfg.numa.mobile.model.GlassTheme
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
@@ -97,7 +98,7 @@ fun NumaNavigationRail(
     val glassTint = LocalGlass.current.tint
     val tintColor = if (glassTint != Color.Unspecified && glassTint.alpha > 0f) glassTint else LocalAccent.current
     val isRosePine = (LocalGlass.current.theme == GlassTheme.ROSE_PINE || LocalGlass.current.theme == GlassTheme.ROSE_PINE_DAWN)
-    val selectionColor = if (isRosePine) dev.sfg.numa.mobile.ui.theme.rosePinePalette(LocalGlass.current.theme).Rose else tintColor
+    val rose = if (isRosePine) rosePinePalette(LocalGlass.current.theme) else null
 
     val selectedIndex = remember(currentRoute) {
         val idx = foldableDestinations.indexOfFirst { it.route == currentRoute }
@@ -163,13 +164,14 @@ fun NumaNavigationRail(
             ) {
                 foldableDestinations.forEachIndexed { index, destination ->
                     val isSelected = selectedIndex == index
+                    val selectionColor = rose?.navigationInk(destination.route) ?: tintColor
                     val activeProgress by animateFloatAsState(
                         targetValue = if (isSelected) 1f else 0f,
                         animationSpec = spring(dampingRatio = 0.75f, stiffness = 350f),
                         label = "RailItemSelect_${destination.route}",
                     )
 
-                    val unselectedColor = if (isRosePine) dev.sfg.numa.mobile.ui.theme.rosePinePalette(LocalGlass.current.theme).Muted else Color.White.copy(alpha = 0.72f)
+                    val unselectedColor = if (isRosePine) dev.sfg.numa.mobile.ui.theme.rosePinePalette(LocalGlass.current.theme).SecondaryText else Color.White.copy(alpha = 0.72f)
                     val itemColor by animateColorAsState(
                         targetValue = if (isSelected) selectionColor else unselectedColor,
                         animationSpec = tween(180),

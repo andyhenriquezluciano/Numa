@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.foldable
 
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -272,7 +274,7 @@ private fun FoldableNowPlayingHero(
     onSleepTimer: () -> Unit,
 ) {
     val motion = track.animatedArtworkVerticalUrl.ifBlank { track.animatedArtworkUrl }
-    val hasRichArtwork = animatedArtworkEnabled && motion.isNotBlank()
+    val hasRichArtwork = currentRosePine() == null && animatedArtworkEnabled && motion.isNotBlank()
     val activeProgress = mixProgress ?: 0f
     val incomingTrack = remember(playback.queue, transition?.incomingTrackId) {
         val id = transition?.incomingTrackId

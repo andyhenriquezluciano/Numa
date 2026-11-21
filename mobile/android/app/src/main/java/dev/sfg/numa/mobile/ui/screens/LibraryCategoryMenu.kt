@@ -15,9 +15,11 @@ import dev.sfg.numa.mobile.model.LibraryFilter
 import dev.sfg.numa.mobile.ui.glass.GlassDropdownMenuItem
 import dev.sfg.numa.mobile.ui.text.uiText
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 @Composable
 internal fun LibraryCategoryMenu(selected: LibraryFilter, onSelect: (LibraryFilter) -> Unit) {
+    val accent = currentRosePine()?.AccentInk ?: LocalAccent.current
     val groups = listOf(
         uiText("Collection", "Colección") to listOf(LibraryFilter.PLAYLISTS, LibraryFilter.SONGS, LibraryFilter.ALBUMS, LibraryFilter.ARTISTS),
         uiText("Activity", "Actividad") to listOf(LibraryFilter.RECENT, LibraryFilter.METRICS),
@@ -27,7 +29,7 @@ internal fun LibraryCategoryMenu(selected: LibraryFilter, onSelect: (LibraryFilt
         Text(title, color = SettingsStyle.Description, style = MaterialTheme.typography.labelSmall,
             modifier = Modifier.padding(start = 20.dp, top = 12.dp, bottom = 4.dp))
         filters.forEach { filter ->
-            val tint = if (filter == selected) LocalAccent.current else SettingsStyle.Title
+            val tint = if (filter == selected) accent else SettingsStyle.Title
             GlassDropdownMenuItem(
                 text = { Text(if (filter == LibraryFilter.PLAYLISTS) uiText("Playlists", "Listas") else filter.label, color = tint) },
                 onClick = { onSelect(filter) },

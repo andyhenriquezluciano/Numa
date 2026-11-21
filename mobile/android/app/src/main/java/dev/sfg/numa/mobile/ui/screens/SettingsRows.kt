@@ -20,6 +20,7 @@
 package dev.sfg.numa.mobile.ui.screens
 
 import dev.sfg.numa.mobile.ui.glass.desktopButtonSurface
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 import dev.sfg.numa.mobile.ui.text.uiText
 
@@ -95,11 +96,13 @@ internal fun SectionLabel(value: String, index: Int = 0) {
 /** Translucent panel; rows inside separate themselves with [PanelDivider]. */
 @Composable
 internal fun SettingsPanel(index: Int = 0, content: @Composable ColumnScope.() -> Unit) {
+    val rose = currentRosePine()
     Surface(
-        color = Color.Transparent,
+        color = rose?.Overlay ?: Color.Transparent,
         shape = SettingsStyle.PanelShape,
         border = BorderStroke(1.dp, SettingsStyle.PanelBorder),
-        modifier = Modifier.fillMaxWidth().riseIn(index).glassPane(SettingsStyle.PanelShape),
+        modifier = Modifier.fillMaxWidth().riseIn(index)
+            .then(if (rose == null) Modifier.glassPane(SettingsStyle.PanelShape) else Modifier),
     ) {
         Column(content = content)
     }
@@ -215,6 +218,7 @@ internal fun ActionRow(
     onClick: () -> Unit,
     icon: ImageVector? = null,
     value: String? = null,
+    iconTint: Color = SettingsStyle.TileIcon,
 ) {
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
@@ -228,6 +232,7 @@ internal fun ActionRow(
         title = title,
         subtitle = subtitle,
         icon = icon,
+        iconTint = iconTint,
         modifier = Modifier.clickable(interactionSource = source, indication = ripple(), onClick = onClick),
         help = null,
     ) {

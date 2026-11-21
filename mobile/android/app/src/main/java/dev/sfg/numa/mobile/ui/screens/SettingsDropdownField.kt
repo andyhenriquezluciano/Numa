@@ -19,6 +19,7 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,7 +57,7 @@ import androidx.compose.ui.unit.sp
 import dev.sfg.numa.mobile.ui.glass.GlassDropdownMenu
 import dev.sfg.numa.mobile.ui.glass.GlassDropdownMenuItem
 import dev.sfg.numa.mobile.ui.glass.desktopButtonSurface
-import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 @Composable
 internal fun <T> SettingsDropdownField(
@@ -71,6 +72,9 @@ internal fun <T> SettingsDropdownField(
     var anchorWidthPx by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
     val currentLabel = options.firstOrNull { it.first == selected }?.second ?: ""
+    val rose = currentRosePine()
+    val shape = RoundedCornerShape(if (rose == null) 14.dp else 10.dp)
+    val accent = SettingsStyle.TileIcon
 
     Box(
         modifier = modifier
@@ -84,8 +88,8 @@ internal fun <T> SettingsDropdownField(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 48.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .desktopButtonSurface(RoundedCornerShape(14.dp))
+                .clip(shape)
+                .then(if (rose == null) Modifier.desktopButtonSurface(shape) else Modifier.background(rose.Surface))
                 .clickable(role = androidx.compose.ui.semantics.Role.Button) { expanded = !expanded }
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -124,7 +128,7 @@ internal fun <T> SettingsDropdownField(
                         Text(
                             text = settingsText(optLabel),
                             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                            color = if (isSelected) CanopyColors.Accent else SettingsStyle.Title,
+                            color = if (isSelected) accent else SettingsStyle.Title,
                         )
                     },
                     enabled = isEnabled(value),
@@ -132,9 +136,9 @@ internal fun <T> SettingsDropdownField(
                         expanded = false
                         onSelect(value)
                     },
-                    leadingIcon = iconFor?.let { resolve -> { Icon(resolve(value), null, Modifier.size(20.dp), tint = CanopyColors.Accent) } },
+                    leadingIcon = iconFor?.let { resolve -> { Icon(resolve(value), null, Modifier.size(20.dp), tint = accent) } },
                     trailingIcon = if (isSelected) {
-                        { Icon(Icons.Rounded.Check, null, tint = CanopyColors.Accent, modifier = Modifier.size(18.dp)) }
+                        { Icon(Icons.Rounded.Check, null, tint = accent, modifier = Modifier.size(18.dp)) }
                     } else null,
                 )
             }

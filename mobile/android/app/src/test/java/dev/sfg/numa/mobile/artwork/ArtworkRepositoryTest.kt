@@ -183,4 +183,33 @@ class ArtworkRepositoryTest {
         order = listOf(ArtworkSource.M8TEC, ArtworkSource.BOIDU, ArtworkSource.SPOTIFY)
         assertEquals("https://example.test/m8tec.m3u8", ordered.artwork(espresso)?.videoUrl)
     }
+
+    @Test
+    fun staticCoverUrlsKeepProviderOrderAndSkipMotionOnlyResults() = runBlocking {
+        val m8tecCover = "https://example.test/m8tec.jpg"
+        val boiduCover = "https://example.test/boidu.jpg"
+        val http = OkHttpClient.Builder().addInterceptor { chain ->
+            val request = chain.request()
+            val body = when (request.url.host) {
+                "artwork.m8tec.top" ->
+                    """{"artist":"Sabrina Carpenter","album":"Short n' Sweet","static":"$m8tecCover"}"""
+                "artwork.boidu.dev" -> if (request.url.queryParameter("s") == espresso.title) {
+                    """{"name":"Espresso","artist":"Sabrina Carpenter","animated":"https://example.test/boidu.m3u8"}"""
+                } else {
+                    """{"name":"Taste","artist":"Sabrina Carpenter","static":"$boiduCover"}"""
+                }
+                else -> "{}"
+            }
+            Response.Builder().request(request).protocol(Protocol.HTTP_1_1)
+                .code(200).message("Test response").body(body.toResponseBody()).build()
+        }.build()
+        var order = listOf(ArtworkSource.SPOTIFY, ArtworkSource.BOIDU, ArtworkSource.M8TEC)
+        val ordered = ArtworkRepository(http, sourceOrder = { order })
+        val taste = espresso.copy(id = "taste", title = "Taste")
+
+        assertEquals(listOf(m8tecCover), ordered.staticCoverUrls(espresso))
+        assertEquals(listOf(boiduCover, m8tecCover), ordered.staticCoverUrls(taste))
+        order = listOf(ArtworkSource.M8TEC, ArtworkSource.BOIDU, ArtworkSource.SPOTIFY)
+        assertEquals(listOf(m8tecCover, boiduCover), ordered.staticCoverUrls(taste))
+    }
 }

@@ -20,6 +20,7 @@
 package dev.sfg.numa.mobile.ui.screens
 
 import dev.sfg.numa.mobile.ui.theme.legibleOnDarkChrome
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
@@ -79,10 +80,17 @@ private fun SmoothTimedWord(
     // Text owns layout, font loading and accessibility. Its cached layout is painted once;
     // the moving gradient never changes composition, text measurement or FlowRow placement.
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
-    val sung = if (adlib) accent.copy(alpha = 0.9f) else Color.White
-    // Resting lines draw at full white; the line's layer applies the single rest dim.
-    val unsung = if (lineActive) Color.White.copy(alpha = if (adlib) ADLIB_UNSUNG_ALPHA else UNSUNG_ALPHA) else Color.White
-    val fill = if (adlib) sung else lerp(Color.White, accent, 0.4f)
+    val rose = currentRosePine()
+    val textColor = rose?.Text ?: Color.White
+    val sung = if (adlib) accent.copy(alpha = 0.9f) else textColor
+    // Resting lines draw at full opacity; the line's layer applies the single rest dim.
+    val unsungAlpha = when {
+        rose != null -> if (adlib) 0.72f else 0.78f
+        adlib -> ADLIB_UNSUNG_ALPHA
+        else -> UNSUNG_ALPHA
+    }
+    val unsung = if (lineActive) textColor.copy(alpha = unsungAlpha) else textColor
+    val fill = if (adlib) sung else lerp(textColor, accent, 0.4f)
     Text(
         text = word.text.trim(),
         style = lyricTextStyle(adlib),

@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.model.GlassBorders
 import dev.sfg.numa.mobile.model.GlassTheme
-import dev.sfg.numa.mobile.ui.theme.RosePineColors
+import dev.sfg.numa.mobile.ui.theme.RosePineBorderWidth
 
 /** The finish belongs to the moving sheet content, not its pre-offset layout bounds. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,7 +55,7 @@ fun GlassBottomSheet(
                         if (isRosePine) {
                             Modifier
                                 .background(dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Surface, shape)
-                                .then(if (showBorders) Modifier.border(1.dp, dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Rose, shape) else Modifier)
+                                .then(if (showBorders) Modifier.border(RosePineBorderWidth, dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Rose, shape) else Modifier)
                         } else {
                             Modifier
                                 .glassPane(shape, GlassTone.OVERLAY)

@@ -20,7 +20,6 @@ import dev.sfg.numa.mobile.ui.components.KawarpArtworkBackdrop
 import dev.sfg.numa.mobile.ui.glass.LocalGlass
 import dev.sfg.numa.mobile.ui.glass.rememberGlassStyle
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
-import dev.sfg.numa.mobile.ui.theme.RosePineColors
 import dev.sfg.numa.mobile.ui.theme.legibleOnDarkChrome
 
 @Composable

@@ -79,6 +79,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import dev.sfg.numa.mobile.ui.components.MessagePanel
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 /** How far down the collapse must have travelled on release for the dismiss to commit. */
 private const val COMMIT_FRACTION = 0.5f
@@ -394,14 +395,15 @@ internal fun PlayerBackdropLayer(
 
 @Composable
 internal fun NothingPlaying(onBack: () -> Unit) {
+    val rose = currentRosePine()
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(CanopyColors.Chrome)
+            .background(rose?.Base ?: CanopyColors.Chrome)
             .padding(16.dp),
     ) {
         IconButton(onClick = onBack) {
-            Icon(Icons.Rounded.ExpandMore, uiText("Close player", "Cerrar reproductor"), tint = Color.White)
+            Icon(Icons.Rounded.ExpandMore, uiText("Close player", "Cerrar reproductor"), tint = rose?.Text ?: Color.White)
         }
         MessagePanel(uiText("Nothing playing", "No hay música en reproducción"), uiText("Choose a song from Home, Search, or Library.", "Elige una canción en Inicio, Buscar o Biblioteca."))
     }

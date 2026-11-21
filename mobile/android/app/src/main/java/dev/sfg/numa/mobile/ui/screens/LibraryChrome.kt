@@ -73,7 +73,7 @@ import dev.sfg.numa.mobile.model.GlassBorders
 import dev.sfg.numa.mobile.model.GlassTheme
 import dev.sfg.numa.mobile.ui.glass.LocalGlass
 import dev.sfg.numa.mobile.ui.glass.desktopButtonSurface
-import dev.sfg.numa.mobile.ui.theme.RosePineColors
+import dev.sfg.numa.mobile.ui.theme.RosePineBorderWidth
 import dev.sfg.numa.mobile.ui.glass.glassPane
 import dev.sfg.numa.mobile.ui.motion.riseIn
 
@@ -120,7 +120,7 @@ internal fun LibraryFilterField(query: String, placeholder: String, onChange: (S
     val style = LocalGlass.current
     val showBorder = style.borders != GlassBorders.LIMPIO
     val borderModifier = if (showBorder) {
-        if ((style.theme == GlassTheme.ROSE_PINE || style.theme == GlassTheme.ROSE_PINE_DAWN)) Modifier.border(1.dp, dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Rose, shape)
+        if ((style.theme == GlassTheme.ROSE_PINE || style.theme == GlassTheme.ROSE_PINE_DAWN)) Modifier.border(RosePineBorderWidth, dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Rose, shape)
         else Modifier.border(1.dp, SettingsStyle.PanelBorder, shape)
     } else Modifier
     Row(

@@ -19,6 +19,9 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.components.durationText
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+
 import dev.sfg.numa.mobile.ui.text.uiText
 
 import androidx.compose.foundation.layout.Column
@@ -75,7 +78,7 @@ internal fun QueueSectionHeader(title: String, trailing: (@Composable () -> Unit
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.2.sp,
             ),
-            color = Color.White.copy(alpha = 0.65f),
+            color = currentRosePine()?.SecondaryText ?: Color.White.copy(alpha = 0.65f),
             modifier = Modifier.weight(1f),
         )
         trailing?.invoke()
@@ -84,12 +87,14 @@ internal fun QueueSectionHeader(title: String, trailing: (@Composable () -> Unit
 
 @Composable
 internal fun QueueShuffleButton(onShuffleUpcoming: () -> Unit, active: Boolean = false) {
+    val rose = currentRosePine()
     IconButton(onClick = onShuffleUpcoming, modifier = Modifier.size(36.dp)) {
         Icon(
             Icons.Rounded.Shuffle,
             if (active) uiText("Restore queue order", "Restaurar el orden de la cola")
                 else uiText("Shuffle upcoming queue", "Mezclar las canciones pendientes"),
-            tint = if (active) dev.sfg.numa.mobile.ui.theme.LocalAccent.current else Color.White.copy(alpha = 0.75f),
+            tint = if (active) rose?.AccentInk ?: dev.sfg.numa.mobile.ui.theme.LocalAccent.current
+                else rose?.SecondaryText ?: Color.White.copy(alpha = 0.75f),
             modifier = Modifier.size(20.dp),
         )
     }
@@ -113,7 +118,7 @@ internal fun QueueBestMixButton(
             Icon(
                 Icons.Rounded.AutoAwesome,
                 uiText("Order upcoming for the best mix", "Ordenar las próximas canciones para una mejor mezcla"),
-                tint = Color.White.copy(alpha = 0.75f),
+                tint = currentRosePine()?.SecondaryText ?: Color.White.copy(alpha = 0.75f),
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -126,7 +131,7 @@ internal fun QueueClearButton(onClearUpcoming: () -> Unit) {
         Icon(
             Icons.Rounded.ClearAll,
             uiText("Clear upcoming queue", "Vaciar las canciones pendientes"),
-            tint = Color.White.copy(alpha = 0.75f),
+            tint = currentRosePine()?.SecondaryText ?: Color.White.copy(alpha = 0.75f),
             modifier = Modifier.size(20.dp),
         )
     }
@@ -134,18 +139,19 @@ internal fun QueueClearButton(onClearUpcoming: () -> Unit) {
 
 @Composable
 internal fun QueueNotice(title: String, message: String) {
+    val rose = currentRosePine()
     Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 20.dp)) {
         Text(
             title,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = Color.White,
+            color = rose?.Text ?: Color.White,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
         Text(
             message,
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.White.copy(alpha = 0.65f),
+            color = rose?.SecondaryText ?: Color.White.copy(alpha = 0.65f),
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -163,11 +169,15 @@ internal fun QueueTrackRow(
     onRemove: (Int) -> Unit,
     onMove: (Int, Int) -> Unit,
     modifier: Modifier = Modifier,
+    isCurrent: Boolean = false,
 ) {
+    val rose = currentRosePine()
     val source = remember { MutableInteractionSource() }
     Surface(
         onClick = onPlay,
-        color = Color.Transparent,
+        enabled = !isCurrent,
+        shape = if (rose != null) androidx.compose.foundation.shape.RoundedCornerShape(12.dp) else androidx.compose.ui.graphics.RectangleShape,
+        color = if (isCurrent && rose != null) rose.Highlight else Color.Transparent,
         interactionSource = source,
         modifier = modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 2.dp).pressScale(source, 0.97f),
     ) {
@@ -182,7 +192,12 @@ internal fun QueueTrackRow(
                     Text(
                         track.title,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = if (isHistory) Color.White.copy(alpha = 0.55f) else Color.White,
+                        color = when {
+                            isCurrent && rose != null -> rose.AccentInk
+                            rose != null -> if (isHistory) rose.SecondaryText else rose.Text
+                            isHistory -> Color.White.copy(alpha = 0.55f)
+                            else -> Color.White
+                        },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false),
@@ -195,9 +210,16 @@ internal fun QueueTrackRow(
                 Text(
                     track.artist,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = if (isHistory) 0.4f else 0.65f),
+                    color = rose?.SecondaryText ?: Color.White.copy(alpha = if (isHistory) 0.4f else 0.65f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (rose != null && track.durationMs > 0) {
+                Text(
+                    durationText(track.durationMs), color = rose.SecondaryText,
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(start = 8.dp),
                 )
             }
             if (editable && !isHistory) {
@@ -223,7 +245,7 @@ private fun QueueRowButton(
         Icon(
             icon,
             description,
-            tint = Color.White.copy(alpha = if (enabled) 0.7f else 0.25f),
+            tint = currentRosePine()?.SecondaryText ?: Color.White.copy(alpha = if (enabled) 0.7f else 0.25f),
             modifier = Modifier.size(20.dp),
         )
     }

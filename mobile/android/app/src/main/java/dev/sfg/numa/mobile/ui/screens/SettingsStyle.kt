@@ -41,16 +41,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import dev.sfg.numa.mobile.model.GlassBorders
+import dev.sfg.numa.mobile.ui.glass.LocalGlass
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 /** Settings palette, shared with the desktop settings dialog so both read as one app. */
 internal object SettingsStyle {
     val Panel = Color(0x0AFFFFFF)
     val PanelBorder = Color.Transparent
-    val Divider = Color(0x12FFFFFF)
-    val Tile = Color(0x12FFFFFF)
+    val Divider: Color
+        @Composable get() = currentRosePine()?.HighlightMed ?: Color(0x12FFFFFF)
+    val Tile: Color
+        @Composable get() = currentRosePine()?.Surface ?: Color(0x12FFFFFF)
     val TileBorder: Color
-        @Composable get() = if (dev.sfg.numa.mobile.ui.glass.LocalGlass.current.borders == dev.sfg.numa.mobile.model.GlassBorders.LIMPIO) Color.Transparent else if ((dev.sfg.numa.mobile.ui.glass.LocalGlass.current.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE || dev.sfg.numa.mobile.ui.glass.LocalGlass.current.theme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN)) dev.sfg.numa.mobile.ui.theme.rosePinePalette(dev.sfg.numa.mobile.ui.glass.LocalGlass.current.theme).Rose else Color(0x10FFFFFF)
-    val TileIcon = dev.sfg.numa.mobile.ui.theme.CanopyColors.Accent
+        @Composable get() = if (LocalGlass.current.borders == GlassBorders.LIMPIO || currentRosePine() != null) Color.Transparent else Color(0x10FFFFFF)
+    val TileIcon: Color
+        @Composable get() = currentRosePine()?.AccentInk ?: dev.sfg.numa.mobile.ui.theme.CanopyColors.Accent
     val Title: Color
         @Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
     val Description: Color
@@ -61,10 +67,14 @@ internal object SettingsStyle {
         @Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
 
     /** Text and control accent; lighter than the switch fill so it holds up on the warped cover. */
-    val Sage = Color(0xFFBEA5E8)
-    val SageSoft = Color(0xFFE8DFFF)
-    val SwitchOn = dev.sfg.numa.mobile.ui.theme.CanopyColors.Accent
-    val SwitchOff = Color(0x2CFFFFFF)
+    val Sage: Color
+        @Composable get() = currentRosePine()?.AccentInk ?: Color(0xFFBEA5E8)
+    val SageSoft: Color
+        @Composable get() = currentRosePine()?.AccentInk ?: Color(0xFFE8DFFF)
+    val SwitchOn: Color
+        @Composable get() = currentRosePine()?.Rose ?: dev.sfg.numa.mobile.ui.theme.CanopyColors.Accent
+    val SwitchOff: Color
+        @Composable get() = currentRosePine()?.Highlight ?: Color(0x2CFFFFFF)
     val ThumbOff = Color(0xFFE4E9E6)
     val Selected = Color(0x2CFFFFFF)
     val SegmentIdle = Color(0xFFB4BEB9)
@@ -96,6 +106,8 @@ internal fun SettingsSwitch(
         tween(180),
         label = "SwitchTrack",
     )
+    val rose = currentRosePine()
+    val thumb = if (checked) rose?.OnRose ?: Color.White else rose?.Text ?: SettingsStyle.ThumbOff
     val hit = if (onCheckedChange != null) {
         // Touch slop around the 24dp visual, since 24dp alone is a tap lottery.
         Modifier.minimumInteractiveComponentSize()
@@ -110,7 +122,7 @@ internal fun SettingsSwitch(
                     .offset(x = thumbX, y = 3.dp)
                     .size(18.dp)
                     .clip(CircleShape)
-                    .background(if (checked) Color.White else SettingsStyle.ThumbOff),
+                    .background(thumb),
             )
         }
     }

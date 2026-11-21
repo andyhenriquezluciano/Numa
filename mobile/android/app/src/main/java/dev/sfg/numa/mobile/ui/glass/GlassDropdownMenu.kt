@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.model.GlassTheme
-import dev.sfg.numa.mobile.ui.theme.RosePineColors
 
 /** Floating menus sample the scene in screen coordinates, including across popup windows. */
 @Composable
