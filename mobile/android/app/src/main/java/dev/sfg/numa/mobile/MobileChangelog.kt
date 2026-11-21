@@ -30,11 +30,11 @@ object MobileChangelog {
         get() = dev.sfg.numa.mobile.ui.text.uiText(
             """
             ### What's new
-            - **One-step updates in NÜMA.** Update now starts downloading and applying the update. If Android requires confirmation, NÜMA opens the system installer.
+            - **Clearer See all buttons on Home.** Section buttons in the Glass themes use a less transparent background so they are easier to see over artwork.
             """.trimIndent(),
             """
             ### Novedades
-            - **Actualización desde NÜMA en un paso.** «Actualizar ahora» descarga y aplica la actualización. Si Android requiere confirmación, NÜMA abre el instalador del sistema.
+            - **«Ver todo» se distingue mejor en Inicio.** Los botones de sección de los temas Cristal tienen un fondo menos transparente para que se vean mejor sobre cualquier carátula.
             """.trimIndent(),
         )
 }
