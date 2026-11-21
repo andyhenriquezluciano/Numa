@@ -61,6 +61,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,7 +72,7 @@ import dev.sfg.numa.mobile.ui.theme.CanopyColors
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
 
 @Composable
-internal fun UpdateDownloadingDialog(state: UpdateState.Downloading, onDismiss: () -> Unit) {
+internal fun UpdateProgressDialog(version: String, installing: Boolean, onHide: () -> Unit) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 0.92f,
@@ -117,7 +118,8 @@ internal fun UpdateDownloadingDialog(state: UpdateState.Downloading, onDismiss: 
                 Spacer(Modifier.height(16.dp))
 
                 Text(
-                    uiText("Downloading update", "Descargando actualización"),
+                    if (installing) uiText("Updating NÜMA", "Actualizando NÜMA")
+                    else uiText("Downloading update", "Descargando actualización"),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
@@ -125,7 +127,7 @@ internal fun UpdateDownloadingDialog(state: UpdateState.Downloading, onDismiss: 
                 Spacer(Modifier.height(4.dp))
 
                 Text(
-                    "NÜMA ${state.version}",
+                    "NÜMA $version",
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = LocalAccent.current,
                 )
@@ -133,7 +135,8 @@ internal fun UpdateDownloadingDialog(state: UpdateState.Downloading, onDismiss: 
                 Spacer(Modifier.height(12.dp))
 
                 Text(
-                    uiText("The installer will open automatically when finished. You can continue listening to music in the background.", "El instalador se abrirá al terminar. Puedes seguir escuchando música en segundo plano."),
+                    if (installing) uiText("Android is applying the update. NÜMA may close when it finishes.", "Android está aplicando la actualización. NÜMA puede cerrarse al terminar.")
+                    else uiText("The update will start after the download finishes.", "La actualización se aplicará cuando termine la descarga."),
                     style = MaterialTheme.typography.bodySmall.copy(lineHeight = 18.sp),
                     color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.fillMaxWidth(),
@@ -153,7 +156,7 @@ internal fun UpdateDownloadingDialog(state: UpdateState.Downloading, onDismiss: 
                 Spacer(Modifier.height(20.dp))
 
                 TextButton(
-                    onClick = onDismiss,
+                    onClick = onHide,
                     shape = CircleShape,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -250,7 +253,8 @@ internal fun UpdateFailedDialog(state: UpdateState.Failed, onDismiss: () -> Unit
 }
 
 @Composable
-internal fun UpdateReadyDialog(state: UpdateState.ReadyToInstall, onDismiss: () -> Unit) {
+internal fun UpdateConfirmationDialog(state: UpdateState.ConfirmInstall, onDismiss: () -> Unit) {
+    val context = LocalContext.current
     GlassDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false),
@@ -284,7 +288,7 @@ internal fun UpdateReadyDialog(state: UpdateState.ReadyToInstall, onDismiss: () 
                 Spacer(Modifier.height(16.dp))
 
                 Text(
-                    uiText("Update ready to install", "Actualización lista para instalar"),
+                    uiText("Android needs confirmation", "Android necesita tu confirmación"),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
@@ -292,7 +296,7 @@ internal fun UpdateReadyDialog(state: UpdateState.ReadyToInstall, onDismiss: () 
                 Spacer(Modifier.height(6.dp))
 
                 Text(
-                    uiText("NÜMA ${state.version} has finished downloading and can be installed now.", "NÜMA ${state.version} terminó de descargarse y está lista para instalar."),
+                    uiText("Confirm the update to NÜMA ${state.version} in the Android installer.", "Confirma la actualización a NÜMA ${state.version} en el instalador de Android."),
                     style = MaterialTheme.typography.bodyMedium,
                     color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.fillMaxWidth(),
@@ -301,7 +305,13 @@ internal fun UpdateReadyDialog(state: UpdateState.ReadyToInstall, onDismiss: () 
                 Spacer(Modifier.height(20.dp))
 
                 Button(
-                    onClick = onDismiss,
+                    onClick = {
+                        runCatching { context.startActivity(state.confirmation) }.onFailure {
+                            android.widget.Toast.makeText(context,
+                                uiText("Couldn't open the Android installer.", "No se pudo abrir el instalador de Android."),
+                                android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    },
                     shape = CircleShape,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = LocalAccent.current,
@@ -312,7 +322,7 @@ internal fun UpdateReadyDialog(state: UpdateState.ReadyToInstall, onDismiss: () 
                         .height(46.dp),
                 ) {
                     Text(
-                        uiText("Install now", "Instalar ahora"),
+                        uiText("Continue in Android", "Continuar en Android"),
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                     )
                 }

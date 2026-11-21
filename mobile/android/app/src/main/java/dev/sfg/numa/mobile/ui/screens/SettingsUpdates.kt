@@ -19,7 +19,7 @@ import dev.sfg.numa.mobile.ui.theme.currentRosePine
 @Composable
 internal fun SettingsUpdateRow(state: UpdateState, onCheck: () -> Unit) {
     val checking = state == UpdateState.Checking
-    val busy = checking || state is UpdateState.Downloading || state is UpdateState.ReadyToInstall
+    val busy = checking || state is UpdateState.Downloading || state is UpdateState.Installing || state is UpdateState.ConfirmInstall
     val enabled = BuildConfig.UPDATER_ENABLED && !busy
     val subtitle = if (!BuildConfig.UPDATER_ENABLED) {
         uiText("Updates are disabled in this build", "Las actualizaciones están desactivadas en esta variante")
@@ -29,7 +29,8 @@ internal fun SettingsUpdateRow(state: UpdateState, onCheck: () -> Unit) {
         UpdateState.CheckFailed -> uiText("Could not check. Tap to retry", "No se pudo comprobar. Toca para reintentar")
         is UpdateState.Available -> uiText("Version ${state.metadata.version} available", "Versión ${state.metadata.version} disponible")
         is UpdateState.Downloading -> uiText("Downloading version ${state.version}", "Descargando la versión ${state.version}")
-        is UpdateState.ReadyToInstall -> uiText("Update ready to install", "Actualización lista para instalar")
+        is UpdateState.Installing -> uiText("Updating NÜMA…", "Actualizando NÜMA…")
+        is UpdateState.ConfirmInstall -> uiText("Android needs confirmation", "Android necesita tu confirmación")
         else -> uiText("Installed version: ${BuildConfig.VERSION_NAME}", "Versión instalada: ${BuildConfig.VERSION_NAME}")
     }
     SettingsRow(

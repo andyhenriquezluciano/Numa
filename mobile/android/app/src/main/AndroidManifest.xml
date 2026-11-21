@@ -21,6 +21,7 @@
 
   <!-- Updater Permissions -->
   <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+  <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
 
   <queries>
     <intent>
@@ -158,6 +159,10 @@
         android:name="android.appwidget.provider"
         android:resource="@xml/numa_recent_widget_info" />
     </receiver>
+
+    <receiver
+      android:name="dev.sfg.numa.mobile.UpdateInstallReceiver"
+      android:exported="false" />
 
     <provider
         android:name="androidx.core.content.FileProvider"

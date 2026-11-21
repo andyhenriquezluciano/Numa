@@ -1,5 +1,5 @@
-## Android 2.8.2
+## Android 2.8.3
 
 ### Novedades
 
-- **Controles con esquinas redondeadas.** Reproducir, Pausar, Aleatorio y Volver usan el mismo radio que los controles principales de NÜMA. La barra de selección y las acciones del menú de canciones siguen ese estilo.
+- **Actualización desde NÜMA en un paso.** Al pulsar «Actualizar ahora», NÜMA descarga y aplica la actualización. Si Android requiere confirmación, la app te lleva al instalador del sistema.

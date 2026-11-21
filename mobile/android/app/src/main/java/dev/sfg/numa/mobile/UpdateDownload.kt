@@ -44,7 +44,6 @@ internal class UpdateDownload(
                     }
                     ensureActive()
                     if (valid) {
-                        publish(UpdateState.ReadyToInstall(metadata.version))
                         install(destination)
                     } else {
                         withContext(Dispatchers.IO) { destination.delete() }
@@ -67,7 +66,7 @@ internal class UpdateDownload(
                 val url = metadata.apkUrl.ifBlank { "$baseUrl/Numa-Android-${metadata.version}.apk" }
                 downloadId = manager.enqueue(DownloadManager.Request(url.toUri())
                     .setTitle("Numa Update").setDescription("Downloading version ${metadata.version}")
-                    .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                    .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
                     .setDestinationUri(Uri.fromFile(destination)).setAllowedOverMetered(true).setAllowedOverRoaming(true))
                 publish(UpdateState.Downloading(metadata.version))
                 delay(30 * 60 * 1000L)

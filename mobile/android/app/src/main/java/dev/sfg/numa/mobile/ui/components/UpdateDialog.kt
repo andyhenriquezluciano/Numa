@@ -20,6 +20,10 @@
 package dev.sfg.numa.mobile.ui.components
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import dev.sfg.numa.mobile.MobileUpdateMetadata
 import dev.sfg.numa.mobile.UpdateState
 
@@ -32,15 +36,23 @@ fun UpdateDialog(
     onInstall: (MobileUpdateMetadata) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val progressVersion = when (state) {
+        is UpdateState.Downloading -> state.version
+        is UpdateState.Installing -> state.version
+        else -> null
+    }
+    var progressHidden by remember(progressVersion) { mutableStateOf(false) }
     when (state) {
         UpdateState.Idle, UpdateState.Checking, UpdateState.UpToDate, UpdateState.CheckFailed -> Unit
 
         is UpdateState.Available -> UpdateAvailableDialog(state, onInstall, onDismiss)
 
-        is UpdateState.Downloading -> UpdateDownloadingDialog(state, onDismiss)
+        is UpdateState.Downloading -> if (!progressHidden) UpdateProgressDialog(state.version, installing = false) { progressHidden = true }
+
+        is UpdateState.Installing -> if (!progressHidden) UpdateProgressDialog(state.version, installing = true) { progressHidden = true }
 
         is UpdateState.Failed -> UpdateFailedDialog(state, onDismiss)
 
-        is UpdateState.ReadyToInstall -> UpdateReadyDialog(state, onDismiss)
+        is UpdateState.ConfirmInstall -> UpdateConfirmationDialog(state, onDismiss)
     }
 }

@@ -30,11 +30,11 @@ object MobileChangelog {
         get() = dev.sfg.numa.mobile.ui.text.uiText(
             """
             ### What's new
-            - **Controls with rounded corners.** Play, Pause, Shuffle and Back use the same corner radius as NÜMA's main controls. The selection bar and track menu actions follow the same style.
+            - **One-step updates in NÜMA.** Update now starts downloading and applying the update. If Android requires confirmation, NÜMA opens the system installer.
             """.trimIndent(),
             """
             ### Novedades
-            - **Controles con esquinas redondeadas.** Reproducir, Pausar, Aleatorio y Volver usan el mismo radio que los controles principales de NÜMA. La barra de selección y las acciones del menú de canciones siguen ese estilo.
+            - **Actualización desde NÜMA en un paso.** «Actualizar ahora» descarga y aplica la actualización. Si Android requiere confirmación, NÜMA abre el instalador del sistema.
             """.trimIndent(),
         )
 }

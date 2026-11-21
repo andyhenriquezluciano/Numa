@@ -2,10 +2,17 @@ package dev.sfg.numa.mobile
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInstaller
 import android.net.Uri
+import android.provider.Settings
 import android.util.Log
-import androidx.core.content.FileProvider
+import androidx.core.content.IntentCompat
 import dev.sfg.numa.connect.BuildConfig
+import dev.sfg.numa.mobile.ui.text.uiText
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,7 +44,8 @@ sealed interface UpdateState {
     data class Available(val metadata: MobileUpdateMetadata) : UpdateState
     data class Downloading(val version: String) : UpdateState
     data class Failed(val version: String, val reason: String) : UpdateState
-    data class ReadyToInstall(val version: String) : UpdateState
+    data class Installing(val version: String) : UpdateState
+    data class ConfirmInstall(val version: String, val sessionId: Int, val confirmation: Intent) : UpdateState
 }
 
 class UpdateManager(
@@ -52,12 +60,16 @@ class UpdateManager(
     private val mutableState = MutableStateFlow<UpdateState>(UpdateState.Idle)
     val state: StateFlow<UpdateState> = mutableState.asStateFlow()
     private val checking = AtomicBoolean(false)
+    private val installScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun checkForUpdates() {
         // Debug and canary builds carry their own versionNameSuffix and applicationId; the
         // published release APK is neither an upgrade nor installable over them.
         if (!BuildConfig.UPDATER_ENABLED) return
-        if (mutableState.value is UpdateState.Downloading || mutableState.value is UpdateState.ReadyToInstall) return
+        when (mutableState.value) {
+            is UpdateState.Downloading, is UpdateState.Installing, is UpdateState.ConfirmInstall -> return
+            else -> Unit
+        }
         if (!checking.compareAndSet(false, true)) return
         mutableState.value = UpdateState.Checking
 
@@ -140,6 +152,10 @@ class UpdateManager(
     }.getOrNull()
 
     fun dismiss() {
+        val confirmation = mutableState.value as? UpdateState.ConfirmInstall
+        if (confirmation != null) {
+            runCatching { context.packageManager.packageInstaller.abandonSession(confirmation.sessionId) }
+        }
         mutableState.value = UpdateState.Idle
     }
 
@@ -314,18 +330,45 @@ class UpdateManager(
             dismiss()
             return
         }
+        if (mutableState.value !is UpdateState.Available) return
+        if (!context.packageManager.canRequestPackageInstalls()) {
+            runCatching {
+                context.startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    Uri.fromParts("package", context.packageName, null)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }.onFailure {
+                mutableState.value = UpdateState.Failed(metadata.version, it.message.orEmpty())
+            }
+            return
+        }
         activeDownload?.cancel()
+        mutableState.value = UpdateState.Downloading(metadata.version)
         activeDownload = UpdateDownload(context, metadata, baseUrl,
-            { mutableState.value = it }, ::installApk).also { it.start() }
+            { mutableState.value = it }, { installApk(it, metadata.version) }).also { it.start() }
     }
 
-    private fun installApk(apkFile: File) {
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", apkFile)
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/vnd.android.package-archive")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    private fun installApk(apkFile: File, version: String) {
+        mutableState.value = UpdateState.Installing(version)
+        installScope.launch {
+            try {
+                installUpdateSession(context, apkFile, version)
+            } catch (error: Exception) {
+                mutableState.value = UpdateState.Failed(version, error.message.orEmpty())
+            }
         }
-        context.startActivity(intent)
+    }
+
+    internal fun onInstallStatus(intent: Intent) {
+        val version = intent.getStringExtra(UpdateInstallReceiver.VERSION) ?: return
+        val sessionId = intent.getIntExtra(PackageInstaller.EXTRA_SESSION_ID, -1)
+        val confirmation = IntentCompat.getParcelableExtra(intent, Intent.EXTRA_INTENT, Intent::class.java)
+        mutableState.value = when (intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)) {
+            PackageInstaller.STATUS_PENDING_USER_ACTION -> if (confirmation != null) {
+                UpdateState.ConfirmInstall(version, sessionId, confirmation)
+            } else {
+                UpdateState.Failed(version, uiText("Android did not provide an installation confirmation.", "Android no proporcionó una confirmación de instalación."))
+            }
+            PackageInstaller.STATUS_SUCCESS, PackageInstaller.STATUS_FAILURE_ABORTED -> UpdateState.Idle
+            else -> UpdateState.Failed(version, intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE).orEmpty())
+        }
     }
 }
