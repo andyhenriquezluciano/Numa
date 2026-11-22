@@ -403,7 +403,7 @@ ColumnLayout {
             Layout.preferredWidth: 32
             Layout.preferredHeight: 32
             glyph: controls.volume <= 0.001 ? "volume-x" : "volume-2"
-            glyphSize: 16
+            glyphSize: 20
             accentColor: controls.accentColor
             primaryText: controls.primaryText
             secondaryText: controls.mutedText
@@ -475,6 +475,8 @@ ColumnLayout {
             primaryText: controls.primaryText
             secondaryText: controls.secondaryText
             glyph: "mic-vocal"
+            glyphColor: NumaAppearance.rosePine ? NumaAppearance.textColor : active ? accentColor : secondaryText
+            roseHoverColor: NumaAppearance.theme === "rose_pine_dawn" ? "#907aa9" : "#c4a7e7"
             active: controls.pane === "lyrics"
             ToolTip.text: active ? qsTr("Hide lyrics") : qsTr("Show lyrics")
         }
@@ -485,6 +487,8 @@ ColumnLayout {
             primaryText: controls.primaryText
             secondaryText: controls.secondaryText
             glyph: controls.windowFullScreen ? "minimize" : "maximize"
+            glyphColor: NumaAppearance.rosePine ? NumaAppearance.textColor : active ? accentColor : secondaryText
+            roseHoverColor: NumaAppearance.theme === "rose_pine_dawn" ? "#286983" : "#31748f"
             active: controls.windowFullScreen
             ToolTip.text: controls.windowFullScreen ? qsTr("Exit full screen") : qsTr("Full screen")
         }
@@ -495,6 +499,8 @@ ColumnLayout {
             primaryText: controls.primaryText
             secondaryText: controls.secondaryText
             glyph: "list-music"
+            glyphColor: NumaAppearance.rosePine ? NumaAppearance.textColor : active ? accentColor : secondaryText
+            roseHoverColor: NumaAppearance.theme === "rose_pine_dawn" ? "#ea9d34" : "#f6c177"
             active: controls.pane === "queue"
             ToolTip.text: active ? qsTr("Hide queue") : qsTr("Queue")
         }

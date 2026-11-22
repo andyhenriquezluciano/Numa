@@ -42,7 +42,7 @@ inline void paintTrayMenu(QMenu *menu)
         }
         if (action == menu->activeAction() && action->isEnabled()) {
             painter.setPen(Qt::NoPen);
-            painter.setBrush(dawn ? QColor("#efd4cf") : rose ? QColor("#403d52") : QColor(255, 255, 255, 24));
+            painter.setBrush(rose ? menu->property("highlightColor").value<QColor>() : QColor(255, 255, 255, 24));
             painter.drawRoundedRect(QRectF(8, row.y(), menu->width() - 16, row.height()), 7, 7);
         }
         const QRect iconRect(18, row.center().y() - 8, 16, 16);

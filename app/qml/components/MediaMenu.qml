@@ -40,13 +40,11 @@ Menu {
     component Entry: MenuItem {
         id: entry
         implicitHeight: 36
-        background: RoundedSurfaceFrame {
+        background: Rectangle {
             radius: 6
-            softGlow: entry.highlighted
-            showBorder: entry.highlighted
-            fillColor: entry.highlighted ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#16ffffff") : "transparent"
-            border.color: entry.highlighted ? "#32ffffff" : "transparent"
-            Behavior on fillColor { ColorAnimation { duration: Motion.fast } }
+            color: entry.enabled && entry.highlighted && entry.menu && entry.menu.itemAt(entry.menu.currentIndex) === entry
+                ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#16ffffff")
+                : "transparent"
         }
         contentItem: Text {
             text: entry.text

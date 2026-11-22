@@ -11,6 +11,7 @@ RowLayout {
     CompactWindowButton {
         colors: root.panel
         glyph: "mic-vocal"
+        lyricsToggle: true
         label: qsTr("Show lyrics")
         active: root.panel.lyricsMode
         onClicked: root.panel.lyricsMode = !root.panel.lyricsMode

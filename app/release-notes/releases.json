@@ -1,5 +1,20 @@
 [
   {
+    "version": "2.6.1",
+    "date": "2026-11-22",
+    "title": "Rosé Pine y mejoras del reproductor",
+    "sections": [
+      {
+        "title": "Mejoras",
+        "items": [
+          "Rosé Pine y Dawn tienen colores más uniformes en menús, botones y controles de ventana.",
+          "La cola, el modo compacto y el reproductor completo tienen controles y barras más claros.",
+          "Tu Biblioteca reutiliza las carátulas guardadas en Métricas y facilita el acceso a las descargas sin conexión."
+        ]
+      }
+    ]
+  },
+  {
     "version": "2.6",
     "date": "2026-11-08",
     "title": "Tu música local, mejor integrada",

@@ -186,6 +186,7 @@ RowLayout {
                 implicitWidth: 34
                 implicitHeight: 34
                 hoverEnabled: true
+                HandCursor {}
                 Accessible.name: qsTr("Close settings")
 
                 contentItem: Item {
@@ -200,7 +201,9 @@ RowLayout {
 
                 background: Rectangle {
                     radius: 10
-                    color: closeButton.down ? "#30ffffff" : closeButton.hovered ? "#20ffffff" : "#10ffffff"
+                    color: NumaAppearance.rosePine
+                        ? (closeButton.down || closeButton.hovered ? NumaAppearance.highlightColor : NumaAppearance.overlayColor)
+                        : closeButton.down ? "#30ffffff" : closeButton.hovered ? "#20ffffff" : "#10ffffff"
                     border.color: closeButton.visualFocus ? "#d8c2f2" : "transparent"
                 }
             }

@@ -104,6 +104,9 @@ Item {
     readonly property string customPlaylistArtwork: media.type === "playlist" && !root.localPlaylist && typeof NumaSync !== "undefined" && NumaSync.revision >= 0
         ? NumaSync.artworkFor(playlistIdentity(media), "", false) : ""
     readonly property bool playlistBadge: media.type === "playlist" && !root.songlist
+    readonly property bool playlistCard: presentation === "playlist"
+    readonly property int playlistRadius: 16
+    readonly property int playlistTextPadding: 12
 
     function playlistIdentity(item) {
         return String(item.playlistId || item.browseId || (item.browsePayload || {}).browseId || item.id || "").replace(/^VL/, "");
@@ -135,7 +138,7 @@ Item {
         anchors.leftMargin: root.songlist ? art.x + art.width + 6 : 0
         anchors.topMargin: root.songlist ? 3 : 0
         anchors.bottomMargin: root.songlist ? 3 : 0
-        radius: 10
+        radius: root.playlistCard ? root.playlistRadius : 10
         color: root.songlist
             ? (NumaAppearance.rosePine ? (hover.containsMouse ? (NumaAppearance.theme === "rose_pine_dawn" ? "#ede8e4" : NumaAppearance.highlightColor) : NumaAppearance.overlayColor) : hover.containsMouse ? "#16ffffff" : "#0cffffff")
             : hover.containsMouse && !root.plain ? (NumaAppearance.theme === "rose_pine_dawn" ? "#ede8e4" : NumaAppearance.rosePine ? NumaAppearance.overlayColor : "#16ffffff") : "transparent"
@@ -168,12 +171,12 @@ Item {
                 return sources;
             }
             visible: !root.playlistBadge
-            radius: root.songlist ? 4 : root.media.type === "artist" ? (root.plain ? width / 2 : 18) : root.presentation === "playlist" ? 12 : root.plain ? 8 : 10
+            radius: root.songlist ? 4 : root.media.type === "artist" ? (root.plain ? width / 2 : 18) : root.playlistCard ? root.playlistRadius : root.plain ? 8 : 10
         }
 
         PlaylistArtwork {
             anchors.fill: parent
-            radius: 12
+            radius: root.playlistCard ? root.playlistRadius : 12
             visible: root.playlistBadge
             media: root.media
             artwork: root.artworkSource()
@@ -253,9 +256,9 @@ Item {
     }
 
     Column {
-        x: root.songlist ? 60 : root.compact ? 78 : root.landscape ? 14 : 0
-        y: root.songlist ? Math.round((root.height - height) / 2) : root.compact ? 13 : root.landscape ? root.height - 53 : art.height + 10
-        width: root.width - x - (root.songlist ? 40 : root.landscape ? 14 : 4)
+        x: root.songlist ? 60 : root.compact ? 78 : root.landscape ? 14 : root.playlistCard ? root.playlistTextPadding : 0
+        y: root.songlist ? Math.round((root.height - height) / 2) : root.compact ? 13 : root.landscape ? root.height - 53 : art.height + (root.playlistCard ? 14 : 10)
+        width: root.width - x - (root.songlist ? 40 : root.landscape ? 14 : root.playlistCard ? root.playlistTextPadding : 4)
         spacing: root.songlist ? 3 : 5
 
         Row {
@@ -305,8 +308,10 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            radius: width / 2
-            color: moreHover.hovered ? "#18ffffff" : "transparent"
+            radius: 8
+            color: moreHover.hovered
+                ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#18ffffff")
+                : "transparent"
         }
 
         LucideIcon {

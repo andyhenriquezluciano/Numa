@@ -93,7 +93,9 @@ Column {
                 width: root.width < 720 ? 130 : 190
                 height: 32
                 radius: 10
-                color: NumaAppearance.rosePine ? (filterField.activeFocus ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : filterField.activeFocus ? "#14ffffff" : "#08ffffff"
+                color: NumaAppearance.rosePine
+                    ? (filterField.activeFocus || filterField.hovered ? NumaAppearance.highlightColor : NumaAppearance.overlayColor)
+                    : filterField.activeFocus ? "#14ffffff" : "#08ffffff"
                 border.width: 0
                 Behavior on color { ColorAnimation { duration: Motion.normal } }
 
@@ -111,6 +113,7 @@ Column {
                     anchors.fill: parent
                     leftPadding: 33
                     rightPadding: 30
+                    hoverEnabled: true
                     placeholderText: qsTr("Filter")
                     placeholderTextColor: NumaAppearance.mutedColor
                     color: NumaAppearance.textColor

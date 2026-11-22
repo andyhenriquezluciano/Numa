@@ -43,7 +43,7 @@ Item {
     readonly property bool narrow: width < (canopy ? 500 : 640)
     readonly property bool showTrackInfo: width >= 520
     readonly property bool showProgress: width >= (canopy ? 700 : 600)
-    readonly property real cornerRadius: canopy ? 10 : 14
+    readonly property real cornerRadius: canopy ? 12 : 18
     readonly property int controlSize: canopy ? 28 : 32
     // The fullscreen player launches its cover from here.
     readonly property Item artworkItem: artworkSlot
@@ -284,10 +284,9 @@ Item {
         anchors.rightMargin: root.canopy ? 10 : 16
         spacing: root.canopy ? 10 : root.narrow ? 6 : root.compact ? 10 : 18
 
-        // Glade uses circular artwork; Canopy keeps its rounded square.
         Item {
             id: artworkSlot
-            readonly property real artRadius: root.canopy ? 6 : width / 2
+            readonly property real artRadius: root.canopy ? 6 : 8
             Layout.preferredWidth: root.canopy ? 36 : 44
             Layout.preferredHeight: Layout.preferredWidth
             activeFocusOnTab: true

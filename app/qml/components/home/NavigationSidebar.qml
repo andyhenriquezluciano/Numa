@@ -373,7 +373,7 @@ Item {
 
                         PlaylistArtwork {
                             anchors.fill: parent
-                            radius: 5
+                            radius: 8
                             media: shortcut.modelData
                             artwork: shortcut.artworkUrl
                             customArtwork: shortcut.artworkOverride
@@ -402,7 +402,8 @@ Item {
                         width: 12
                         height: 12
                         name: shortcut.modelData.source === "download" ? "circle-arrow-down" : "hard-drive"
-                        color: "#7f898d"
+                        color: shortcut.modelData.source === "download"
+                            ? (NumaAppearance.rosePine ? NumaAppearance.accentColor : "#ebbcba") : "#7f898d"
                     }
 
                 }

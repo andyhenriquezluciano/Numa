@@ -317,7 +317,12 @@ Item {
                     value: pressed ? value : NumaPlayback.displayPosition
                     enabled: NumaPlayback.duration > 0 && !NumaPlayback.loading && !NumaPlayback.crossfadeActive
                     hoverEnabled: true; onPressedChanged: if (!pressed && enabled) NumaPlayback.seek(value)
-                    background: Rail { control: progress; fill: progress.visualPosition; mixAmount: popup.mixAmount; mixDotColor: popup.mixAccentColor }
+                    background: Rail {
+                        control: progress
+                        fill: progress.visualPosition
+                        mixAmount: popup.mixAmount
+                        mixDotColor: popup.mixAccentColor
+                    }
                     handle: Knob { control: progress }
                     Behavior on value { enabled: NumaPlayback.crossfadeActive; NumberAnimation { duration: 70; easing.type: Easing.Linear } }
                 }
@@ -390,7 +395,6 @@ Item {
 
                 RoundControl {
                     glyph: popup.volumeLevel <= 0.001 ? "volume-x" : "volume-2"
-                    roundedSquare: true
                     label: popup.volumeLevel <= 0.001 ? qsTr("Unmute") : qsTr("Mute")
                     onClicked: popup.setVolume(popup.volumeLevel > 0.001 ? 0 : popup.rememberedVolume)
                 }
@@ -410,6 +414,7 @@ Item {
 
                 CompactWindowButton {
                     colors: panel; glyph: panel.lyricsMode ? "image" : "mic-vocal"
+                    lyricsToggle: true
                     label: panel.lyricsMode ? qsTr("Show artwork") : qsTr("Show lyrics")
                     active: panel.lyricsMode; onClicked: panel.lyricsMode = !panel.lyricsMode
                 }
@@ -423,7 +428,6 @@ Item {
     }
 
     component RoundControl: Button {
-        property bool roundedSquare: false
         HandCursor {}
         required property string glyph
         required property string label
@@ -434,8 +438,10 @@ Item {
         implicitWidth: main ? 42 : 34; implicitHeight: implicitWidth
         hoverEnabled: true; focusPolicy: Qt.TabFocus
         background: Rectangle {
-            radius: roundedSquare ? 10 : width / 2
-            color: NumaAppearance.theme === "rose_pine_dawn" && parent.main ? NumaAppearance.accentColor : parent.main ? (parent.down ? "#e5e2da" : parent.hovered ? "#ffffff" : "#f7f5f0")
+            radius: parent.main ? 12 : 10
+            color: NumaAppearance.rosePine && parent.main
+                ? (parent.down || parent.hovered ? Qt.darker(NumaAppearance.accentColor, 1.08) : NumaAppearance.accentColor)
+                : parent.main ? (parent.down ? "#e5e2da" : parent.hovered ? "#ffffff" : "#f7f5f0")
                                : NumaAppearance.rosePine ? (parent.active || parent.hovered || parent.down ? NumaAppearance.highlightColor : "transparent") : parent.active ? (parent.hovered ? "#3dffffff" : "#2effffff")
                                                : parent.hovered ? "#1fffffff" : "transparent"
             border.color: parent.activeFocus ? panel.primaryText : "transparent"
@@ -445,7 +451,7 @@ Item {
         }
         contentItem: LucideIcon {
             name: parent.glyph
-            color: parent.main ? (NumaAppearance.theme === "rose_pine_dawn" ? NumaAppearance.surfaceColor : "#121212") : !parent.enabled ? "#6b6f68" : parent.active ? NumaAppearance.accentColor : panel.primaryText
+            color: parent.main ? (NumaAppearance.rosePine ? NumaAppearance.baseColor : "#121212") : !parent.enabled ? "#6b6f68" : parent.active ? NumaAppearance.accentColor : panel.primaryText
             implicitWidth: parent.main ? 19 : 16; implicitHeight: implicitWidth
         }
     }
@@ -456,13 +462,16 @@ Item {
         required property real fill
         property real mixAmount: 0
         property color mixDotColor: panel.accentColor
+        readonly property color trackColor: NumaAppearance.rosePine
+            ? Qt.rgba(panel.primaryText.r, panel.primaryText.g, panel.primaryText.b, 0.18)
+            : "#2effffff"
         implicitHeight: 18
 
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             x: parent.control.leftPadding; width: parent.control.availableWidth
             height: rail.mixAmount > 0.01 || rail.control.hovered || rail.control.pressed ? 7 : 6
-            radius: height / 2; color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#2effffff"
+            radius: height / 2; color: rail.trackColor
             Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.OutBack; easing.overshoot: 2 } }
 
             MixDotFill {

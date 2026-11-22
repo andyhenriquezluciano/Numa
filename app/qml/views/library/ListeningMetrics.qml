@@ -8,6 +8,7 @@ ScrollView {
     id: root
     property int period: 0
     property string query: ""
+    property var localTracks: null
     property int refreshTick: 0
     Timer { interval: 15000; repeat: true; running: root.visible; onTriggered: root.refreshTick++ }
     readonly property var metrics: {
@@ -119,6 +120,10 @@ ScrollView {
                                 const revision = NumaSync.revision;
                                 if (group.modelData.key === "artists")
                                     return NumaSync.metricArtistArtwork(entry.modelData.title || "");
+                                const localCover = group.modelData.key === "tracks" && root.localTracks
+                                    ? root.localTracks.get(entry.modelData.id)?.thumbnail || "" : "";
+                                if (localCover.startsWith("file:"))
+                                    return localCover;
                                 const artwork = entry.modelData.thumbnail || entry.modelData.artworkUrl || entry.modelData.coverUrl || "";
                                 if (artwork)
                                     return artwork;

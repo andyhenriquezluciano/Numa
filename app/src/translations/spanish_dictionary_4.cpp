@@ -353,7 +353,7 @@ void loadSpanishTranslations4(QHash<QString, QString> &map) {
     {QStringLiteral("YouTube account"), QStringLiteral("Cuenta de YouTube")},
     {QStringLiteral("YouTube audio request failed (HTTP %1)."), QStringLiteral("Falló la solicitud de audio de YouTube (HTTP %1).")},
     {QStringLiteral("YouTube returned an invalid audio stream."), QStringLiteral("YouTube devolvió una transmisión de audio no válida.")},
-    {QStringLiteral("Your library"), QStringLiteral("Su biblioteca")},
+    {QStringLiteral("Your library"), QStringLiteral("Tu Biblioteca")},
     {QStringLiteral("Your music home is empty. Refresh to try again."), QStringLiteral("Su página de música está vacía. Actualice para intentar de nuevo.")},
     {QStringLiteral("Your playlists"), QStringLiteral("Sus listas de reproducción")},
     {QStringLiteral("Your queue is empty"), QStringLiteral("Su cola está vacía")},

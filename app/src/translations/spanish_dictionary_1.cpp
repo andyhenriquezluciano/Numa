@@ -16,6 +16,8 @@ void loadSpanishTranslations1(QHash<QString, QString> &map) {
     {QStringLiteral("%1 changes"), QStringLiteral("%1 cambios")},
     {QStringLiteral("%1 could not be verified. Sign in to Numa on both devices."), QStringLiteral("%1 no se pudo verificar. Inicie sesión en Numa en ambos dispositivos.")},
     {QStringLiteral("%1 downloaded songs"), QStringLiteral("%1 canciones descargadas")},
+    {QStringLiteral("Downloaded songs"), QStringLiteral("Canciones descargadas")},
+    {QStringLiteral("Checking connection…"), QStringLiteral("Comprobando la conexión…")},
     {QStringLiteral("%1 h ago"), QStringLiteral("hace %1 h")},
     {QStringLiteral("%1 hr %2 min"), QStringLiteral("%1 h %2 min")},
     {QStringLiteral("%1 into %2"), QStringLiteral("%1 en %2")},

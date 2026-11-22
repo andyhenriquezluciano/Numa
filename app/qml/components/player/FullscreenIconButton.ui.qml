@@ -33,6 +33,9 @@ Button {
     property bool active: false
     property real glyphSize: 18
     property color glyphColor: active ? accentColor : secondaryText
+    property color roseHoverColor: "transparent"
+    readonly property bool roseHover: NumaAppearance.rosePine && enabled && hovered && roseHoverColor.a > 0
+    property color roseHoverFill: Qt.rgba(roseHoverColor.r, roseHoverColor.g, roseHoverColor.b, down ? 0.23 : 0.16)
 
     implicitWidth: 40
     implicitHeight: 40
@@ -50,11 +53,13 @@ Button {
 
     background: Rectangle {
         radius: 10
-        color: NumaAppearance.rosePine ? (roundButton.active || roundButton.hovered || roundButton.down ? NumaAppearance.highlightColor : "transparent") : roundButton.active
+        color: roundButton.roseHover ? roundButton.roseHoverFill
+            : NumaAppearance.rosePine ? (roundButton.active || roundButton.hovered || roundButton.down ? NumaAppearance.highlightColor : "transparent") : roundButton.active
                ? Qt.rgba(roundButton.accentColor.r, roundButton.accentColor.g, roundButton.accentColor.b, roundButton.hovered ? 0.3 : 0.2)
                : roundButton.down ? "#2effffff" : roundButton.hovered ? "#1cffffff" : "transparent"
         border.width: 1
-        border.color: NumaAppearance.rosePine ? (roundButton.active || roundButton.hovered || roundButton.down ? NumaAppearance.highlightColor : "transparent") : roundButton.activeFocus ? roundButton.primaryText : "transparent"
+        border.color: roundButton.roseHover ? "transparent"
+            : NumaAppearance.rosePine ? (roundButton.active || roundButton.hovered || roundButton.down ? NumaAppearance.highlightColor : "transparent") : roundButton.activeFocus ? roundButton.primaryText : "transparent"
         opacity: roundButton.enabled ? 1 : 0.4
     }
 
@@ -67,7 +72,8 @@ Button {
             width: roundButton.glyphSize
             height: roundButton.glyphSize
             name: roundButton.glyph
-            color: !roundButton.enabled ? "#6b6f68" : roundButton.hovered && !roundButton.active ? roundButton.primaryText : roundButton.glyphColor
+            color: !roundButton.enabled ? "#6b6f68" : roundButton.roseHover ? roundButton.roseHoverColor
+                : roundButton.hovered && !roundButton.active ? roundButton.primaryText : roundButton.glyphColor
         }
     }
 }

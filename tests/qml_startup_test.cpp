@@ -68,11 +68,13 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty(QStringLiteral("NumaAppearance"), QVariantMap{
         {"theme", theme}, {"rosePine", rose}, {"performanceMode", rose},
         {"playlistSongBackground", false},
-        {"overlayColor", dawn ? "#f2e9e1" : "#26233a"}, {"highlightColor", dawn ? "#dfdad9" : "#403d52"},
+        {"overlayColor", dawn ? "#f2e9e1" : "#26233a"}, {"highlightColor", dawn ? "#efd4cf" : "#403448"},
         {"borderColor", rose ? "#ebbcba" : "#1cffffff"}, {"borderWidth", rose ? 2 : 1},
         {"controlBorderWidth", rose ? 0 : 1},
         {"bordersEnabled", true},
-        {"textColor", dawn ? "#575279" : rose ? "#e0def4" : "#f5f3ee"}, {"mutedColor", dawn ? "#797593" : "#908caa"}, {"accentColor", dawn ? "#d7827e" : "#c4a7e7"}, {"surfaceColor", dawn ? "#fffaf3" : "#1f1d2e"}});
+        {"textColor", dawn ? "#575279" : rose ? "#e0def4" : "#f5f3ee"}, {"mutedColor", dawn ? "#797593" : "#908caa"},
+        {"accentColor", dawn ? "#d7827e" : rose ? "#ebbcba" : "#c4a7e7"}, {"surfaceColor", dawn ? "#fffaf3" : "#1f1d2e"},
+        {"baseColor", dawn ? "#faf4ed" : rose ? "#191724" : "#0d0f12"}});
   QQmlComponent frame(&engine);
   frame.setData("import QtQuick\nimport Numa\nRoundedSurfaceFrame {}", QUrl());
   std::unique_ptr<QObject> surface(frame.create());
@@ -149,7 +151,11 @@ int main(int argc, char *argv[]) {
     QtObject {
       property int revision: 0
       property var playlistItems: []
-      function section(key) { return key === "playlists" ? playlistItems : [] }
+      function section(key) {
+        if (key === "metrics")
+          return [{id: "test", title: "Song", thumbnail: "https://example.invalid/cover.png", listenCount: 6}];
+        return key === "playlists" ? playlistItems : [];
+      }
       function metricArtistArtwork(name) { return "" }
       function listeningMetrics(days) {
         return {listens: 6, heardMs: 180000, songs: 1,
@@ -205,11 +211,18 @@ int main(int argc, char *argv[]) {
   if (!network->property("checking").toBool() || offlineButton->property("enabled").toBool()) return 1;
   for (int i = 0; i < 20; ++i) { application.processEvents(); QThread::msleep(10); }
   network->setProperty("checking", false);
+  auto *offlineBackground = offlineButton->property("background").value<QObject *>();
   if (offlineIcon->property("rotation").toDouble() != 0
       || offlineIcon->property("name").toString() != "wifi-off"
-      || offlineIcon->property("color").value<QColor>() != QColor("#c4a7e7")
+      || offlineIcon->property("color").value<QColor>() != QColor("#191724")
+      || !offlineBackground || offlineBackground->property("color").value<QColor>() != QColor("#ebbcba")
       || !offlineButton->property("enabled").toBool()) {
-    output << "The offline icon must return upright with a purple accent after checking the connection.\n";
+    output << "The offline icon must return upright with its pink button after checking the connection."
+           << " icon=" << offlineIcon->property("name").toString()
+           << " rotation=" << offlineIcon->property("rotation").toDouble()
+           << " ink=" << offlineIcon->property("color").value<QColor>().name()
+           << " surface=" << (offlineBackground ? offlineBackground->property("color").value<QColor>().name() : QStringLiteral("missing"))
+           << " enabled=" << offlineButton->property("enabled").toBool() << '\n';
     return 1;
   }
   network->setProperty("offline", false);
@@ -486,7 +499,10 @@ int main(int argc, char *argv[]) {
   metricsObject->setProperty("height", 650);
   metricsObject->setProperty("period", 7);
   application.processEvents();
-  engine.rootContext()->setContextProperty("NumaOffline", QVariantMap{{"songs", QVariantList{}}, {"playlists", QVariantList{}}});
+  const QString offlineCover = QStringLiteral("file:///downloaded-cover.png");
+  engine.rootContext()->setContextProperty("NumaOffline", QVariantMap{
+    {"songs", QVariantList{QVariantMap{{"id", "test"}, {"thumbnail", offlineCover}}}},
+    {"playlists", QVariantList{}}});
   QQmlComponent offlineMetrics(&engine, QUrl(QStringLiteral("qrc:/qt/qml/Numa/app/qml/views/offline/OfflineLibraryView.qml")));
   std::unique_ptr<QObject> offlineMetricsObject(offlineMetrics.create());
   if (!offlineMetricsObject) {
@@ -497,6 +513,12 @@ int main(int argc, char *argv[]) {
   auto *offlineDashboard = offlineMetricsObject->findChild<QObject *>("offlineListeningMetrics");
   if (!offlineDashboard || !offlineDashboard->property("visible").toBool()) {
     output << "Listening metrics must remain accessible offline.\n";
+    return 1;
+  }
+  const auto metricTracks = offlineMetricsObject->property("metricTracks").value<QJSValue>().toVariant().toList();
+  if (metricTracks.size() != 1 || metricTracks.first().toMap().value("thumbnail").toString() != offlineCover
+      || metricTracks.first().toMap().value("listenCount").toInt() != 6) {
+    output << "Offline listening metrics must use downloaded covers and preserve listen counts.\n";
     return 1;
   }
   engine.rootContext()->setContextProperty("NumaPlayback", QVariantMap{

@@ -374,6 +374,7 @@ void SystemTray::setAppearance(AppearanceSettings *appearance)
         m_menu->setProperty("rosePine", rose);
         m_menu->setProperty("bordersEnabled", appearance->bordersEnabled());
         m_menu->setProperty("dawn", appearance->dawn());
+        m_menu->setProperty("highlightColor", appearance->highlightColor());
         m_headerWidget->setTheme(rose, appearance->dawn());
         QPixmap pixmap;
         const auto source = appearance->iconSource();

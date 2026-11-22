@@ -285,6 +285,7 @@ Item {
                 objectName: "lyricsToggle"
                 colors: root
                 glyph: root.lyricsMode ? "list-music" : "mic-vocal"
+                lyricsToggle: true
                 active: root.lyricsMode
                 label: root.lyricsMode ? qsTr("Show queue") : qsTr("Show lyrics")
                 onClicked: root.lyricsMode = !root.lyricsMode

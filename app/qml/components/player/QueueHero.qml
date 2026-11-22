@@ -230,7 +230,7 @@ Rectangle {
                 Rectangle {
                     width: 26
                     height: 26
-                    radius: 13
+                    radius: panel.compactMode ? 8 : 13
                     color: prevMouse.pressed ? "#26ffffff" : prevMouse.containsMouse ? "#1affffff" : "transparent"
                     opacity: NumaPlayback.canGoPrevious ? 1 : 0.4
                     LucideIcon {
@@ -250,16 +250,18 @@ Rectangle {
                 }
 
                 Rectangle {
+                    readonly property color playFill: NumaAppearance.rosePine && panel.compactMode
+                        ? NumaAppearance.textColor : panel.accentColor
                     width: 30
                     height: 30
-                    radius: 15
-                    color: playMouse.pressed ? Qt.darker(panel.accentColor, 1.15) : playMouse.containsMouse ? Qt.lighter(panel.accentColor, 1.08) : panel.accentColor
+                    radius: panel.compactMode ? 10 : 15
+                    color: playMouse.pressed ? Qt.darker(playFill, 1.15) : playMouse.containsMouse ? Qt.lighter(playFill, 1.08) : playFill
                     LucideIcon {
                         anchors.centerIn: parent
                         width: 16
                         height: 16
                         name: NumaPlayback.playing ? "pause" : "play"
-                        color: panel.inkColor
+                        color: NumaAppearance.rosePine && panel.compactMode ? NumaAppearance.baseColor : panel.inkColor
                     }
                     MouseArea {
                         id: playMouse
@@ -273,7 +275,7 @@ Rectangle {
                 Rectangle {
                     width: 26
                     height: 26
-                    radius: 13
+                    radius: panel.compactMode ? 8 : 13
                     color: nextMouse.pressed ? "#26ffffff" : nextMouse.containsMouse ? "#1affffff" : "transparent"
                     opacity: NumaPlayback.canGoNext ? 1 : 0.4
                     LucideIcon {
@@ -295,7 +297,7 @@ Rectangle {
                 Rectangle {
                     width: 26
                     height: 26
-                    radius: 13
+                    radius: panel.compactMode ? 8 : 13
                     color: shufMouse.pressed ? "#26ffffff" : shufMouse.containsMouse ? "#1affffff" : "transparent"
                     LucideIcon {
                         anchors.centerIn: parent
@@ -316,7 +318,7 @@ Rectangle {
                 Rectangle {
                     width: 26
                     height: 26
-                    radius: 13
+                    radius: panel.compactMode ? 8 : 13
                     color: repMouse.pressed ? "#26ffffff" : repMouse.containsMouse ? "#1affffff" : "transparent"
                     LucideIcon {
                         anchors.centerIn: parent
@@ -360,7 +362,7 @@ Rectangle {
             fraction: NumaPlayback.displayDuration > 0
                    ? Math.max(0, Math.min(1, NumaPlayback.displayPosition / NumaPlayback.displayDuration))
                    : 0
-            baseColor: panel.accentColor
+            baseColor: NumaAppearance.rosePine ? NumaAppearance.textColor : panel.accentColor
             dotColor: panel.mixAccentColor
             amount: heroRail.mixAmount
             maxBand: 180

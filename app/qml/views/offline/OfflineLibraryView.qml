@@ -39,9 +39,17 @@ Item {
         { key: "songs", title: qsTr("Songs"), empty: qsTr("Songs you download or add from this computer appear here.") },
         { key: "playlists", title: qsTr("Playlists"), empty: qsTr("Downloaded playlists and playlists made from local files appear here.") }
     ]
+    readonly property var localTracks: new Map((NumaOffline.songs || []).map(song => [song.id, song]))
+    readonly property var metricTracks: {
+        const tracks = NumaSync.revision >= 0 ? NumaSync.section("metrics") : [];
+        return tracks.map(track => {
+            const localCover = root.localTracks.get(track.id)?.thumbnail || "";
+            return localCover.startsWith("file:") ? Object.assign({}, track, { thumbnail: localCover }) : track;
+        });
+    }
     readonly property var loadedSections: categories.map(category => ({
         key: category.key, title: category.title, empty: category.empty,
-        items: category.key === "metrics" ? (NumaSync.revision >= 0 ? NumaSync.section("metrics") : []) : category.key === "songs" ? NumaOffline.songs : (typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.visiblePlaylists(NumaOffline.playlists) : NumaOffline.playlists)
+        items: category.key === "metrics" ? root.metricTracks : category.key === "songs" ? NumaOffline.songs : (typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.visiblePlaylists(NumaOffline.playlists) : NumaOffline.playlists)
     }))
     readonly property var sections: loadedSections.map(section => visibleSection(section))
     readonly property var selectedSection: sections.find(section => section.key === filter) || ({ items: [] })
@@ -219,9 +227,9 @@ Item {
         anchors.bottom: parent.bottom
         visible: root.filter === "metrics"
         query: root.query
+        localTracks: root.localTracks
         onTrackRequested: (track, tracks) => {
-            const downloaded = NumaOffline.songs || [];
-            const playable = tracks.map(item => downloaded.find(song => song.id === item.id)).filter(Boolean);
+            const playable = tracks.map(item => root.localTracks.get(item.id)).filter(Boolean);
             root.activate(track, {items: playable});
         }
     }

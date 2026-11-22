@@ -44,6 +44,7 @@ Item {
     readonly property alias topBar: topBar
     readonly property alias offlineHomeLoader: offlineHomeLoader
     readonly property alias libraryLoader: libraryLoader
+    property bool pendingDownloadedSongs: false
     readonly property alias searchLoader: searchLoader
     readonly property alias albumLoader: albumLoader
     readonly property alias artistLoader: artistLoader
@@ -252,6 +253,12 @@ Item {
         asynchronous: true
         active: scene.shell.currentPage === "library"
         sourceComponent: (NumaNetwork.offline || NumaNetwork.retrying) ? offlineLibraryComponent : onlineLibraryComponent
+        onActiveChanged: if (!active) scene.pendingDownloadedSongs = false
+        onLoaded: {
+            if (scene.pendingDownloadedSongs && sourceComponent === offlineLibraryComponent)
+                item.filter = "songs";
+            scene.pendingDownloadedSongs = false;
+        }
     }
 
     Component {
@@ -372,6 +379,13 @@ Item {
             }
         }
         onSettingsRequested: scene.shell.openSettings()
+        onDownloadedSongsRequested: {
+            scene.shell.navigateTo("library");
+            if (libraryLoader.item && libraryLoader.sourceComponent === offlineLibraryComponent)
+                libraryLoader.item.filter = "songs";
+            else
+                scene.pendingDownloadedSongs = true;
+        }
         onDocsRequested: scene.shell.openDocs()
         onSupportRequested: scene.shell.openSupport("")
     }

@@ -176,12 +176,12 @@ Cada participante usa su propia conexión y sesión de YouTube Music. La latenci
 
 ## Descargar
 
-Los instalables están en **[la última versión](https://github.com/andyhenriquezluciano/Numa/releases/latest)**.
+Los instalables están en [GitHub Releases](https://github.com/andyhenriquezluciano/Numa/releases).
 
 | Plataforma | Descarga | Requisitos |
 | --- | --- | --- |
-| **Android 2.2** | [Numa-Android-2.2.apk](https://github.com/andyhenriquezluciano/Numa/releases/latest/download/Numa-Android-2.2.apk) | Android 12 o posterior, ARM64 |
-| **Windows 2.1** | [Numa-Setup-2.1.0.exe](https://github.com/andyhenriquezluciano/Numa/releases/latest/download/Numa-Setup-2.1.0.exe) | Windows x64 |
+| **Android 2.8.6** | [Numa-2.8.6.apk](https://github.com/andyhenriquezluciano/Numa/releases/download/v2.8.6-android/Numa-2.8.6.apk) | Android 12 o posterior, ARM64 |
+| **Windows 2.6.1** | [Numa-Setup-2.6.1.exe](https://github.com/andyhenriquezluciano/Numa/releases/download/v2.6.1/Numa-Setup-2.6.1.exe) | Windows x64 |
 
 ## Licencia
 

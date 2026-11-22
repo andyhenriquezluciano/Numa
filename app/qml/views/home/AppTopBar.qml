@@ -34,6 +34,7 @@ Item {
 
     signal searchChanged(string query)
     signal settingsRequested
+    signal downloadedSongsRequested
     signal docsRequested
     signal supportRequested
 
@@ -80,7 +81,7 @@ Item {
         width: root.canopy ? (root.searchOpen ? Math.min(300, Math.max(38, root.buttonsLeft - 24 - 360)) : 38)
                       : Math.max(120, Math.min(660, root.buttonsLeft - 28))
         height: root.canopy ? 38 : 42
-        radius: 10
+        radius: 14
         clip: true
         color: NumaAppearance.rosePine ? (search.activeFocus ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : search.activeFocus ? "#1effffff" : "#15ffffff"
         border.color: NumaAppearance.accentColor
@@ -161,9 +162,22 @@ Item {
     OfflineStatusButton {
         id: offlineStatus
 
-        anchors.right: account.left
+        anchors.right: downloadedSongs.left
         anchors.rightMargin: 8
         anchors.verticalCenter: parent.verticalCenter
+    }
+
+    OfflineActionButton {
+        id: downloadedSongs
+
+        visible: offlineStatus.visible
+        anchors.right: account.left
+        anchors.rightMargin: visible ? 8 : 0
+        anchors.verticalCenter: parent.verticalCenter
+        iconName: "music-2"
+        Accessible.name: qsTr("Downloaded songs")
+        onClicked: root.downloadedSongsRequested()
+
     }
 
     Button {

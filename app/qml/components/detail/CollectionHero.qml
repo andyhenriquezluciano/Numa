@@ -66,7 +66,7 @@ Item {
     property color accentInkColor: "#09100b"
     property color inkColor: "#080c0a"
 
-    readonly property int coverRadius: 12
+    readonly property int coverRadius: playlistArtwork ? 20 : 12
     readonly property real coverSize: compact ? Math.min(width, 240) : Math.max(0, width - 16)
 
     signal bylineClicked(Item anchor, real x, real y)

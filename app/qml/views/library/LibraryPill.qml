@@ -41,7 +41,9 @@ Button {
         Rectangle {
             anchors.fill: parent
             radius: 10
-            color: NumaAppearance.rosePine ? (root.checked ? NumaAppearance.highlightColor : NumaAppearance.overlayColor) : root.checked ? "#20ffffff" : root.hovered ? "#14ffffff" : "#08ffffff"
+            color: NumaAppearance.rosePine
+                ? (root.checked || root.hovered || root.down ? NumaAppearance.highlightColor : NumaAppearance.overlayColor)
+                : root.checked ? "#20ffffff" : root.hovered ? "#14ffffff" : "#08ffffff"
             Behavior on color { ColorAnimation { duration: Motion.normal } }
         }
 

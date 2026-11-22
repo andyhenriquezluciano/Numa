@@ -91,7 +91,8 @@ Item {
         radius: 12
         softGlow: rowItem.hot || rowItem.current || rowItem.queueIndex === 0 || song.activeFocus
         showBorder: softGlow
-        fillColor: NumaAppearance.theme === "rose_pine_dawn" ? (rowItem.current ? NumaAppearance.highlightColor
+        fillColor: NumaAppearance.theme === "rose_pine" && rowItem.hot ? NumaAppearance.highlightColor
+                 : NumaAppearance.theme === "rose_pine_dawn" ? (rowItem.current ? NumaAppearance.highlightColor
                  : rowItem.hot ? "#ede8e4" : rowItem.queueIndex === 0 ? NumaAppearance.overlayColor : "transparent")
                  : rowItem.current ? panel.tint(panel.accentColor, rowItem.hot ? 0.22 : 0.14)
                  : rowItem.queueIndex === 0 ? panel.tint(panel.accentColor, rowItem.hot ? 0.14 : 0.08)
@@ -131,7 +132,7 @@ Item {
                 anchors.centerIn: parent
                 columns: 2
                 spacing: 3
-                opacity: handleArea.pressed ? 1 : rowItem.hot && rowItem.queueIndex >= 0 ? 0.7 : 0
+                opacity: handleArea.pressed ? 1 : rowItem.hot && rowItem.queueIndex >= 0 ? (NumaAppearance.rosePine ? 1 : 0.7) : 0
                 Behavior on opacity { NumberAnimation { duration: 140 } }
 
                 Repeater {
@@ -140,7 +141,7 @@ Item {
                         width: 2.5
                         height: 2.5
                         radius: 1.25
-                        color: handleArea.pressed ? panel.accentColor : panel.secondaryText
+                        color: NumaAppearance.rosePine ? NumaAppearance.textColor : handleArea.pressed ? panel.accentColor : panel.secondaryText
                     }
                 }
             }
@@ -325,7 +326,10 @@ Item {
                 accentColor: panel.accentColor
                 primaryText: panel.primaryText
                 secondaryText: panel.mutedText
-                ToolTip.text: qsTr("Remove %1 from queue").arg(rowItem.modelData.title || "")
+                glyphColor: NumaAppearance.rosePine ? NumaAppearance.textColor : secondaryText
+                roseHoverColor: NumaAppearance.textColor
+                roseHoverFill: NumaAppearance.baseColor
+                Accessible.name: qsTr("Remove %1 from queue").arg(rowItem.modelData.title || "")
                 onClicked: NumaPlayback.removeFromQueue(rowItem.queueIndex)
                 opacity: rowItem.hot || removeBtn.activeFocus ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 120 } }

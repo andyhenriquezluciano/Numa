@@ -184,7 +184,9 @@ ItemDelegate {
             accentColor: row.accentColor
             primaryText: row.primaryText
             secondaryText: row.mutedText
-            ToolTip.text: qsTr("Remove %1 from queue").arg(row.track.title || "")
+            roseHoverColor: NumaAppearance.textColor
+            roseHoverFill: NumaAppearance.baseColor
+            Accessible.name: qsTr("Remove %1 from queue").arg(row.track.title || "")
         }
     }
 }

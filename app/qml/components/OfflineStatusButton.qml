@@ -19,21 +19,19 @@
 
 import Numa
 import QtQuick
-import QtQuick.Controls
 
 // Top bar button for offline status and manual reconnect check.
-Button {
-    HandCursor {}
+OfflineActionButton {
     id: root
 
     readonly property bool shown: NumaNetwork.offline || NumaNetwork.retrying
     property real spinAngle: 0
 
     visible: shown
-    width: shown ? 38 : 0
-    height: 38
-    hoverEnabled: true
     enabled: !NumaNetwork.checking
+    iconName: NumaNetwork.checking ? "refresh-cw" : "wifi-off"
+    iconObjectName: "offlineConnectionIcon"
+    iconRotation: NumaNetwork.checking ? root.spinAngle : 0
     Accessible.name: NumaNetwork.checking ? qsTr("Checking connection…") : qsTr("Offline. Click to check connection.")
     onClicked: if (!NumaNetwork.checking) NumaNetwork.retry()
 
@@ -45,26 +43,4 @@ Button {
         duration: 1000
     }
 
-    GlassToolTip { control: root; text: root.Accessible.name }
-
-    background: Rectangle {
-        radius: 10
-        color: root.down ? "#26ffffff" : root.hovered ? "#1fffffff" : "#14ffffff"
-        border.color: root.activeFocus ? "#ffffff" : "#2effffff"
-        border.width: 1
-        Behavior on color { ColorAnimation { duration: Motion.fast } }
-    }
-
-    contentItem: Item {
-        LucideIcon {
-            id: icon
-            objectName: "offlineConnectionIcon"
-            anchors.centerIn: parent
-            width: 18
-            height: 18
-            name: NumaNetwork.checking ? "refresh-cw" : "wifi-off"
-            color: root.hovered ? "#ffffff" : NumaAppearance.accentColor
-            rotation: NumaNetwork.checking ? root.spinAngle : 0
-        }
-    }
 }

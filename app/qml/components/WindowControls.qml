@@ -45,8 +45,13 @@ Row {
     component CaptionButton: Button {
         id: captionControl
         property string windowAction
-        readonly property color danger: NumaAppearance.theme === "rose_pine_dawn" ? "#b4637a" : "#eb6f92"
-        readonly property color glyphColor: hovered ? danger : NumaAppearance.mutedColor
+        readonly property bool dawn: NumaAppearance.theme === "rose_pine_dawn"
+        readonly property color actionColor: !NumaAppearance.rosePine ? "#eb6f92"
+            : windowAction === "minimize" ? (dawn ? "#ea9d34" : "#f6c177")
+            : windowAction === "maximize" ? (dawn ? "#286983" : "#31748f")
+            : (dawn ? "#b4637a" : "#eb6f92")
+        readonly property color glyphColor: hovered ? actionColor
+            : NumaAppearance.rosePine ? NumaAppearance.textColor : NumaAppearance.mutedColor
         width: 40
         height: 30
         y: 4
@@ -58,9 +63,11 @@ Row {
         Accessible.name: text
         background: Rectangle {
             radius: 10
-            color: !captionControl.hovered && !captionControl.down ? "transparent"
-                : NumaAppearance.theme === "rose_pine_dawn" ? NumaAppearance.highlightColor
-                : Qt.rgba(captionControl.danger.r, captionControl.danger.g, captionControl.danger.b, 0.16)
+            color: captionControl.hovered
+                ? Qt.rgba(captionControl.actionColor.r, captionControl.actionColor.g, captionControl.actionColor.b, 0.16)
+                : "transparent"
+            border.color: NumaAppearance.textColor
+            border.width: captionControl.visualFocus ? 1 : 0
         }
         contentItem: Item {
             Item {

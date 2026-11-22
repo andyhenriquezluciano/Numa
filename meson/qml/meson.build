@@ -27,6 +27,7 @@ qml_sources = [
   'app/qml/components/QualityBadge.qml',
   'app/qml/components/SlopBadge.qml',
   'app/qml/components/OfflineNotice.qml',
+  'app/qml/components/OfflineActionButton.qml',
   'app/qml/components/OfflineStatusButton.qml',
   'app/qml/components/Glass.qml',
   'app/qml/components/GlassToolTip.qml',
