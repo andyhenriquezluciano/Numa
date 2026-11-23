@@ -1416,9 +1416,10 @@ ApplicationWindow {
   auto *updateWindow = qobject_cast<QQuickWindow *>(updatePreview.get());
   auto *updatePrompt = updatePreview->findChild<QObject *>("updatePrompt");
   auto *updateNotes = updatePreview->findChild<QObject *>("updateNotes");
+  auto *updateNoteBlocks = updatePreview->findChild<QQuickItem *>("updateNoteBlocks");
   auto *updateInstallButton = updatePreview->findChild<QObject *>("updateInstallButton");
   auto *updateError = updatePreview->findChild<QObject *>("updateError");
-  if (!updateWindow || !updatePrompt || !updateNotes || !updateInstallButton || !updateError) return 1;
+  if (!updateWindow || !updatePrompt || !updateNotes || !updateNoteBlocks || !updateInstallButton || !updateError) return 1;
   updateWindow->show();
   QMetaObject::invokeMethod(updateModel.get(), "changed");
   const auto settleUpdate = [&] {
@@ -1430,6 +1431,16 @@ ApplicationWindow {
   };
   settleUpdate();
   const auto shortHeight = updatePrompt->property("height").toDouble();
+  updateModel->setProperty("releaseNotes", QStringLiteral("- Menús actualizados.\n\n- Controles actualizados."));
+  settleUpdate();
+  QList<QQuickItem *> entries;
+  for (auto *item : updateNoteBlocks->childItems()) {
+    if (item->height() > 0) entries.append(item);
+  }
+  if (entries.size() != 2 || entries.at(1)->y() - entries.at(0)->y() - entries.at(0)->height() < 6) {
+    output << "Update notes must separate bullet entries vertically.\n";
+    return 1;
+  }
   updateModel->setProperty("releaseNotes", QStringLiteral("- Cambios en el reproductor y la biblioteca.\n").repeated(36));
   settleUpdate();
   const auto longHeight = updatePrompt->property("height").toDouble();

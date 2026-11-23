@@ -57,6 +57,9 @@ Item {
         readonly property bool downloading: NumaUpdates.state === "downloading"
         readonly property bool authorizing: NumaUpdates.state === "authorizing"
         readonly property string notes: (NumaUpdates.releaseNotes || "").trim()
+        readonly property var noteBlocks: /^[-*+][ \t]/.test(notes)
+            ? notes.split(/\r?\n(?:[ \t]*\r?\n)*(?=[-*+][ \t])/)
+            : [notes]
         backdrop: overlays.stage
         width: Math.max(1, Math.min(540, parent.width - 32))
         height: Math.max(1, Math.min(implicitHeight, parent.height - 32))
@@ -144,15 +147,26 @@ Item {
                     color: NumaAppearance.rosePine ? NumaAppearance.overlayColor : "#0fffffff"
                 }
 
-                Text {
+                Column {
                     id: notesText
+                    objectName: "updateNoteBlocks"
                     width: updateNotes.contentWidth
-                    text: updatePrompt.notes
-                    textFormat: Text.MarkdownText
-                    color: NumaAppearance.textColor
-                    wrapMode: Text.Wrap
-                    font.family: "Inter"
-                    font.pixelSize: 14
+                    spacing: 8
+
+                    Repeater {
+                        model: updatePrompt.notes === "" ? [] : updatePrompt.noteBlocks
+
+                        Text {
+                            required property string modelData
+                            width: notesText.width
+                            text: modelData
+                            textFormat: Text.MarkdownText
+                            color: NumaAppearance.textColor
+                            wrapMode: Text.Wrap
+                            font.family: "Inter"
+                            font.pixelSize: 14
+                        }
+                    }
                 }
             }
 
