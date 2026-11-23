@@ -220,7 +220,7 @@ Rectangle {
             FlickableWheel {
                 view: list
             }
-            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+            ScrollBar.vertical: ThemedScrollBar { policy: ScrollBar.AsNeeded }
         }
 
         Rectangle {
@@ -229,6 +229,7 @@ Rectangle {
             radius: 14
             color: "#10ffffff"
             border.color: "#1affffff"
+            border.width: NumaAppearance.controlBorderWidth
             RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12

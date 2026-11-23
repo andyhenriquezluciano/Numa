@@ -1,5 +1,36 @@
 [
   {
+    "version": "2.9",
+    "date": "2026-11-23",
+    "title": "Navegación, Cristal y ajustes",
+    "sections": [
+      {
+        "title": "Mejoras",
+        "items": [
+          "Búsqueda, listas y cola más fluidas, con carga priorizada de carátulas y menos trabajo en segundo plano.",
+          "El tema Cristal adapta el botón de reproducción, las barras y el indicador de la canción activa al color de su carátula.",
+          "Configuración más clara, con menús desplegables más oscuros, deslizadores sin círculo y la sincronización mejor ordenada."
+        ]
+      }
+    ]
+  },
+  {
+    "version": "2.7",
+    "date": "2026-11-22",
+    "title": "Actualizaciones desde NÜMA",
+    "sections": [
+      {
+        "title": "Mejoras",
+        "items": [
+          "NÜMA puede descargar e instalar actualizaciones compatibles y volver a abrirse tras el permiso de Windows.",
+          "Rosé Pine y Dawn tienen colores más uniformes en menús, botones y controles de ventana.",
+          "La cola, el modo compacto y el reproductor completo tienen controles y barras más claros.",
+          "Tu Biblioteca reutiliza las carátulas guardadas en Métricas y facilita el acceso a las descargas sin conexión."
+        ]
+      }
+    ]
+  },
+  {
     "version": "2.6.1",
     "date": "2026-11-22",
     "title": "Rosé Pine y mejoras del reproductor",

@@ -28,6 +28,12 @@ Item {
     property url source: ""
     property var fallbackSources: []
     property int sourceAttempt: 0
+    property bool retried: false
+    property bool reloading: false
+    property Item loadViewport: null
+    property string grantedThumbnail: ""
+    property bool completed: false
+    readonly property string thumbnailCandidate: reloading ? "" : candidates[sourceAttempt] || ""
     readonly property var candidates: {
         const values = [root.sizedSource(root.source), root.source.toString()];
         for (const value of root.fallbackSources) {
@@ -38,19 +44,55 @@ Item {
     property real radius: 10
     // Square bottom corners let a card footer sit flush under the cover.
     property real bottomRadius: radius
-    // Stepped so a resizing cover refetches a few times instead of every frame, starting at 64px for crisp small thumbnails.
-    readonly property int artworkPixels: Math.max(64, Math.ceil(Math.max(width, height) * Screen.devicePixelRatio * 1.5 / 64) * 64)
-    property url shownSource: ""
+    // Shared sizes let shelves, search and the player reuse nearby thumbnail sizes.
+    readonly property int artworkPixels: {
+        const pixels = Math.max(width, height) * Screen.devicePixelRatio * 1.15;
+        return [64, 128, 256, 512, 1024, 2048].find(size => size >= pixels) || 2048;
+    }
     readonly property alias status: image.status
-    readonly property bool hasImage: image.status === Image.Ready && image.opacity > 0
+    readonly property bool hasImage: image.status === Image.Ready
+
+    onThumbnailCandidateChanged: syncThumbnailRequest()
+    onLoadViewportChanged: syncThumbnailRequest()
+    onVisibleChanged: {
+        if (visible && loadViewport && completed && !grantedThumbnail)
+            ThumbnailQueue.wake();
+    }
+    Component.onCompleted: {
+        completed = true;
+        syncThumbnailRequest();
+    }
+    Component.onDestruction: {
+        if (loadViewport)
+            ThumbnailQueue.release(root);
+    }
+
+    function syncThumbnailRequest() {
+        if (!completed)
+            return;
+        ThumbnailQueue.release(root);
+        grantedThumbnail = "";
+        if (loadViewport && thumbnailCandidate)
+            ThumbnailQueue.request(root);
+    }
+
+    function distanceFrom(viewport) {
+        const bounds = mapToItem(viewport, 0, 0, width, height);
+        return Math.max(0, -bounds.x - bounds.width, bounds.x - viewport.width)
+             + Math.max(0, -bounds.y - bounds.height, bounds.y - viewport.height);
+    }
+
+    function thumbnailDistance() {
+        const window = root.Window.window;
+        return distanceFrom(loadViewport) + (window ? distanceFrom(window.contentItem) : 0);
+    }
 
     onSourceChanged: {
         sourceAttempt = 0;
+        retried = false;
         retryTimer.stop();
-        if (root.source.toString() !== root.shownSource.toString()) {
-            fadeIn.stop();
-            image.opacity = 0;
-        }
+        reloadDelay.stop();
+        reloading = false;
     }
 
     function sizedSource(value) {
@@ -66,19 +108,23 @@ Item {
 
     function reload() {
         if (root.source.toString().length > 0) {
+            reloading = true;
             root.sourceAttempt = 0;
-            image.source = "";
-            Qt.callLater(() => {
-                if (root && image)
-                    image.source = Qt.binding(() => root.candidates[root.sourceAttempt] || "");
-            });
+            reloadDelay.restart();
         }
+    }
+
+    Timer {
+        id: reloadDelay
+        interval: 32
+        onTriggered: root.reloading = false
     }
 
     Connections {
         target: NumaNetwork
         function onOfflineChanged() {
-            if (!NumaNetwork.offline && (image.status === Image.Error || (image.status !== Image.Ready && image.opacity < 1))) {
+            if (!NumaNetwork.offline && root.visible && image.status === Image.Error) {
+                root.retried = false;
                 root.reload();
             }
         }
@@ -89,7 +135,8 @@ Item {
         interval: 3000
         repeat: false
         onTriggered: {
-            if (image.status === Image.Error && root.source.toString().length > 0 && !NumaNetwork.offline) {
+            if (root.visible && !root.retried && image.status === Image.Error && !NumaNetwork.offline) {
+                root.retried = true;
                 root.reload();
             }
         }
@@ -100,53 +147,39 @@ Item {
         radius: root.radius
         bottomLeftRadius: root.bottomRadius
         bottomRightRadius: root.bottomRadius
-        color: NumaAppearance.overlayColor
+        color: NumaAppearance.rosePine ? NumaAppearance.overlayColor : "#14ffffff"
         antialiasing: true
-        visible: image.status !== Image.Ready || image.opacity < 1
+        visible: image.status === Image.Error || (image.status === Image.Null && !root.thumbnailCandidate)
         LucideIcon {
             anchors.centerIn: parent
             width: Math.min(parent.width, parent.height) * 0.45
             height: width
             name: "music-2"
             color: NumaAppearance.mutedColor
-            visible: image.status === Image.Error || image.status === Image.Null
         }
+
     }
 
     Image {
         id: image
 
         anchors.fill: parent
-        source: root.candidates[root.sourceAttempt] || ""
+        source: root.loadViewport ? root.grantedThumbnail : root.thumbnailCandidate
         asynchronous: true
+        cache: true
         fillMode: Image.PreserveAspectCrop
         sourceSize.width: root.artworkPixels
         sourceSize.height: root.artworkPixels
-        mipmap: true
         smooth: true
-        // A resize reload keeps the old pixels up; only a new cover fades over the placeholder.
-        retainWhileLoading: true
-        opacity: 0
         onStatusChanged: {
-            if (status === Image.Ready) {
-                if (opacity < 1 && !fadeIn.running)
-                    fadeIn.restart();
-                root.shownSource = root.source;
-            } else if (status === Image.Error) {
-                if (root.sourceAttempt + 1 < root.candidates.length)
-                    root.sourceAttempt += 1;
-                else if (!NumaNetwork.offline)
-                    retryTimer.start();
-            } else if (root.source.toString() !== root.shownSource.toString()) {
-                fadeIn.stop();
-                opacity = 0;
-            }
-        }
-        Component.onCompleted: {
-            if (status === Image.Ready) {
-                opacity = 1;
-                root.shownSource = root.source;
-            }
+            if (root.loadViewport && (status === Image.Ready || status === Image.Error))
+                ThumbnailQueue.release(root);
+            if (status !== Image.Error)
+                return;
+            if (root.sourceAttempt + 1 < root.candidates.length)
+                root.sourceAttempt += 1;
+            else if (root.visible && !root.retried && !NumaNetwork.offline)
+                retryTimer.start();
         }
         // Sampled by the mask shader; a hidden Image still provides its texture.
         visible: false
@@ -164,19 +197,8 @@ Item {
         property real bottomRadius: root.bottomRadius
 
         anchors.fill: parent
-        opacity: image.opacity
-        visible: image.status === Image.Ready || image.opacity > 0
+        visible: root.hasImage
         fragmentShader: "qrc:/shaders/rounded_artwork.frag.qsb"
     }
 
-    NumberAnimation {
-        id: fadeIn
-
-        target: image
-        property: "opacity"
-        from: 0
-        to: 1
-        duration: Motion.normal
-        easing.type: Motion.enter
-    }
 }

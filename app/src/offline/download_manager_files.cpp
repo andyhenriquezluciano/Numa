@@ -61,8 +61,13 @@ QString collectionSource(const QVariantMap &collection) {
 } // namespace
 
 void DownloadManager::touch() {
-  ++m_revision;
   scheduleSave();
+  refreshJobState();
+  emit storeChanged();
+}
+
+void DownloadManager::refreshJobState() {
+  ++m_revision;
   emit changed();
 }
 
@@ -192,6 +197,7 @@ void DownloadManager::fetchLoop(const QString &id) {
     const QString path = m_store.animatedDir() + QLatin1Char('/') + name + QStringLiteral(".mp4");
     if (QFileInfo::exists(path)) {
       stored->animatedPath = path;
+      touch();
       finishArtwork(id);
       return;
     }
@@ -203,18 +209,20 @@ void DownloadManager::fetchLoop(const QString &id) {
       if (!m_jobs.contains(id))
         return;
       const auto record = m_store.tracks.find(id);
-      if (ok && record != m_store.tracks.end())
+      if (ok && record != m_store.tracks.end()) {
         record->animatedPath = path;
+        touch();
+      }
       finishArtwork(id);
     });
     fetch->start();
   });
 }
 
-void DownloadManager::saveCollection(const QVariantMap &collection, const QStringList &ids) {
+bool DownloadManager::saveCollection(const QVariantMap &collection, const QStringList &ids) {
   const QString source = collectionSource(collection);
   if (source.isEmpty())
-    return;
+    return false;
   const QString id = offline::kCollectionPrefix + source;
   offline::CollectionRecord *record = m_store.collection(id);
   if (!record) {
@@ -234,7 +242,7 @@ void DownloadManager::saveCollection(const QVariantMap &collection, const QStrin
   record->savedAt = QDateTime::currentMSecsSinceEpoch();
   const QString url = coverUrl(collection.value(QStringLiteral("thumbnail")).toString());
   if (url.isEmpty() || (!record->thumbnailPath.isEmpty() && QFileInfo::exists(record->thumbnailPath)))
-    return;
+    return true;
   QDir().mkpath(m_store.artDir());
   const QString path = m_store.artDir() + QStringLiteral("/c-") + offline::OfflineStore::stem(source) + QStringLiteral(".jpg");
   auto *fetch = new FileFetch(&m_network, QUrl(url), path, kMaxCoverBytes, 15000, this);
@@ -249,6 +257,7 @@ void DownloadManager::saveCollection(const QVariantMap &collection, const QStrin
     }
   });
   fetch->start();
+  return true;
 }
 
 void DownloadManager::deleteFiles(const offline::TrackRecord &record) {

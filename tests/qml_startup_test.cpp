@@ -1,11 +1,13 @@
 #include "account/cloud_cover_crop.h"
 #include "local/local_library.h"
+#include <QAbstractItemModel>
 #include <QGuiApplication>
 #include <QFontDatabase>
 #include <QFont>
 #include <QQuickWindow>
 #include <QQuickItem>
 #include <QMouseEvent>
+#include <QKeyEvent>
 #include <QImage>
 #include <QBuffer>
 #include <QPluginLoader>
@@ -44,6 +46,74 @@ int main(int argc, char *argv[]) {
   }
 
   QQmlEngine engine;
+  QQmlComponent rowsComponent(&engine);
+  rowsComponent.setData("import Numa\nPlaylistTrackModel {}", QUrl());
+  std::unique_ptr<QObject> rowsObject(rowsComponent.create());
+  auto *rows = qobject_cast<QAbstractItemModel *>(rowsObject.get());
+  if (!rows) {
+    output << rowsComponent.errorString() << '\n';
+    return 1;
+  }
+  int inserted = 0;
+  int firstInserted = -1;
+  int resets = 0;
+  QObject::connect(rows, &QAbstractItemModel::rowsInserted, [&](const QModelIndex &, int first, int last) {
+    firstInserted = first;
+    inserted += last - first + 1;
+  });
+  QObject::connect(rows, &QAbstractItemModel::modelReset, [&] { ++resets; });
+  const QVariantMap firstTrack{{"id", "first"}};
+  const QVariantMap nextTrack{{"id", "next"}};
+  const QVariantList firstPage{firstTrack};
+  const QVariantList bothPages{firstTrack, nextTrack};
+  const auto updateRows = [&](const QVariantList &tracks) {
+    return QMetaObject::invokeMethod(rows, "updateRows", Q_ARG(QVariantList, tracks));
+  };
+  if (!updateRows(firstPage)) return 1;
+  const QPersistentModelIndex originalRow(rows->index(0, 0));
+  if (!updateRows(bothPages) || !updateRows(bothPages) || !originalRow.isValid()
+      || firstInserted != 1 || inserted != 2 || resets != 0 || rows->rowCount() != 2) {
+    output << "Playlist pagination must append without recreating existing rows.\n";
+    return 1;
+  }
+  if (!updateRows(QVariantList{nextTrack, firstTrack}) || resets != 1 || originalRow.isValid()) {
+    output << "Playlist reordering must replace the previous order.\n";
+    return 1;
+  }
+  QQmlComponent queueComponent(&engine);
+  queueComponent.setData(R"(
+    import Numa
+    QueueListModel {
+      items: Array.from({length: 1000}, (_, index) => ({id: String(index)}))
+      function advance() { items = items.slice(1); reconcile(); }
+      function replace() { items = [{id: "new"}]; reconcile(); }
+    }
+  )", QUrl());
+  std::unique_ptr<QObject> queueObject(queueComponent.create());
+  auto *queue = qobject_cast<QAbstractItemModel *>(queueObject.get());
+  if (!queue) {
+    output << queueComponent.errorString() << '\n';
+    return 1;
+  }
+  int queueRemovals = 0;
+  int queueMoves = 0;
+  QObject::connect(queue, &QAbstractItemModel::rowsRemoved, [&] { ++queueRemovals; });
+  QObject::connect(queue, &QAbstractItemModel::rowsMoved, [&] { ++queueMoves; });
+  const QPersistentModelIndex nextInQueue(queue->index(1, 0));
+  QMetaObject::invokeMethod(queue, "advance");
+  if (queueRemovals != 1 || queueMoves != 0 || queue->rowCount() != 999 || nextInQueue.row() != 0) {
+    output << "Advancing a large queue must preserve the remaining rows without moves.\n";
+    return 1;
+  }
+  queue->setProperty("suspended", true);
+  QMetaObject::invokeMethod(queue, "replace");
+  if (queue->rowCount() != 999) return 1;
+  queue->setProperty("suspended", false);
+  application.processEvents();
+  if (queue->rowCount() != 1 || nextInQueue.isValid()) {
+    output << "A hidden queue must apply the latest update when it becomes visible.\n";
+    return 1;
+  }
   engine.rootContext()->setContextProperty(QStringLiteral("NumaAppearance"), QVariantMap{
       {"iconSource", "qrc:/qt/qml/Numa/app/qml/assets/numa-logo-rounded.svg"}, {"theme", "crystal"}, {"rosePine", false}, {"performanceMode", false}, {"borderColor", "#1cffffff"}, {"borderWidth", 1}, {"controlBorderWidth", 1}, {"bordersEnabled", true},
       {"textColor", "#f5f3ee"}, {"mutedColor", "#b4b8b1"}, {"accentColor", "#c4a7e7"}, {"surfaceColor", "#660e1210"}});
@@ -85,6 +155,59 @@ int main(int argc, char *argv[]) {
   auto *border = surface->property("border").value<QObject *>();
   if (!border || border->property("width").toInt() != (rose ? 0 : 1)) {
     output << "Controls must be borderless in Rose Pine.\n";
+    return 1;
+  }
+  QQmlComponent skeletonComponent(&engine);
+  skeletonComponent.setData("import Numa\nLoadingSkeleton { width: 640; trackRows: true }", QUrl());
+  std::unique_ptr<QObject> skeleton(skeletonComponent.create());
+  if (!skeleton) {
+    output << skeletonComponent.errorString() << '\n';
+    return 1;
+  }
+  const auto fill = skeleton->property("fill").value<QColor>();
+  const QColor themeInk(dawn ? "#575279" : rose ? "#e0def4" : "#f5f3ee");
+  if (fill.red() != themeInk.red() || fill.green() != themeInk.green()
+      || fill.blue() != themeInk.blue() || fill.alpha() <= 0 || fill.alpha() >= 255) {
+    output << "Loading skeletons must use translucent theme text colors.\n";
+    return 1;
+  }
+  skeleton->setProperty("loading", true);
+  QElapsedTimer loadDelay;
+  loadDelay.start();
+  while (loadDelay.elapsed() < 120) {
+    application.processEvents();
+    QThread::msleep(5);
+  }
+  if (skeleton->property("active").toBool()) {
+    output << "Fast loads must not allocate skeleton graphics.\n";
+    return 1;
+  }
+  while (!skeleton->property("active").toBool() && loadDelay.elapsed() < 1200) {
+    application.processEvents();
+    QThread::msleep(5);
+  }
+  if (!skeleton->property("active").toBool() || skeleton->property("height").toInt() <= 0) {
+    output << "The loading skeleton did not appear for a slow load.\n";
+    return 1;
+  }
+  const auto *layout = qobject_cast<QQuickItem *>(skeleton->property("item").value<QObject *>());
+  int trackPlaceholders = 0;
+  if (layout) {
+    for (const auto *placeholder : layout->childItems()) {
+      if (placeholder->objectName() != "skeletonTrackRow") continue;
+      const auto *cover = placeholder->findChild<QQuickItem *>("skeletonTrackArtwork");
+      if (placeholder->width() != 640 || placeholder->height() != 60
+          || !cover || cover->width() != 44 || cover->height() != 44 || cover->x() != 58) {
+        output << "Playlist placeholders must match the song row and its artwork slot.\n";
+        return 1;
+      }
+      ++trackPlaceholders;
+    }
+  }
+  if (trackPlaceholders != 3 || layout->height() != 180) return 1;
+  skeleton->setProperty("loading", false);
+  if (skeleton->property("active").toBool()) {
+    output << "Completing a load must remove its skeleton immediately.\n";
     return 1;
   }
   for (bool active : {false, true}) {
@@ -231,6 +354,86 @@ int main(int argc, char *argv[]) {
   if (offlineButton->property("visible").toBool()) return 1;
   network->setProperty("checking", false);
   network->setProperty("offline", true);
+  QQmlContext searchContext(engine.rootContext());
+  searchContext.setContextProperty("NumaPlaylist", QVariantMap{{"palette", QVariantMap{}}});
+  searchContext.setContextProperty("NumaPlayback", QVariantMap{{"track", QVariantMap{{"id", ""}}}});
+  QQmlComponent longSearchComponent(&engine);
+  longSearchComponent.setData(R"(
+    import QtQuick
+    import Numa
+    Window {
+      width: 900
+      height: 600
+      visible: true
+      SearchView {
+        objectName: "longSearch"
+        anchors.fill: parent
+        filter: "songs"
+        sections: [{key: filter, title: filter, items: Array.from({length: filter === "albums" ? 360 : 1000}, (_, index) => ({
+          id: String(index), type: filter === "albums" ? "album" : "song", title: "Result " + index
+        }))}]
+      }
+    }
+  )", QUrl());
+  std::unique_ptr<QObject> longSearch(longSearchComponent.create(&searchContext));
+  if (!longSearch) {
+    output << longSearchComponent.errorString() << '\n';
+    return 1;
+  }
+  auto *searchView = longSearch->findChild<QObject *>("longSearch");
+  if (!searchView) return 1;
+  auto *searchScroll = searchView->property("navigationScroll").value<QObject *>();
+  if (!searchScroll) return 1;
+  const auto visibleResultIndexes = [&] {
+    QList<int> indexes;
+    const auto collect = [&indexes](auto &&self, const QQuickItem *item) -> void {
+      if (item->objectName() == "searchResultContent") {
+        indexes.append(item->parentItem()->property("index").toInt());
+        return;
+      }
+      for (const auto *child : item->childItems())
+        self(self, child);
+    };
+    collect(collect, qobject_cast<const QQuickItem *>(searchView));
+    return indexes;
+  };
+  QElapsedTimer searchLayout;
+  searchLayout.start();
+  while (searchScroll->property("contentHeight").toInt() < 54000 && searchLayout.elapsed() < 3000) {
+    application.processEvents();
+    QThread::msleep(5);
+  }
+  const auto firstResults = visibleResultIndexes();
+  if (searchScroll->property("contentHeight").toInt() < 54000
+      || !firstResults.contains(0) || firstResults.size() > 30) {
+    output << "A long search must reserve its scroll range while creating only nearby results. "
+           << "Height: " << searchScroll->property("contentHeight").toInt()
+           << ", cards: " << firstResults.size() << ".\n";
+    return 1;
+  }
+  searchScroll->setProperty("contentY", 54 * 160);
+  application.processEvents();
+  const auto laterResults = visibleResultIndexes();
+  if (!laterResults.contains(160) || laterResults.contains(0) || laterResults.size() > 32) {
+    output << "Search results must follow the viewport and release distant cards.\n";
+    return 1;
+  }
+  output << "Search viewport mounted " << firstResults.size() << " initial cards for 1000 results, and "
+         << laterResults.size() << " after scrolling.\n";
+  searchView->setProperty("filter", "albums");
+  searchLayout.restart();
+  while (!visibleResultIndexes().contains(0) && searchLayout.elapsed() < 3000) {
+    application.processEvents();
+    QThread::msleep(5);
+  }
+  searchScroll->setProperty("contentY", 7800);
+  application.processEvents();
+  const auto albumResults = visibleResultIndexes();
+  if (albumResults.isEmpty() || albumResults.contains(0) || albumResults.size() > 40) {
+    output << "Album search must also load its grid around the visible results.\n";
+    return 1;
+  }
+  longSearch.reset();
   QTemporaryDir artworkDirectory;
   if (!artworkDirectory.isValid()) return 1;
   QImage firstCover(64, 64, QImage::Format_RGB32);
@@ -242,6 +445,34 @@ int main(int argc, char *argv[]) {
   if (!firstCover.save(firstCoverPath) || !nextCover.save(nextCoverPath)) return 1;
   const auto firstCoverUrl = QUrl::fromLocalFile(firstCoverPath);
   const auto nextCoverUrl = QUrl::fromLocalFile(nextCoverPath);
+  QQmlComponent paletteComponent(&engine);
+  paletteComponent.setData("import Numa\nArtworkPalette {}", QUrl());
+  std::unique_ptr<QObject> palette(paletteComponent.create());
+  if (!palette) {
+    output << paletteComponent.errorString() << '\n';
+    return 1;
+  }
+  const auto loadPalette = [&](const QUrl &url) {
+    palette->setProperty("source", url);
+    QElapsedTimer timer;
+    timer.start();
+    while (!palette->property("ready").toBool() && timer.elapsed() < 3000) {
+      application.processEvents();
+      QThread::msleep(2);
+    }
+    return palette->property("ready").toBool();
+  };
+  if (!loadPalette(firstCoverUrl)) return 1;
+  for (int index = 0; index < 63; ++index) {
+    const QString path = artworkDirectory.filePath(QStringLiteral("palette-%1.png").arg(index));
+    if (!QFile::copy(nextCoverPath, path) || !loadPalette(QUrl::fromLocalFile(path))) return 1;
+  }
+  if (!loadPalette(firstCoverUrl) || !loadPalette(nextCoverUrl)) return 1;
+  palette->setProperty("source", firstCoverUrl);
+  if (!palette->property("ready").toBool()) {
+    output << "Reaching the palette cache limit must retain recently used covers.\n";
+    return 1;
+  }
   QQmlComponent artworkComponent(&engine);
   artworkComponent.setData("import QtQuick\nimport Numa\nRoundedArtwork { width: 64; height: 64 }", QUrl());
   std::unique_ptr<QObject> artwork(artworkComponent.create());
@@ -276,6 +507,48 @@ int main(int argc, char *argv[]) {
     output << "A pending cover retry must load the current song instead of an older one.\n";
     return 1;
   }
+  for (int i = 0; i < 32; ++i) {
+    QMetaObject::invokeMethod(artwork.get(), "reload");
+    artwork->setProperty("source", i % 2 == 0 ? firstCoverUrl : nextCoverUrl);
+    application.processEvents();
+  }
+  if (!waitForCover(nextCoverUrl) || !artwork->property("hasImage").toBool()) {
+    output << "Rapid artwork changes must leave the latest thumbnail visible.\n";
+    return 1;
+  }
+  QQmlComponent queuedArtwork(&engine);
+  queuedArtwork.setData(R"(
+    import QtQuick
+    import Numa
+    Item {
+      id: viewport
+      width: 200
+      height: 200
+      property alias cover: tile
+      RoundedArtwork { id: tile; width: 64; height: 64; visible: false; loadViewport: viewport }
+    }
+  )", QUrl());
+  std::unique_ptr<QObject> viewport(queuedArtwork.create());
+  if (!viewport) {
+    output << queuedArtwork.errorString() << '\n';
+    return 1;
+  }
+  auto *queuedCover = viewport->property("cover").value<QObject *>();
+  if (!queuedCover) return 1;
+  queuedCover->setProperty("source", firstCoverUrl);
+  application.processEvents();
+  if (!queuedCover->property("grantedThumbnail").toString().isEmpty()) return 1;
+  queuedCover->setProperty("visible", true);
+  QElapsedTimer queuedTimeout;
+  queuedTimeout.start();
+  while (!queuedCover->property("hasImage").toBool() && queuedTimeout.elapsed() < 3000) {
+    application.processEvents();
+    QThread::msleep(5);
+  }
+  if (!queuedCover->property("hasImage").toBool()) {
+    output << "A queued cover must load when its delegate becomes visible.\n";
+    return 1;
+  }
   QQmlComponent mockAccount(&engine);
   mockAccount.setData("import QtQuick\nQtObject { property bool isSignedIn: false }", QUrl());
   std::unique_ptr<QObject> account(mockAccount.create());
@@ -287,17 +560,50 @@ int main(int argc, char *argv[]) {
     import QtQuick.Controls
     import Numa
     ApplicationWindow {
+      id: fixture
       width: 700; height: 600
       color: "#181622"
+      function playlistSearchOrder(query) {
+        return quickSearch.computeMatches(query).map(match => match.track.id).join(",");
+      }
+      function replacePlaylistSearchTracks() {
+        quickSearch.tracks = [{id: "replacement", title: "Nueva mañana"}];
+      }
+      PlaylistQuickSearch {
+        id: quickSearch
+        backdrop: fixture.contentItem
+        detail: ({ author: "MaÑana" })
+        tracks: [
+          {id: "album", title: "Otra", artist: "Artista", album: "Mañana"},
+          {id: "fallback", title: "Sin artista"},
+          {id: "substring", title: "Supermañana"},
+          {id: "word", title: "Supermañana Mañana"},
+          {id: "prefix", title: "Mañana temprano"},
+          {id: "exact", title: "Mañana"},
+          {id: "tie", title: "Mañana"}
+        ]
+      }
       CloudCollectionAction { x: 50; y: 50; media: ({id: "PL123", title: "Playlist", type: "playlist"}) }
       SettingsSegmented {
         objectName: "testChoice"; x: 50; y: 120
         currentValue: "adaptive"
         model: [{value: "standard", label: "Standard"}, {value: "adaptive", label: "Adaptive", enabled: false}]
       }
-      CloudSyncSetting { x: 330; y: 330; width: 300 }
+      NumaAccountSettingForm {
+        objectName: "accountSyncForm"
+        x: 50; y: 300; width: 600
+        signedIn: NumaAccount.isSignedIn
+        userName: "Test account"
+      }
       RestoreDefaultPlaylistsButton { objectName: "restoreDefaults"; x: 50; y: 180; width: 230 }
       SettingsInfoButton { objectName: "testInfo"; x: 280; y: 120; heading: "Crossfade"; message: "Blends consecutive songs." }
+      AppearanceSlider {
+        id: flatSlider
+        objectName: "flatSettingsSlider"
+        x: 50; y: 245; width: 235
+        value: 0.4
+        onMoved: nextValue => flatSlider.value = nextValue
+      }
       SettingsSegmented {
         objectName: "singleChoice"; x: 330; y: 120
         currentValue: "apple_music"
@@ -310,12 +616,65 @@ int main(int argc, char *argv[]) {
     for (const auto &error : controls.errors()) output << error.toString() << '\n';
     return 1;
   }
+  const auto playlistSearchOrder = [&](const QString &query) {
+    QVariant result;
+    QMetaObject::invokeMethod(controlsObject.get(), "playlistSearchOrder",
+                              Q_RETURN_ARG(QVariant, result), Q_ARG(QVariant, query));
+    return result.toString();
+  };
+  if (playlistSearchOrder(QStringLiteral("manana")) != "exact,tie,prefix,word,substring,fallback,album"
+      || playlistSearchOrder(QStringLiteral("manana temprano")) != "prefix") {
+    output << "Playlist search must preserve accent-insensitive ranking and the original order of ties.\n";
+    return 1;
+  }
+  QMetaObject::invokeMethod(controlsObject.get(), "replacePlaylistSearchTracks");
+  if (playlistSearchOrder(QStringLiteral("manana")) != "replacement") {
+    output << "Playlist search must rebuild its index when its tracks change.\n";
+    return 1;
+  }
   auto *window = qobject_cast<QQuickWindow *>(controlsObject.get());
   auto *libraryButton = controlsObject->findChild<QObject *>("cloudLibraryButton");
   auto *artworkButton = controlsObject->findChild<QObject *>("playlistArtworkButton");
   auto *menu = controlsObject->findChild<QObject *>("playlistArtworkMenu");
   auto *choice = controlsObject->findChild<QObject *>("testChoice");
   if (!window || !libraryButton || !artworkButton || !menu || !choice) return 1;
+  window->show();
+  for (int i = 0; i < 12; ++i) { application.processEvents(); QThread::msleep(10); }
+  auto *flatSetting = controlsObject->findChild<QObject *>("flatSettingsSlider");
+  auto *flatSlider = flatSetting ? qobject_cast<QQuickItem *>(flatSetting->property("slider").value<QObject *>()) : nullptr;
+  auto *flatHandle = flatSlider ? qobject_cast<QQuickItem *>(flatSlider->property("handle").value<QObject *>()) : nullptr;
+  if (!flatSlider || !flatHandle || flatHandle->width() != 0 || flatHandle->height() != 0) {
+    output << "Settings sliders must have no visible knob.\n";
+    return 1;
+  }
+  const auto sendSliderMouse = [&](QEvent::Type type, double fraction, Qt::MouseButton changed, Qt::MouseButtons held) {
+    const double x = flatSlider->property("leftPadding").toDouble() + fraction * flatSlider->property("availableWidth").toDouble();
+    const QPointF point = flatSlider->mapToScene(QPointF(x, flatSlider->height() / 2));
+    QMouseEvent event(type, point, QPointF(window->mapToGlobal(point.toPoint())), changed, held, Qt::NoModifier);
+    QCoreApplication::sendEvent(window, &event);
+    application.processEvents();
+  };
+  sendSliderMouse(QEvent::MouseButtonPress, 0.76, Qt::LeftButton, Qt::LeftButton);
+  sendSliderMouse(QEvent::MouseButtonRelease, 0.76, Qt::LeftButton, Qt::NoButton);
+  if (qAbs(flatSetting->property("value").toDouble() - 0.76) > 0.04) {
+    output << "Clicking the slider rail must move its value.\n";
+    return 1;
+  }
+  sendSliderMouse(QEvent::MouseButtonPress, 0.76, Qt::LeftButton, Qt::LeftButton);
+  sendSliderMouse(QEvent::MouseMove, 0.25, Qt::NoButton, Qt::LeftButton);
+  sendSliderMouse(QEvent::MouseButtonRelease, 0.25, Qt::LeftButton, Qt::NoButton);
+  const double draggedValue = flatSetting->property("value").toDouble();
+  if (qAbs(draggedValue - 0.25) > 0.04) {
+    output << "Dragging the slider rail must move its value.\n";
+    return 1;
+  }
+  flatSlider->forceActiveFocus(Qt::TabFocusReason);
+  QKeyEvent sliderKey(QEvent::KeyPress, Qt::Key_Right, Qt::NoModifier);
+  QCoreApplication::sendEvent(window, &sliderKey);
+  if (flatSetting->property("value").toDouble() <= draggedValue) {
+    output << "Settings sliders must remain adjustable by keyboard.\n";
+    return 1;
+  }
   auto *syncButton = controlsObject->findChild<QObject *>("syncLibraryNow");
   if (!syncButton || syncButton->property("enabled").toBool()) return 1;
   account->setProperty("isSignedIn", true);
@@ -354,10 +713,39 @@ int main(int argc, char *argv[]) {
     output << "Playlist menu entries must share text alignment.\n"; return 1;
   }
   if (choice->property("currentIndex").toInt() != 1 || choice->property("displayText").toString() != "Adaptive") return 1;
-  window->show();
   QMetaObject::invokeMethod(artworkButton, "clicked");
   menu->setProperty("currentIndex", 0);
   for (int i = 0; i < 25; ++i) { application.processEvents(); QThread::msleep(10); }
+  auto *accountLayout = controlsObject->findChild<QQuickItem *>("accountSyncForm");
+  auto *syncAction = qobject_cast<QQuickItem *>(syncButton);
+  auto *signOut = accountLayout ? qobject_cast<QQuickItem *>(accountLayout->property("signOutButton").value<QObject *>()) : nullptr;
+  auto *syncDescription = controlsObject->findChild<QQuickItem *>("syncDescription");
+  if (!accountLayout || !syncAction || !signOut || !syncDescription) return 1;
+  const auto syncCorner = syncAction->mapToItem(accountLayout, QPointF(syncAction->width(), 0));
+  const auto profileCorner = signOut->mapToItem(accountLayout, QPointF(signOut->width(), signOut->height()));
+  if (syncCorner.y() <= profileCorner.y() || qAbs(syncCorner.x() - accountLayout->width()) > 1
+      || qAbs(syncCorner.x() - profileCorner.x()) > 1) {
+    output << "The sync action must be below the profile and right-aligned with sign out. "
+           << "Sync (" << syncCorner.x() << ", " << syncCorner.y() << "), profile ("
+           << profileCorner.x() << ", " << profileCorner.y() << ").\n";
+    return 1;
+  }
+  const auto textCorner = syncDescription->mapToItem(accountLayout, QPointF(syncDescription->width(), 0));
+  if (textCorner.x() > syncCorner.x() - syncAction->width() - 20
+      || textCorner.y() >= syncCorner.y() + syncAction->height()
+      || textCorner.y() + syncDescription->height() <= syncCorner.y()) {
+    output << "Account sync copy must wrap to the left of its button.\n";
+    return 1;
+  }
+  accountLayout->setWidth(260);
+  for (int i = 0; i < 8; ++i) { application.processEvents(); QThread::msleep(10); }
+  const auto narrowButton = syncAction->mapToItem(accountLayout, QPointF(syncAction->width(), 0));
+  const auto narrowText = syncDescription->mapToItem(accountLayout, QPointF(0, syncDescription->height()));
+  if (narrowButton.y() < narrowText.y() || qAbs(narrowButton.x() - accountLayout->width()) > 1) {
+    output << "A narrow account panel must keep the sync button below the copy and on the right.\n";
+    return 1;
+  }
+  accountLayout->setWidth(600);
   if (!menu->property("visible").toBool() || menu->property("width").toInt() < 250 || menu->property("height").toInt() < 150) {
     output << "Playlist actions must open as a full-sized menu.\n"; return 1;
   }
@@ -728,12 +1116,24 @@ import Numa
 CollectionTrackRow {
     width: 700
     showLocalExtras: true
-    track: ({id: 'local:test', title: 'Test song', hasDownloadedLyrics: true, hasDownloadedArtwork: true})
+    property string requestedAlbumId
+    track: ({id: 'local:test', title: 'Test song', albumId: 'album-test', hasDownloadedLyrics: true, hasDownloadedArtwork: true})
+    onAlbumRequested: album => requestedAlbumId = album.browseId
+    function requestAlbum() { useTrackMenu(menu => menu.viewAlbum()); }
 }
 )", QUrl());
   std::unique_ptr<QObject> localBadges(localBadgesComponent.create());
   if (!localBadges) {
     for (const auto &error : localBadgesComponent.errors()) output << error.toString() << '\n';
+    return 1;
+  }
+  auto *trackMenuLoader = localBadges->findChild<QObject *>("trackMenuLoader");
+  if (!trackMenuLoader || trackMenuLoader->property("active").toBool()) return 1;
+  QMetaObject::invokeMethod(localBadges.get(), "requestAlbum");
+  application.processEvents();
+  if (localBadges->property("requestedAlbumId").toString() != "album-test"
+      || trackMenuLoader->property("active").toBool()) {
+    output << "Track menus must load on demand, keep album navigation and release themselves.\n";
     return 1;
   }
   auto *lyricsBadge = localBadges->findChild<QObject *>("localLyricsBadge");
@@ -789,6 +1189,106 @@ CollectionTrackRow {
   playerState.insert("repeatMode", "off");
   playerState.insert("shuffleEnabled", false);
   playerContext.setContextProperty("NumaPlayback", playerState);
+  QQmlContext crystalContext(&playerContext);
+  auto crystalAppearance = playerAppearance;
+  crystalAppearance.insert("theme", "crystal");
+  crystalAppearance.insert("rosePine", false);
+  crystalAppearance.insert("surfaceColor", "#660e1210");
+  crystalAppearance.insert("performanceMode", false);
+  crystalContext.setContextProperty("NumaAppearance", crystalAppearance);
+  auto crystalPlayback = playerState;
+  crystalPlayback.insert("track", QVariantMap{{"id", "cover-red"}, {"thumbnail", firstCoverUrl.toString()}});
+  crystalContext.setContextProperty("NumaPlayback", crystalPlayback);
+  QQmlComponent crystalControls(&engine);
+  crystalControls.setData(R"(
+    import QtQuick
+    import Numa
+    Window {
+      id: stage
+      width: 1100
+      height: 160
+      property color playbackAccentColor: dock.accentColor
+      PlayerBar { id: dock; objectName: "crystalDock"; width: stage.width; backdrop: stage.contentItem }
+      ThemedScrollBar { objectName: "crystalScroll"; x: 1080; y: 70; height: 80; size: 0.5 }
+      SettingsSelect { objectName: "crystalSettingsSelect"; y: 80; model: ["A", "B"] }
+      SettingsComboBox { objectName: "crystalSettingsCombo"; x: 200; y: 80; model: ["A", "B"] }
+      CollectionTrackRow { x: 400; y: 80; width: 600; track: NumaPlayback.track }
+    }
+  )", QUrl());
+  std::unique_ptr<QObject> crystalWindow(crystalControls.create(&crystalContext));
+  if (!crystalWindow) { output << crystalControls.errorString() << '\n'; return 1; }
+  const auto findControl = [](auto &&self, QQuickItem *item, const QString &name) -> QQuickItem * {
+    if (item->objectName() == name) return item;
+    for (auto *child : item->childItems())
+      if (auto *match = self(self, child, name)) return match;
+    return nullptr;
+  };
+  auto *crystalContent = qobject_cast<QQuickWindow *>(crystalWindow.get())->contentItem();
+  auto *crystalDock = findControl(findControl, crystalContent, QStringLiteral("crystalDock"));
+  auto *crystalPlay = findControl(findControl, crystalContent, QStringLiteral("miniPlayPauseButton"));
+  auto *crystalFill = findControl(findControl, crystalContent, QStringLiteral("miniPlaybackFill"));
+  auto *crystalScroll = findControl(findControl, crystalContent, QStringLiteral("crystalScroll"));
+  for (const QString &name : {QStringLiteral("crystalSettingsSelect"), QStringLiteral("crystalSettingsCombo")}) {
+    auto *control = findControl(findControl, crystalContent, name);
+    auto *popup = control ? control->property("popup").value<QObject *>() : nullptr;
+    auto *surface = popup ? popup->property("background").value<QObject *>() : nullptr;
+    const auto fill = surface ? surface->property("surfaceFill").value<QColor>() : QColor();
+    if (fill.name() != "#0e1210" || fill.alpha() != 184) {
+      output << "Settings option menus must use a darker translucent version of the panel surface.\n";
+      return 1;
+    }
+  }
+  auto *playBackground = crystalPlay ? crystalPlay->property("background").value<QObject *>() : nullptr;
+  if (!crystalDock || !playBackground || !crystalFill || !crystalScroll) {
+    output << "The mini player controls and scrollbar must be present in the Cristal fixture.\n";
+    return 1;
+  }
+  const auto crystalAccent = [&] { return crystalDock->property("accentColor").value<QColor>(); };
+  const auto allFollowCover = [&] {
+    const auto *indicator = findControl(findControl, crystalContent, QStringLiteral("playingIndicatorBar"));
+    return playBackground->property("color").value<QColor>() == crystalAccent()
+        && crystalFill->property("baseColor").value<QColor>() == crystalAccent()
+        && crystalScroll->property("thumbColor").value<QColor>() == crystalAccent()
+        && indicator && indicator->property("color").value<QColor>() == crystalAccent();
+  };
+  if (crystalAccent().red() <= crystalAccent().blue() || !allFollowCover()) {
+    output << "Cristal must apply the song's cover color to play, progress and scrolling.\n";
+    return 1;
+  }
+  const auto lastAccent = crystalAccent();
+  const QString pendingCover = artworkDirectory.filePath("pending-blue.png");
+  if (!QFile::copy(nextCoverPath, pendingCover)) return 1;
+  crystalPlayback.insert("track", QVariantMap{{"id", "cover-blue"}, {"thumbnail", QUrl::fromLocalFile(pendingCover).toString()}});
+  crystalPlayback.insert("playing", true);
+  crystalContext.setContextProperty("NumaPlayback", crystalPlayback);
+  if (crystalAccent() != lastAccent || !allFollowCover() || crystalPlay->property("iconName").toString() != "pause") {
+    output << "Cristal must keep its current accent while the next cover loads.\n";
+    return 1;
+  }
+  QElapsedTimer crystalTransition;
+  crystalTransition.start();
+  while (crystalAccent().blue() <= crystalAccent().red() && crystalTransition.elapsed() < 3000) {
+    application.processEvents();
+    QThread::msleep(5);
+  }
+  if (crystalAccent().blue() <= crystalAccent().red() || !allFollowCover()) {
+    output << "Cristal's play, progress, scroll and row indicator must follow the new cover together.\n";
+    return 1;
+  }
+  for (const QString theme : {QStringLiteral("rose_pine"), QStringLiteral("rose_pine_dawn")}) {
+    const QString accent = theme.endsWith("dawn") ? QStringLiteral("#d7827e") : QStringLiteral("#ebbcba");
+    auto roseAppearance = crystalAppearance;
+    roseAppearance.insert("theme", theme);
+    roseAppearance.insert("rosePine", true);
+    roseAppearance.insert("accentColor", accent);
+    crystalContext.setContextProperty("NumaAppearance", roseAppearance);
+    const auto *indicator = findControl(findControl, crystalContent, QStringLiteral("playingIndicatorBar"));
+    if (!indicator || indicator->property("color").value<QColor>() != QColor(accent)) {
+      output << "Rosé Pine's row indicator must keep the selected theme accent.\n";
+      return 1;
+    }
+  }
+  crystalWindow.reset();
   QQmlComponent playerTestComponent(&engine);
   playerTestComponent.setData("import QtQuick\nimport Numa\nItem { id: stage; width: 1100; height: 70; PlayerBar { objectName: 'volumeTestBar'; anchors.fill: parent; backdrop: stage } }", QUrl());
   std::unique_ptr<QObject> playerTest(playerTestComponent.create(&playerContext));
@@ -867,6 +1367,108 @@ ApplicationWindow {
     }
     bloomWindow->close();
   }
+  QQmlContext updateContext(engine.rootContext());
+  updateContext.setContextProperty("NumaAuth", QVariantMap{{"isSignedIn", false}});
+  updateContext.setContextProperty("NumaMusicVideo", QVariantMap{{"open", false}});
+  updateContext.setContextProperty("NumaPlayback", QVariantMap{{"track", QVariantMap{{"id", ""}}}});
+  updateContext.setContextProperty("NumaReleaseNotes", QVariantList{});
+  updateContext.setContextProperty("NumaSupport", QVariant::fromValue<QObject *>(nullptr));
+  QQmlComponent updateModelComponent(&engine);
+  updateModelComponent.setData(R"(
+import QtQuick
+QtObject {
+    signal changed()
+    property string state: "available"
+    property string latestVersion: "2.7"
+    property string releaseNotes: "- Menús y controles actualizados."
+    property bool installsInApp: true
+    property string error: ""
+    property int downloaded: 20
+    property int total: 100
+}
+)", QUrl());
+  std::unique_ptr<QObject> updateModel(updateModelComponent.create(&updateContext));
+  if (!updateModel) return 1;
+  updateContext.setContextProperty("NumaUpdates", updateModel.get());
+  QQmlComponent updatePreviewComponent(&engine);
+  updatePreviewComponent.setData(R"(
+import QtQuick
+import QtQuick.Controls
+import Numa
+ApplicationWindow {
+    width: 420
+    height: 360
+    Item {
+        id: updateStage
+        anchors.fill: parent
+        property string currentPage: "home"
+        property bool fullscreenOpen: false
+        function isEditableFocused() { return false }
+        HomeOverlays { shell: updateStage; stage: updateStage }
+    }
+}
+)", QUrl());
+  std::unique_ptr<QObject> updatePreview(updatePreviewComponent.create(&updateContext));
+  if (!updatePreview) {
+    for (const auto &error : updatePreviewComponent.errors()) output << error.toString() << '\n';
+    return 1;
+  }
+  auto *updateWindow = qobject_cast<QQuickWindow *>(updatePreview.get());
+  auto *updatePrompt = updatePreview->findChild<QObject *>("updatePrompt");
+  auto *updateNotes = updatePreview->findChild<QObject *>("updateNotes");
+  auto *updateInstallButton = updatePreview->findChild<QObject *>("updateInstallButton");
+  auto *updateError = updatePreview->findChild<QObject *>("updateError");
+  if (!updateWindow || !updatePrompt || !updateNotes || !updateInstallButton || !updateError) return 1;
+  updateWindow->show();
+  QMetaObject::invokeMethod(updateModel.get(), "changed");
+  const auto settleUpdate = [&] {
+    for (int i = 0; i < 8; ++i) {
+      application.processEvents();
+      updateWindow->contentItem()->polish();
+      QThread::msleep(5);
+    }
+  };
+  settleUpdate();
+  const auto shortHeight = updatePrompt->property("height").toDouble();
+  updateModel->setProperty("releaseNotes", QStringLiteral("- Cambios en el reproductor y la biblioteca.\n").repeated(36));
+  settleUpdate();
+  const auto longHeight = updatePrompt->property("height").toDouble();
+  if (!updatePrompt->property("visible").toBool() || shortHeight < 140 || shortHeight >= longHeight
+      || longHeight > updateWindow->height() - 32
+      || updateNotes->property("contentHeight").toDouble() <= updateNotes->property("height").toDouble()) {
+    output << "The update prompt must fit short notes and scroll long notes inside the window."
+           << " short=" << shortHeight << " long=" << longHeight << '\n';
+    return 1;
+  }
+  updateModel->setProperty("releaseNotes", QString());
+  settleUpdate();
+  if (updateNotes->property("visible").toBool() || updatePrompt->property("height").toDouble() >= shortHeight) {
+    output << "An update without notes must omit the notes surface.\n";
+    return 1;
+  }
+  const QString inAppAction = updateInstallButton->property("text").toString();
+  for (const auto &state : {QStringLiteral("downloading"), QStringLiteral("authorizing")}) {
+    updateModel->setProperty("state", state);
+    settleUpdate();
+    if (updateInstallButton->property("enabled").toBool()) {
+      output << "The installer action must be disabled while downloading or awaiting approval.\n";
+      return 1;
+    }
+  }
+  updateModel->setProperty("state", QStringLiteral("available"));
+  updateModel->setProperty("error", QStringLiteral("Installation canceled."));
+  settleUpdate();
+  if (!updateError->property("visible").toBool() || !updateInstallButton->property("enabled").toBool()) {
+    output << "A canceled installation must show feedback and allow a retry.\n";
+    return 1;
+  }
+  updateModel->setProperty("installsInApp", false);
+  settleUpdate();
+  if (updateInstallButton->property("text").toString() == inAppAction) {
+    output << "Legacy installers must keep a distinct download action.\n";
+    return 1;
+  }
+  updateWindow->close();
   output << "Numa QML startup check passed.\n";
   return 0;
 }

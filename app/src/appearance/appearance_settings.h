@@ -50,6 +50,8 @@ class AppearanceSettings final : public QObject {
     Q_PROPERTY(QColor textColor READ textColor NOTIFY changed)
     Q_PROPERTY(QColor mutedColor READ mutedColor NOTIFY changed)
     Q_PROPERTY(QColor accentColor READ accentColor NOTIFY changed)
+    Q_PROPERTY(QColor brandColor READ brandColor CONSTANT)
+    Q_PROPERTY(QColor downloadedColor READ downloadedColor NOTIFY changed)
     Q_PROPERTY(QColor borderColor READ borderColor NOTIFY changed)
     Q_PROPERTY(int borderWidth READ borderWidth NOTIFY changed)
     Q_PROPERTY(int controlBorderWidth READ controlBorderWidth NOTIFY changed)
@@ -86,6 +88,8 @@ public:
     QColor textColor() const { return QColor(dawn() ? "#575279" : performanceMode() ? "#e0def4" : "#f5f3ee"); }
     QColor mutedColor() const { return QColor(dawn() ? "#797593" : performanceMode() ? "#908caa" : "#b4b8b1"); }
     QColor accentColor() const { return QColor(dawn() ? "#d7827e" : performanceMode() ? "#ebbcba" : "#c4a7e7"); }
+    QColor brandColor() const { return QColor("#7474ff"); }
+    QColor downloadedColor() const { return performanceMode() ? accentColor() : brandColor(); }
     QColor borderColor() const { return QColor(dawn() ? "#d7827e" : performanceMode() ? "#ebbcba" : "#1cffffff"); }
     bool bordersEnabled() const { return m_bordersEnabled; }
     int borderWidth() const { return m_bordersEnabled ? (performanceMode() ? 2 : 1) : 0; }

@@ -26,6 +26,7 @@ import "../library"
 
 Item {
     id: root
+    readonly property alias navigationScroll: scroll
     property string query: ""
     property string filter: "all"
     property bool loading: false
@@ -63,12 +64,15 @@ Item {
         else if (m.type === "playlist") playlistRequested(m);
         else if (m.id && !m.unplayable) songRequested(m);
     }
-    onSectionsChanged: { scroll.contentY = 0; if (resultCount > 0) resultsEntrance.restart(); }
-    // Results arrive in one batch; lift the column in, then let rows trickle after it.
-    ParallelAnimation {
-        id: resultsEntrance
-        NumberAnimation { target: content; property: "opacity"; from: 0; to: 1; duration: Motion.normal; easing.type: Motion.enter }
-        NumberAnimation { target: contentShift; property: "y"; from: Motion.rise; to: 0; duration: Motion.slow; easing.type: Motion.enter }
+    onSectionsChanged: {
+        scroll.contentY = 0;
+        resultEntrance.restart();
+    }
+    Component.onCompleted: resultEntrance.restart()
+
+    Timer {
+        id: resultEntrance
+        interval: 8 * Motion.stagger + Motion.normal
     }
 
     component Caption: Text {
@@ -79,16 +83,33 @@ Item {
         id: options
         HandCursor {}
         property var media: ({})
+        property bool openedFromRow: false
+        readonly property bool rowMenuVisible: openedFromRow && !!menuLoader.item && menuLoader.item.visible
         width: 26; height: 32
         Accessible.name: qsTr("More options for %1").arg(media.title || "")
-        onClicked: menu.popup(options, 0, height)
+        onClicked: openMenu(options, 0, height)
         background: Rectangle { radius: 7; color: options.hovered || options.activeFocus ? "#20ffffff" : "transparent" }
         contentItem: Caption { text: "⋮"; font.pixelSize: 22; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
-        MediaMenu {
-            id: menu; media: options.media
-            onAlbumRequested: album => root.albumRequested(album)
-            onArtistRequested: artist => root.artistRequested(artist)
-            onPlaylistRequested: playlist => root.playlistRequested(playlist)
+        function openMenu(anchor, x, y) {
+            openedFromRow = anchor !== options;
+            menuLoader.active = true;
+            Qt.callLater(() => {
+                if (anchor && menuLoader.item)
+                    menuLoader.item.popup(anchor, x, y);
+            });
+        }
+        Loader {
+            id: menuLoader
+            active: false
+            sourceComponent: Component {
+                MediaMenu {
+                    media: options.media
+                    onAlbumRequested: album => root.albumRequested(album)
+                    onArtistRequested: artist => root.artistRequested(artist)
+                    onPlaylistRequested: playlist => root.playlistRequested(playlist)
+                    onClosed: menuLoader.active = false
+                }
+            }
         }
     }
     component Duration: Rectangle {
@@ -120,10 +141,10 @@ Item {
         id: scroll
         anchors.top: tabs.bottom; anchors.bottom: parent.bottom; anchors.left: parent.left; anchors.right: parent.right
         contentWidth: width; contentHeight: content.height + 20; visible: root.resultCount > 0
+        enabled: !root.loading
         Column {
             id: content
             width: scroll.width; spacing: 10
-            transform: Translate { id: contentShift }
             Panel {
                 width: parent.width; height: root.width > 1000 ? 174 : 154; visible: root.filter === "all"
                 Button {
@@ -135,6 +156,7 @@ Item {
                     background: Rectangle { radius: 8; color: hero.hovered ? "#08ffffff" : "transparent"; border.color: hero.activeFocus ? "#b8d4bd" : "transparent" }
                     contentItem: Item {
                         RoundedArtwork {
+                            loadViewport: scroll
                             id: heroArt
                             width: root.topResult.type === "video" ? height * 16 / 9 : height
                             height: parent.height; radius: root.topResult.type === "artist" ? height / 2 : 8
@@ -196,75 +218,102 @@ Item {
                                 x: panel.tiles ? 14 : 6; y: 40; width: parent.width - x * 2; spacing: panel.tiles ? 14 : 0
                                 Repeater {
                                     model: panel.entries
-                                    Item {
+                                    Loader {
                                         id: entry
                                         required property var modelData
                                         required property int index
-                                        // Cap the stagger so a 50-row tab doesn't make the last row wait a second and a half.
-                                        opacity: 0
-                                        SequentialAnimation on opacity {
+                                        property bool revealed: false
+                                        readonly property real topInContent: group.y + panel.y + results.y + y
+                                        readonly property bool nearViewport: topInContent + height >= scroll.contentY - 240
+                                            && topInContent <= scroll.contentY + scroll.height + 240
+                                        // Later rows all start at y = 0 until Flow positions them.
+                                        active: scroll.visible && (activeFocus || (nearViewport && (y > 0 || index < panel.columns)))
+                                        function revealKeyboardFocus(reason) {
+                                            if (reason !== Qt.TabFocusReason && reason !== Qt.BacktabFocusReason)
+                                                return;
+                                            if (topInContent < scroll.contentY)
+                                                scroll.contentY = topInContent;
+                                            else if (topInContent + height > scroll.contentY + scroll.height)
+                                                scroll.contentY = Math.min(scroll.contentHeight - scroll.height, topInContent + height - scroll.height);
+                                        }
+                                        onLoaded: {
+                                            if (!revealed && resultEntrance.running) {
+                                                opacity = 0;
+                                                revealEntry.start();
+                                            }
+                                            revealed = true;
+                                        }
+                                        SequentialAnimation {
+                                            id: revealEntry
                                             PauseAnimation { duration: Math.min(entry.index, 8) * Motion.stagger }
-                                            NumberAnimation { to: 1; duration: Motion.normal; easing.type: Motion.enter }
+                                            NumberAnimation { target: entry; property: "opacity"; to: 1; duration: Motion.normal; easing.type: Motion.enter }
                                         }
                                         readonly property bool video: panel.modelData.key === "videos"
                                         readonly property bool artist: panel.modelData.key === "artists"
                                         readonly property bool current: Boolean(entry.modelData.id) && NumaPlayback.track.id === entry.modelData.id
                                         width: panel.tiles ? (results.width - (panel.columns - 1) * results.spacing) / panel.columns : results.width
                                         height: panel.tiles ? width * (panel.coverGrid ? 1 : 0.66) + 70 : 54
-                                        Button {
-                                            id: itemButton
-                                            HandCursor {}
-                                            anchors.fill: parent; padding: 0
-                                            onClicked: root.activate(entry.modelData, panel.modelData.key)
-                                            Accessible.name: entry.modelData.title || ""
-                                            background: RoundedSurfaceFrame {
-                                                radius: 10
-                                                softGlow: entry.current || itemButton.hovered || entryMenu.visible
-                                                showBorder: softGlow || itemButton.activeFocus
-                                                fillColor: entry.current ? root.tint(root.rowAccent, itemButton.hovered || entryMenu.visible ? 0.22 : 0.14)
-                                                        : itemButton.hovered || entryMenu.visible ? "#16ffffff" : "transparent"
-                                                border.color: entry.current ? root.tint(root.rowAccentSoft, itemButton.hovered || entryMenu.visible ? 0.52 : 0.34)
-                                                            : itemButton.hovered || entryMenu.visible || itemButton.activeFocus ? "#32ffffff" : "transparent"
-                                                glowColor: entry.current ? root.rowAccentSoft : "#ffffff"
-                                                Behavior on fillColor { ColorAnimation { duration: 110 } }
-                                            }
-                                            contentItem: Item {
-                                                RoundedArtwork {
-                                                    id: art
-                                                    x: panel.tiles ? 0 : 5; y: panel.tiles ? 0 : 5
-                                                    width: panel.tiles ? parent.width : entry.video ? 88 : 44
-                                                    height: panel.tiles ? width * (panel.coverGrid ? 1 : 0.66) : 44
-                                                    radius: entry.artist ? 22 : 6; source: typeof NumaSync !== "undefined" && NumaSync.revision >= 0 && entry.modelData.type === "playlist" ? NumaSync.artworkFor(entry.modelData.playlistId || entry.modelData.browseId || entry.modelData.id || "", entry.modelData.thumbnail || "") : entry.modelData.thumbnail || ""
-                                                    Duration { anchors.right: parent.right; anchors.bottom: parent.bottom; anchors.margins: 2; text: entry.video ? entry.modelData.duration || "" : "" }
+                                        sourceComponent: Item {
+                                            id: card
+                                            objectName: "searchResultContent"
+                                            Button {
+                                                id: itemButton
+                                                HandCursor {}
+                                                anchors.fill: parent; padding: 0
+                                                onClicked: root.activate(entry.modelData, panel.modelData.key)
+                                                onActiveFocusChanged: if (activeFocus) entry.revealKeyboardFocus(focusReason)
+                                                Accessible.name: entry.modelData.title || ""
+                                                background: RoundedSurfaceFrame {
+                                                    radius: 10
+                                                    softGlow: entry.current || itemButton.hovered || resultOptions.rowMenuVisible
+                                                    showBorder: softGlow || itemButton.activeFocus
+                                                    fillColor: entry.current ? root.tint(root.rowAccent, itemButton.hovered || resultOptions.rowMenuVisible ? 0.22 : 0.14)
+                                                            : itemButton.hovered || resultOptions.rowMenuVisible ? "#16ffffff" : "transparent"
+                                                    border.color: entry.current ? root.tint(root.rowAccentSoft, itemButton.hovered || resultOptions.rowMenuVisible ? 0.52 : 0.34)
+                                                                : itemButton.hovered || resultOptions.rowMenuVisible || itemButton.activeFocus ? "#32ffffff" : "transparent"
+                                                    glowColor: entry.current ? root.rowAccentSoft : "#ffffff"
+                                                    Behavior on fillColor { ColorAnimation { duration: 110 } }
                                                 }
-                                                Column {
-                                                    x: panel.tiles ? 0 : art.x + art.width + 12
-                                                    y: panel.tiles ? art.height + 7 : 12
-                                                    width: panel.tiles ? parent.width : parent.width - x - (entry.video || entry.artist ? 28 : 63)
-                                                    spacing: 5
-                                                    Caption { width: parent.width; text: entry.modelData.title || ""; font.pixelSize: panel.coverGrid ? 14 : panel.tiles || entry.video ? 11 : 12; font.weight: Font.DemiBold }
-                                                    Caption { width: parent.width; text: root.credit(entry.modelData); font.pixelSize: panel.coverGrid ? 12 : 10; color: "#b8b9b2" }
+                                                contentItem: Item {
+                                                    RoundedArtwork {
+                                                        loadViewport: scroll
+                                                        id: art
+                                                        x: panel.tiles ? 0 : 5; y: panel.tiles ? 0 : 5
+                                                        width: panel.tiles ? parent.width : entry.video ? 88 : 44
+                                                        height: panel.tiles ? width * (panel.coverGrid ? 1 : 0.66) : 44
+                                                        radius: entry.artist ? 22 : 6; source: typeof NumaSync !== "undefined" && NumaSync.revision >= 0 && entry.modelData.type === "playlist" ? NumaSync.artworkFor(entry.modelData.playlistId || entry.modelData.browseId || entry.modelData.id || "", entry.modelData.thumbnail || "") : entry.modelData.thumbnail || ""
+                                                        Duration { anchors.right: parent.right; anchors.bottom: parent.bottom; anchors.margins: 2; text: entry.video ? entry.modelData.duration || "" : "" }
+                                                    }
+                                                    Column {
+                                                        x: panel.tiles ? 0 : art.x + art.width + 12
+                                                        y: panel.tiles ? art.height + 7 : 12
+                                                        width: panel.tiles ? parent.width : parent.width - x - (entry.video || entry.artist ? 28 : 63)
+                                                        spacing: 5
+                                                        Caption { width: parent.width; text: entry.modelData.title || ""; font.pixelSize: panel.coverGrid ? 14 : panel.tiles || entry.video ? 11 : 12; font.weight: Font.DemiBold }
+                                                        Caption { width: parent.width; text: root.credit(entry.modelData); font.pixelSize: panel.coverGrid ? 12 : 10; color: "#b8b9b2" }
+                                                        Caption {
+                                                            width: parent.width; visible: panel.tiles
+                                                            text: entry.modelData.itemCount || [entry.modelData.releaseType || "", entry.modelData.year || ""].filter(Boolean).join(" • ")
+                                                            font.pixelSize: 10; color: "#999e94"
+                                                        }
+                                                    }
                                                     Caption {
-                                                        width: parent.width; visible: panel.tiles
-                                                        text: entry.modelData.itemCount || [entry.modelData.releaseType || "", entry.modelData.year || ""].filter(Boolean).join(" • ")
-                                                        font.pixelSize: 10; color: "#999e94"
+                                                        anchors.right: parent.right; anchors.rightMargin: 29; anchors.verticalCenter: parent.verticalCenter
+                                                        visible: !panel.tiles && !entry.video && !entry.artist
+                                                        text: entry.modelData.duration || ""; font.pixelSize: 10; color: "#c4c5bd"
                                                     }
                                                 }
-                                                Caption {
-                                                    anchors.right: parent.right; anchors.rightMargin: 29; anchors.verticalCenter: parent.verticalCenter
-                                                    visible: !panel.tiles && !entry.video && !entry.artist
-                                                    text: entry.modelData.duration || ""; font.pixelSize: 10; color: "#c4c5bd"
-                                                }
                                             }
-                                        }
-                                        Options { anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; visible: !panel.tiles; media: entry.modelData }
-                                        // Albums get a room; their context menu gets a side door.
-                                        TapHandler { acceptedButtons: Qt.RightButton; onTapped: entryMenu.popup(entry, 0, entry.height) }
-                                        MediaMenu {
-                                            id: entryMenu; media: entry.modelData
-                                            onAlbumRequested: album => root.albumRequested(album)
-                                            onArtistRequested: artist => root.artistRequested(artist)
-                                            onPlaylistRequested: playlist => root.playlistRequested(playlist)
+                                            Options {
+                                                id: resultOptions
+                                                anchors.right: parent.right
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                visible: !panel.tiles
+                                                media: entry.modelData
+                                                onActiveFocusChanged: if (activeFocus) entry.revealKeyboardFocus(focusReason)
+                                            }
+                                            // Albums get a room; their context menu gets a side door.
+                                            TapHandler { acceptedButtons: Qt.RightButton; onTapped: resultOptions.openMenu(card, 0, card.height) }
                                         }
                                     }
                                 }
@@ -279,7 +328,6 @@ Item {
         anchors.centerIn: parent; width: Math.min(parent.width - 48, 420); spacing: 14
         opacity: root.resultCount === 0 ? 1 : 0; visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: Motion.normal; easing.type: Motion.enter } }
-        BusyIndicator { anchors.horizontalCenter: parent.horizontalCenter; running: root.loading; visible: running }
         Caption {
             width: parent.width; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap
             text: root.loading ? qsTr("Searching YouTube Music…") : root.errorMessage
@@ -287,6 +335,10 @@ Item {
                     : NumaNetwork.offline ? qsTr("Search the songs and playlists saved on this computer")
                     : qsTr("Search for songs, videos, albums, artists, and playlists"))
             color: root.errorMessage ? "#e6a197" : "#b8b9b2"
+        }
+        LoadingSkeleton {
+            width: parent.width
+            loading: root.loading && root.resultCount === 0
         }
         Button { anchors.horizontalCenter: parent.horizontalCenter; text: qsTr("Try again"); visible: !root.loading && Boolean(root.errorMessage); onClicked: root.retryRequested() }
     }

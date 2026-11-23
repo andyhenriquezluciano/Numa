@@ -49,8 +49,6 @@ public:
 
   static QAudioFormat format();
 
-  // Starts the flush and meter timers on the owning thread.
-  void start();
   void processBuffer(const QMediaPlayer *source, const QAudioBuffer &buffer);
   void configure(const NumaAudioEngineConfig &base, const QVariantMap &trackGains);
   void setCurrentPlayer(const QMediaPlayer *player);

@@ -20,6 +20,8 @@
 #pragma once
 
 #include <QJsonObject>
+#include <QCache>
+#include <QDeadlineTimer>
 #include <QObject>
 #include <QString>
 #include <QVariantList>
@@ -34,7 +36,7 @@ class SearchController final : public QObject {
   Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY stateChanged)
   Q_PROPERTY(QString query READ query NOTIFY stateChanged)
   Q_PROPERTY(QString filter READ filter NOTIFY stateChanged)
-  Q_PROPERTY(QVariantList sections READ sections NOTIFY stateChanged)
+  Q_PROPERTY(QVariantList sections READ sections NOTIFY sectionsChanged)
 
 public:
   explicit SearchController(YouTubeCatalog *catalog, AuthManager *auth,
@@ -50,21 +52,31 @@ public:
   void setOfflineLibrary(OfflineLibrary *library) { m_offline = library; }
 
   Q_INVOKABLE void search(const QString &query, const QString &filter = QStringLiteral("all"));
+  Q_INVOKABLE void prepareSearch();
   Q_INVOKABLE void retry();
   Q_INVOKABLE void clear();
 
 signals:
   void stateChanged();
+  void sectionsChanged();
 
 private:
+  struct CachedResult {
+    QVariantList sections;
+    QDeadlineTimer expires;
+  };
+
   void receiveSearch(quint64 requestId, const QJsonObject &search);
   void receiveFailure(quint64 requestId, const QString &message);
   static QString normalizedFilter(const QString &filter);
+  QString cacheKey() const;
+  void setSections(QVariantList sections);
 
   YouTubeCatalog *m_catalog;
   AuthManager *m_auth;
   OfflineLibrary *m_offline{nullptr};
   QVariantList m_sections;
+  QCache<QString, CachedResult> m_recent{20};
   QString m_errorMessage;
   QString m_query;
   QString m_filter{QStringLiteral("all")};

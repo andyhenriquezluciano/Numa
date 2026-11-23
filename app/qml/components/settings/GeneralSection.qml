@@ -42,7 +42,9 @@ GeneralSectionForm {
             iconName: "refresh-cw"
             title: qsTr("Check for updates")
             description: NumaUpdates.state === "checking" ? qsTr("Checking for updates…")
-                : NumaUpdates.state === "error" ? NumaUpdates.error
+                : NumaUpdates.error ? NumaUpdates.error
+                : NumaUpdates.state === "downloading" ? qsTr("Downloading update…")
+                : NumaUpdates.state === "authorizing" ? qsTr("Confirm the Windows prompt to continue.")
                 : NumaUpdates.state === "up-to-date" ? qsTr("You have the latest version.")
                 : NumaUpdates.state === "available" ? qsTr("Version %1 is available.").arg(NumaUpdates.latestVersion)
                 : NumaUpdates.state === "ready" ? qsTr("Update ready. Restart Numa to install.")
@@ -52,17 +54,20 @@ GeneralSectionForm {
                 buttonColor: NumaAppearance.theme === "rose_pine" ? "#ebbcba"
                     : NumaAppearance.theme === "rose_pine_dawn" ? NumaAppearance.highlightColor : (highlighted ? "#514060" : down ? "#2cffffff" : hovered ? "#1cffffff" : "#0fffffff")
                 labelColor: NumaAppearance.theme === "rose_pine" ? NumaAppearance.baseColor : NumaAppearance.textColor
-                enabled: NumaUpdates.available && ["checking", "downloading", "staging"].indexOf(NumaUpdates.state) < 0
+                enabled: NumaUpdates.available && ["checking", "downloading", "staging", "authorizing"].indexOf(NumaUpdates.state) < 0
                 onClicked: NumaUpdates.checkForUpdates()
             }
         }
         SettingsRow {
             visible: NumaUpdates.state === "available" || NumaUpdates.state === "ready"
             title: qsTr("Update NÜMA")
-            description: qsTr("Download the Windows installer, then run it to update NÜMA.")
+            description: NumaUpdates.state === "ready" ? qsTr("Update ready. Restart Numa to install.")
+                : NumaUpdates.installsInApp ? qsTr("NÜMA will reopen after installing the update.")
+                : qsTr("Download the Windows installer, then run it to update NÜMA.")
             SettingsButton {
                 prominent: true
-                text: NumaUpdates.state === "ready" ? qsTr("Restart to update") : qsTr("Download installer")
+                text: NumaUpdates.state === "ready" ? qsTr("Restart to update")
+                    : NumaUpdates.installsInApp ? qsTr("Update and restart") : qsTr("Download installer")
                 onClicked: NumaUpdates.state === "ready" ? NumaUpdates.restartToUpdate() : NumaUpdates.downloadInstaller()
             }
         }

@@ -36,6 +36,8 @@ Popup {
     property var matches: []
     property int activeIndex: 0
     property int focusedTrackIndex: -1
+    property var searchIndex: null
+    readonly property string fallbackArtist: detail.author || detail.subtitle || ""
 
     signal matchFocused(int trackIndex)
     signal trackSelected(var track, int trackIndex)
@@ -104,27 +106,22 @@ Popup {
             .trim();
     }
 
-    function wordStartsWith(text, q) {
-        const words = text.split(/\s+/);
-        for (let i = 0; i < words.length; ++i) {
-            if (words[i].startsWith(q))
-                return true;
-        }
-        return false;
-    }
-
-    function matchScore(text, q, baseScore) {
-        if (!text || !q)
-            return null;
-        if (text === q)
+    function matchScore(text, query, containsWhitespace, baseScore) {
+        if (text === query)
             return baseScore;
-        if (text.startsWith(q))
+        let position = text.indexOf(query);
+        if (position < 0)
+            return -1;
+        if (position === 0)
             return baseScore + 1;
-        if (wordStartsWith(text, q))
-            return baseScore + 2;
-        if (text.indexOf(q) !== -1)
-            return baseScore + 3;
-        return null;
+        if (!containsWhitespace) {
+            while (position > 0) {
+                if (/\s/.test(text[position - 1]))
+                    return baseScore + 2;
+                position = text.indexOf(query, position + 1);
+            }
+        }
+        return baseScore + 3;
     }
 
     function trackArtist(track) {
@@ -135,33 +132,65 @@ Popup {
         }
         if (track.artist)
             return track.artist;
-        return root.detail.author || root.detail.subtitle || "";
+        return root.fallbackArtist;
     }
+
+    function makeSearchIndex() {
+        return tracks.map(track => {
+            const artistDisplay = trackArtist(track);
+            return {
+                title: normalizeText(track.title),
+                artist: normalizeText(artistDisplay),
+                album: normalizeText(track.album),
+                artistDisplay: artistDisplay
+            };
+        });
+    }
+
+    function invalidateSearchIndex() {
+        searchIndex = null;
+        if (visible)
+            Qt.callLater(refreshVisibleMatches);
+    }
+
+    function refreshVisibleMatches() {
+        if (visible)
+            updateMatches();
+    }
+
+    onTracksChanged: invalidateSearchIndex()
+    onFallbackArtistChanged: invalidateSearchIndex()
 
     function computeMatches(q) {
         const query = normalizeText(q);
         if (!query || !root.tracks || !root.tracks.length)
             return [];
 
+        if (searchIndex === null)
+            searchIndex = makeSearchIndex();
+        const rows = searchIndex;
+        const containsWhitespace = /\s/.test(query);
+        const buckets = Array.from({ length: 12 }, () => []);
+        const limit = 10;
+        for (let i = 0; i < rows.length; ++i) {
+            const row = rows[i];
+            let score = matchScore(row.title, query, containsWhitespace, 0);
+            if (score < 0)
+                score = matchScore(row.artist, query, containsWhitespace, 4);
+            if (score < 0)
+                score = matchScore(row.album, query, containsWhitespace, 8);
+            if (score >= 0 && buckets[score].length < limit)
+                buckets[score].push(i);
+            if (buckets[0].length === limit)
+                break;
+        }
+
         const results = [];
-        for (let i = 0; i < root.tracks.length; ++i) {
-            const track = root.tracks[i];
-            const title = normalizeText(track.title);
-            const artist = normalizeText(root.trackArtist(track));
-            const album = normalizeText(track.album);
-
-            const scores = [];
-            const s1 = matchScore(title, query, 0);
-            if (s1 !== null) scores.push(s1);
-            const s2 = matchScore(artist, query, 4);
-            if (s2 !== null) scores.push(s2);
-            const s3 = matchScore(album, query, 8);
-            if (s3 !== null) scores.push(s3);
-
-            if (scores.length > 0) {
-                const bestScore = Math.min(...scores);
+        for (let score = 0; score < buckets.length; ++score) {
+            for (const i of buckets[score]) {
+                const track = tracks[i];
                 const subtitleParts = [];
-                const artistDisplay = root.trackArtist(track);
+                const artistDisplay = rows[i].artistDisplay;
                 if (artistDisplay)
                     subtitleParts.push(artistDisplay);
                 if (track.album)
@@ -170,17 +199,17 @@ Popup {
                 results.push({
                     id: `${track.id || i}:${i}`,
                     index: i,
-                    score: bestScore,
+                    score: score,
                     track: track,
                     title: track.title || qsTr("Untitled track"),
                     subtitle: subtitleParts.join(" • "),
                     artwork: track.thumbnail || root.detail.thumbnail || ""
                 });
+                if (results.length === limit)
+                    return results;
             }
         }
-
-        results.sort((a, b) => a.score - b.score || a.index - b.index);
-        return results.slice(0, 10);
+        return results;
     }
 
     function updateMatches() {
@@ -267,7 +296,7 @@ Popup {
                 background: Item {}
                 selectByMouse: true
 
-                onTextChanged: {
+                onTextEdited: {
                     root.updateMatches();
                 }
 
@@ -313,6 +342,7 @@ Popup {
                 Accessible.name: qsTr("Clear search")
                 onClicked: {
                     searchInput.clear();
+                    root.updateMatches();
                     searchInput.forceActiveFocus();
                 }
                 background: Rectangle {
@@ -371,8 +401,8 @@ Popup {
             visible: root.matches.length > 0
             model: root.matches
 
-            ScrollBar.vertical: ScrollBar {
-                width: 4
+            ScrollBar.vertical: ThemedScrollBar {
+                width: 4; padding: 0
                 policy: ScrollBar.AsNeeded
             }
 

@@ -185,7 +185,7 @@ Item {
         hoverEnabled: true
         padding: 4
         text: qsTr("See all")
-        Accessible.name: qsTr("See all %1").arg(root.section.title || "")
+        Accessible.name: qsTr("See all %1").arg(qsTr(root.section.title || ""))
         onClicked: root.seeAllRequested()
 
         background: null
@@ -252,6 +252,7 @@ Item {
         }
 
         delegate: MediaCard {
+            artworkViewport: rail
             required property var modelData
             required property int index
             media: modelData

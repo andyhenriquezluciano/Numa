@@ -7,6 +7,7 @@ Rectangle {
     property string artwork: media.thumbnail || ""
     property string customArtwork: ""
     property bool fallbackGenerated: false
+    property real bottomRadius: radius
     readonly property string identity: String(media.playlistId || media.browseId || media.id || "")
         .replace(/^offline-playlist:/, "").replace(/^VL/, "")
     readonly property string kind: {
@@ -37,6 +38,8 @@ Rectangle {
         : customArtwork || artwork
 
     radius: 12
+    bottomLeftRadius: bottomRadius
+    bottomRightRadius: bottomRadius
     color: generated ? coverColor : "transparent"
     antialiasing: true
     gradient: generated ? coverGradient : null
@@ -53,9 +56,13 @@ Rectangle {
         color: root.ink
         visible: root.generated
     }
+    property Item artworkViewport: null
+
     RoundedArtwork {
+        loadViewport: root.artworkViewport
         anchors.fill: parent
         radius: root.radius
+        bottomRadius: root.bottomRadius
         source: root.generated ? "" : root.customArtwork || root.artwork
         visible: !root.generated
     }

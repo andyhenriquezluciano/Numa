@@ -16,6 +16,7 @@ args.output.write_text(json.dumps({
     'platform': 'windows',
     'version': args.version,
     'installerUrl': args.url,
+    'installProtocol': 'nsis-wait-v1',
     'sha256': hashlib.file_digest(args.installer.open('rb'), 'sha256').hexdigest(),
     'releaseNotes': args.notes.read_text(encoding='utf-8'),
 }, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

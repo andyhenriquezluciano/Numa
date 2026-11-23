@@ -39,6 +39,7 @@ Rectangle {
     radius: 14
     color: NumaAppearance.rosePine ? "transparent" : "#10ffffff"
     border.color: NumaAppearance.rosePine ? "transparent" : "#1affffff"
+    border.width: NumaAppearance.controlBorderWidth
 
     RowLayout {
         id: autoplayLayout
@@ -109,6 +110,8 @@ Rectangle {
 
         SettingsSwitch {
             objectName: "queueAutoplay"
+            checkedColor: panel.accentColor
+            checkedKnobColor: panel.playGlyphColor
             checked: NumaPlayback.autoplayEnabled
             Accessible.name: qsTr("Autoplay")
             onToggled: NumaPlayback.autoplayEnabled = checked

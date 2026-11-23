@@ -148,7 +148,7 @@ ColumnLayout {
                 border.color: "#38c4a7e7"
             }
         }
-        ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+        ScrollBar.vertical: ThemedScrollBar { policy: ScrollBar.AsNeeded }
         onCurrentIndexChanged: {
             if (list.currentIndex >= 0)
                 list.positionViewAtIndex(list.currentIndex, ListView.Contain);

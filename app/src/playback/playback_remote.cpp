@@ -110,6 +110,7 @@ void PlaybackController::playFrom(const QVariantList &tracks, int index, double 
   cancelQueueLoading();
   m_autoplaySuppressed.clear();
   m_playlistId.clear();
+  m_playlistOrigin.clear();
   m_queueContinuation.clear();
   // Earlier songs stay reachable through Previous, as with a collection.
   m_cyclePlayed = tracks.mid(0, index);

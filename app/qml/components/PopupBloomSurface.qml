@@ -23,9 +23,15 @@ Item {
     property color accentColor: "#d8dcde"
     property real radius: 12
     property bool neutral: true
+    property color neutralTintColor: Qt.rgba(0.08, 0.09, 0.10, 1)
     property real tintOpacity: 0.38
     property bool refractionEnabled: true
+    property bool liveBackdrop: true
+    property int outlineWidth: NumaAppearance.borderWidth
     property bool opaqueInPerformanceMode: true
+    readonly property color surfaceFill: opaqueInPerformanceMode && NumaAppearance.performanceMode
+        ? performanceColor
+        : neutral ? Qt.rgba(neutralTintColor.r, neutralTintColor.g, neutralTintColor.b, tintOpacity) : "#220e1210"
     function backdropBehind(overlay, item, scene) {
         if (!overlay) return scene;
         let layer = item;
@@ -74,7 +80,7 @@ Item {
             Glass {
                 anchors.fill: parent
                 backdrop: root.backdrop
-                live: true
+                live: root.liveBackdrop
                 radius: root.radius
                 brightness: root.refractionEnabled ? -0.03 : 0
                 blurRadius: 24
@@ -92,9 +98,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: root.radius
-        color: (root.opaqueInPerformanceMode && NumaAppearance.performanceMode)
-            ? root.performanceColor
-            : (root.neutral ? Qt.rgba(0.08, 0.09, 0.10, root.tintOpacity) : "#220e1210")
+        color: root.surfaceFill
     }
 
     Gradient {
@@ -127,7 +131,7 @@ Item {
         softGlow: true
         showBorder: true
         fillColor: "transparent"
-        border.width: NumaAppearance.borderWidth
+        border.width: root.outlineWidth
         border.color: (root.opaqueInPerformanceMode && NumaAppearance.performanceMode)
             ? NumaAppearance.borderColor
             : "#30ffffff"

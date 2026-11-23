@@ -23,6 +23,8 @@ import QtQuick
 Item {
     id: root
 
+    property Item artworkViewport: null
+
     required property var media
     property bool playable: false
     property bool playbackBlocked: false
@@ -107,6 +109,8 @@ Item {
     readonly property bool playlistCard: presentation === "playlist"
     readonly property int playlistRadius: 16
     readonly property int playlistTextPadding: 12
+    readonly property real artworkRadius: songlist ? 4 : playlistBadge ? (playlistCard ? playlistRadius : 12)
+        : media.type === "artist" ? (plain ? art.width / 2 : 18) : playlistCard ? playlistRadius : plain ? 8 : 10
 
     function playlistIdentity(item) {
         return String(item.playlistId || item.browseId || (item.browsePayload || {}).browseId || item.id || "").replace(/^VL/, "");
@@ -161,6 +165,7 @@ Item {
         height: root.songlist ? 44 : root.compact ? 64 : root.landscape ? root.height - 4 : root.video ? Math.round(root.width * 9 / 16) : root.presentation === "playlist" ? 190 : root.width
 
         RoundedArtwork {
+            loadViewport: root.artworkViewport
             anchors.fill: parent
             source: root.playlistBadge ? "" : root.artworkSource()
             fallbackSources: {
@@ -171,12 +176,13 @@ Item {
                 return sources;
             }
             visible: !root.playlistBadge
-            radius: root.songlist ? 4 : root.media.type === "artist" ? (root.plain ? width / 2 : 18) : root.playlistCard ? root.playlistRadius : root.plain ? 8 : 10
+            radius: root.artworkRadius
         }
 
         PlaylistArtwork {
+            artworkViewport: root.artworkViewport
             anchors.fill: parent
-            radius: root.playlistCard ? root.playlistRadius : 12
+            radius: root.artworkRadius
             visible: root.playlistBadge
             media: root.media
             artwork: root.artworkSource()

@@ -187,7 +187,7 @@ ColumnLayout {
         visible: content.controller.spotlightRows.length > 0
         model: content.controller.spotlightRows
 
-        ScrollBar.vertical: ScrollBar { width: 4; policy: ScrollBar.AsNeeded }
+        ScrollBar.vertical: ThemedScrollBar { width: 4; padding: 0; policy: ScrollBar.AsNeeded }
 
         delegate: Rectangle {
             id: rowItem
@@ -293,11 +293,6 @@ ColumnLayout {
         ColumnLayout {
             anchors.centerIn: parent
             spacing: 10
-            BusyIndicator {
-                Layout.alignment: Qt.AlignHCenter
-                running: NumaSearch.loading
-                visible: running
-            }
             LucideIcon {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.preferredWidth: 32

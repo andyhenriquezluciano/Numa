@@ -26,6 +26,7 @@
 #include <QElapsedTimer>
 #include <QObject>
 #include <QSet>
+#include <QTimer>
 #include <QVariantList>
 #include <QVariantMap>
 
@@ -58,7 +59,7 @@ public:
                               LocalLibrary *local = nullptr, QObject *parent = nullptr);
 
   [[nodiscard]] bool loading() const { return m_loading; }
-  [[nodiscard]] bool loadingPage() const { return m_loadingPage; }
+  [[nodiscard]] bool loadingPage() const { return m_loadingPage || m_nextPageTimer.isActive(); }
   [[nodiscard]] QString errorMessage() const { return m_errorMessage; }
   [[nodiscard]] QVariantMap detail() const { return m_detail; }
   [[nodiscard]] QVariantMap palette() const { return m_palette; }
@@ -129,6 +130,7 @@ private:
   QString m_errorMessage;
   QString m_continuation;
   QElapsedTimer m_publishTimer;
+  QTimer m_nextPageTimer;
   bool m_pagesUnpublished{false};
   QSet<QString> m_loadedContinuations;
   quint64 m_requestId{0};

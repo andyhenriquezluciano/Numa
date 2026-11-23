@@ -261,7 +261,8 @@ Rectangle {
                         width: 16
                         height: 16
                         name: NumaPlayback.playing ? "pause" : "play"
-                        color: NumaAppearance.rosePine && panel.compactMode ? NumaAppearance.baseColor : panel.inkColor
+                        color: !NumaAppearance.rosePine ? panel.playGlyphColor
+                            : panel.compactMode ? NumaAppearance.baseColor : panel.inkColor
                     }
                     MouseArea {
                         id: playMouse

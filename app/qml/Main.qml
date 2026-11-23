@@ -37,6 +37,8 @@ Window {
     readonly property bool nativeFullScreen: visibility === Window.FullScreen
     // Height the floating player overlaps at the bottom of scrolling pages.
     property real playerInset: 0
+    property color playbackAccentColor: NumaAppearance.mutedColor
+    property color playbackAccentInk: "#121212"
 
     function toggleMaximized() {
         if (mainWindow.visibility === Window.Maximized)
@@ -351,11 +353,6 @@ Window {
             anchors.centerIn: parent
             spacing: 12
             visible: NumaAuth.profileLoading && !NumaAuth.authWebViewActive
-
-            BusyIndicator {
-                anchors.horizontalCenter: parent.horizontalCenter
-                running: parent.visible
-            }
 
             Text {
                 text: qsTr("Loading your YouTube profile…")

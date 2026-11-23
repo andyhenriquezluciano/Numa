@@ -116,7 +116,7 @@ Item {
             spacing: 4
             model: NumaSupport.reports
             boundsBehavior: Flickable.StopAtBounds
-            ScrollBar.vertical: ScrollBar {}
+            ScrollBar.vertical: ThemedScrollBar {}
 
             delegate: ItemDelegate {
                 id: row

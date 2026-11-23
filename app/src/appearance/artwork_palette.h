@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <QHash>
 #include <QNetworkAccessManager>
 #include <QObject>
 #include <QPointer>
@@ -27,6 +26,7 @@
 #include <QUrl>
 #include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
+#include <functional>
 
 class QNetworkReply;
 
@@ -49,7 +49,7 @@ signals:
   void paletteChanged();
 
 private:
-  void sample(QByteArray bytes, quint64 generation);
+  void sample(std::function<QByteArray()> readArtwork, quint64 generation);
   void loadRemote();
   void publish(const QVariantMap &palette, bool ready);
   void abortReply();

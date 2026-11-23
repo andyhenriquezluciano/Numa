@@ -204,7 +204,7 @@ void DownloadManager::download(const QVariantMap &track) {
   }
   if (!enqueue(track))
     return;
-  touch();
+  refreshJobState();
   activity();
   pump();
 }
@@ -230,9 +230,12 @@ void DownloadManager::downloadAll(const QVariantList &tracks, const QVariantMap 
   }
   if (ids.isEmpty())
     return;
-  saveCollection(collection, ids);
+  const bool saved = saveCollection(collection, ids);
   emit noticeRequested(queued > 0 ? tr("Downloading %n song(s)", nullptr, queued) : tr("Already downloaded."));
-  touch();
+  if (saved)
+    touch();
+  else
+    refreshJobState();
   activity();
   pump();
 }
@@ -384,7 +387,7 @@ void DownloadManager::fail(const QString &id, const QString &message) {
   m_queue.removeAll(id);
   if (first)
     emit noticeRequested(tr("Could not download “%1”. %2").arg(it->track.value(QStringLiteral("title")).toString(), message));
-  touch();
+  refreshJobState();
   pump();
 }
 
@@ -401,13 +404,13 @@ void DownloadManager::failQueued(const QString &message) {
   m_queue.clear();
   if (!any)
     return;
-  touch();
+  refreshJobState();
   activity();
 }
 
 void DownloadManager::complete(const QString &id) {
   m_jobs.remove(id);
-  touch();
+  refreshJobState();
   pump();
 }
 
@@ -439,7 +442,7 @@ void DownloadManager::cancel(const QString &id) {
   }
   m_queue.removeAll(id);
   m_jobs.erase(it);
-  touch();
+  refreshJobState();
   pump();
 }
 
@@ -457,6 +460,6 @@ void DownloadManager::retryFailed() {
   }
   if (!any)
     return;
-  touch();
+  refreshJobState();
   pump();
 }

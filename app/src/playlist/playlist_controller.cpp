@@ -120,6 +120,10 @@ PlaylistController::PlaylistController(YouTubeCatalog *catalog,
   Q_ASSERT(m_catalog);
   Q_ASSERT(m_auth);
 
+  m_nextPageTimer.setSingleShot(true);
+  m_nextPageTimer.setInterval(150);
+  connect(&m_nextPageTimer, &QTimer::timeout, this, &PlaylistController::fetchNextPage);
+
   connect(m_catalog, &YouTubeCatalog::playlistReady, this,
           &PlaylistController::receivePlaylist);
   connect(m_catalog, &YouTubeCatalog::playlistPageReady, this,
@@ -147,6 +151,7 @@ QVariantMap PlaylistController::defaultPalette() {
 }
 
 void PlaylistController::openPlaylist(const QVariantMap &item) {
+  m_nextPageTimer.stop();
   const QVariantMap selectedItem = item;
   if (m_local && local::isLocalPlaylistId(item.value(QStringLiteral("id")).toString())) {
     openLocal(item);
@@ -205,6 +210,7 @@ void PlaylistController::fetchNextPage() {
   if (m_continuation.isEmpty() || m_loadingPage || m_loading)
     return;
 
+  m_nextPageTimer.stop();
   m_errorMessage.clear();
   m_loadingPage = true;
   const auto startIndex = static_cast<int>(m_sourceTracks.size());
@@ -221,6 +227,7 @@ void PlaylistController::retry() {
 }
 
 void PlaylistController::clear() {
+  m_nextPageTimer.stop();
   m_localOpen = false;
   m_offlineId.clear();
   m_requestId = 0;
@@ -349,8 +356,8 @@ void PlaylistController::receivePlaylist(quint64 requestId,
   m_detail.insert(QStringLiteral("kind"), QStringLiteral("playlist"));
   m_detail.insert(QStringLiteral("totalTrackCount"),
                   qMax(knownTotal, static_cast<int>(tracks.size())));
-  // Queue the next page before QML rebuilds the list.
-  fetchNextPage();
+  if (!m_continuation.isEmpty())
+    m_nextPageTimer.start();
   requestArtwork(m_detail.value(QStringLiteral("thumbnail")).toString());
   emit stateChanged();
   emit detailChanged();
@@ -388,8 +395,9 @@ void PlaylistController::receivePlaylistPage(quint64 requestId,
   m_detail.insert(QStringLiteral("continuation"), m_continuation);
   m_detail.insert(QStringLiteral("hasMoreTracks"), !m_continuation.isEmpty());
   m_pagesUnpublished = true;
-  // Request the next page before the UI work.
-  fetchNextPage();
+  // Give scrolling and thumbnail uploads a turn between continuation batches.
+  if (!m_continuation.isEmpty())
+    m_nextPageTimer.start();
   publishPages(m_continuation.isEmpty());
 }
 

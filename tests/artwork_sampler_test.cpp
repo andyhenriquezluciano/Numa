@@ -68,6 +68,38 @@ private slots:
         const QJsonObject sample = sampleArtwork(png(image));
         QCOMPARE(seam(sample, "topStrip"), (QJsonArray{22, 64, 138}));
         QCOMPARE(seam(sample, "bottomStrip"), (QJsonArray{142, 18, 36}));
+        QCOMPARE(sample.value(QStringLiteral("palette")).toObject().value(QStringLiteral("footer")).toArray(),
+                 (QJsonArray{142, 18, 36}));
+        QCOMPARE(sampleArtworkPalette(png(image)), sample.value(QStringLiteral("palette")).toObject());
+    }
+
+    void mostlyMonochromeCoverKeepsANeutralAccent()
+    {
+        QImage image(64, 64, QImage::Format_RGBA8888);
+        image.fill(QColor(35, 34, 33));
+        for (int y = 27; y < 36; ++y)
+            for (int x = 25; x < 38; ++x)
+                image.setPixelColor(x, y, QColor(235, 145, 35));
+
+        const auto palette = sampleArtwork(png(image)).value(QStringLiteral("palette")).toObject();
+        QCOMPARE(palette.value(QStringLiteral("accent")).toArray(), (QJsonArray{184, 184, 184}));
+    }
+
+    void accentFollowsTheCoverInsteadOfItsBorder()
+    {
+        QImage image(48, 48, QImage::Format_RGBA8888);
+        image.fill(QColor(143, 73, 30));
+        for (int y = 6; y < 42; ++y)
+            for (int x = 6; x < 42; ++x)
+                image.setPixelColor(x, y, QColor(32, 80, 155));
+
+        const auto palette = sampleArtwork(png(image)).value(QStringLiteral("palette")).toObject();
+        const auto accent = palette.value(QStringLiteral("accent")).toArray();
+        QVERIFY(accent[2].toInt() > accent[1].toInt());
+        QVERIFY(accent[1].toInt() > accent[0].toInt());
+        const auto edge = palette.value(QStringLiteral("seam")).toArray();
+        QVERIFY(edge[0].toInt() > edge[1].toInt());
+        QVERIFY(edge[1].toInt() > edge[2].toInt());
     }
 
     void brightEdgesAndAlpha()
@@ -89,6 +121,7 @@ private slots:
     void invalidAndTinyImages()
     {
         QVERIFY(sampleArtwork(QByteArrayLiteral("not an image")).isEmpty());
+        QVERIFY(sampleArtworkPalette(QByteArrayLiteral("not an image")).isEmpty());
         QVERIFY(sampleArtwork(QByteArray(16 * 1024 * 1024 + 1, 'x')).isEmpty());
         QImage tiny(1, 1, QImage::Format_RGBA8888);
         tiny.fill(QColor(8, 74, 129));

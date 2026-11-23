@@ -30,11 +30,12 @@ ToolTip {
         font.weight: Font.Medium
     }
 
-    background: Rectangle {
+    background: PopupBloomSurface {
         radius: 8
-        color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#cc17151f"
-        border.width: NumaAppearance.controlBorderWidth
-        border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : "#30ffffff"
-        antialiasing: true
+        tintOpacity: 0.64
+        refractionEnabled: false
+        liveBackdrop: false
+        outlineWidth: NumaAppearance.controlBorderWidth
+        performanceColor: NumaAppearance.highlightColor
     }
 }

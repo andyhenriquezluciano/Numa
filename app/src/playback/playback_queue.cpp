@@ -82,6 +82,7 @@ void PlaybackController::playCollection(const QVariantList &tracks,
   cancelQueueLoading();
   m_autoplaySuppressed.clear();
   m_playlistId = playlistId;
+  m_playlistOrigin = valid.constFirst().toMap().value(QStringLiteral("queueOrigin")).toMap();
   m_queueContinuation = continuation;
   m_playlistLoaded = tracks.size();
   m_shuffleEnabled = shuffle;
@@ -108,6 +109,7 @@ void PlaybackController::playCollection(const QVariantList &tracks,
 void PlaybackController::cancelQueueLoading() {
   m_queueRequest = 0;
   m_playlistId.clear();
+  m_playlistOrigin.clear();
   m_queueContinuation.clear();
   m_queuePages.clear();
   m_queueError.clear();
@@ -132,11 +134,15 @@ void PlaybackController::appendPlaylistTracks(const QString &playlistId,
     return;
   const int pinned = qMin(20, static_cast<int>(m_queue.size()));
   for (const auto &value : tracks) {
-    const auto track = value.toMap();
+    auto track = value.toMap();
     const auto type = track.value("type").toString();
     if ((type == "song" || type == "track" || type == "video") &&
         !track.value("id").toString().isEmpty() &&
         !track.value("unplayable").toBool()) {
+      if (!m_playlistOrigin.isEmpty())
+        track.insert(QStringLiteral("queueOrigin"), m_playlistOrigin);
+      if (m_playlistOrigin.value(QStringLiteral("liked")).toBool())
+        track.insert(QStringLiteral("liked"), true);
       m_queue.append(track);
       m_orderedQueue.append(track);
     }

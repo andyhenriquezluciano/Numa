@@ -109,9 +109,9 @@ Item {
             readonly property var media: modelData.media || ({})
             readonly property string customArtwork: typeof NumaSync !== "undefined" && NumaSync.revision >= 0 && media.type === "playlist" ? NumaSync.artworkFor(media.playlistId || media.browseId || media.id || "", "", false) : ""
             readonly property string artwork: customArtwork || media.thumbnail || ""
-            readonly property var coverColors: coverPalette.palette
-            // Edge color is clamped dark by the sampler, so white text always reads.
-            readonly property color footerColor: root.paletteColor(coverColors, "seam", "#252a2c")
+            readonly property color footerColor: playlistCover.visible && playlistCover.generated
+                ? Qt.darker(playlistCover.gradientEnd, 1.85)
+                : root.paletteColor(coverPalette.ready ? coverPalette.palette : ({}), "footer", "#252a2c")
 
             function openMenu(x, y) {
                 menuLoader.active = true;
@@ -132,7 +132,7 @@ Item {
 
             ArtworkPalette {
                 id: coverPalette
-                source: card.artwork
+                source: playlistCover.visible && playlistCover.generated ? "" : card.artwork
             }
 
             Loader {
@@ -165,6 +165,7 @@ Item {
             }
 
             RoundedArtwork {
+                loadViewport: rail
                 id: cover
                 visible: card.media.type !== "playlist"
 
@@ -175,11 +176,14 @@ Item {
                 source: card.artwork
             }
             PlaylistArtwork {
+                artworkViewport: rail
+                id: playlistCover
                 x: cover.x
                 y: cover.y
                 width: cover.width
                 height: cover.height
                 radius: root.radius
+                bottomRadius: 0
                 visible: card.media.type === "playlist"
                 media: card.media
                 artwork: card.artwork
@@ -187,6 +191,19 @@ Item {
             }
 
             Rectangle {
+                anchors.left: cover.left
+                anchors.right: cover.right
+                anchors.bottom: cover.bottom
+                height: Math.round(cover.height * 0.2)
+                gradient: Gradient {
+                    GradientStop { position: 0; color: Qt.rgba(footer.color.r, footer.color.g, footer.color.b, 0) }
+                    GradientStop { position: 0.48; color: Qt.rgba(footer.color.r, footer.color.g, footer.color.b, 0.25) }
+                    GradientStop { position: 1; color: footer.color }
+                }
+            }
+
+            Rectangle {
+                id: footer
                 anchors.top: cover.bottom
                 width: parent.width
                 height: root.footerHeight
@@ -194,7 +211,7 @@ Item {
                 topLeftRadius: 0
                 topRightRadius: 0
                 color: NumaAppearance.theme === "rose_pine_dawn" ? (cardHover.hovered ? NumaAppearance.highlightColor : NumaAppearance.overlayColor)
-                    : NumaAppearance.rosePine ? NumaAppearance.surfaceColor : Qt.lighter(card.footerColor, 1.3)
+                    : NumaAppearance.rosePine ? NumaAppearance.surfaceColor : card.footerColor
 
                 Behavior on color {
                     enabled: NumaAppearance.theme !== "rose_pine_dawn"

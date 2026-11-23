@@ -34,6 +34,7 @@ Item {
     property bool open: false
     property bool compactMode: false
     property color accentColor: NumaAppearance.textColor
+    property color playGlyphColor: "#121212"
     property color mixAccentColor: NumaAppearance.textColor
     property color inkColor: "#0b0d0a"
     readonly property bool compactDetailsOpen: compactNowPlaying.open
@@ -91,10 +92,13 @@ Item {
         ? history.concat(hasCurrent ? [currentTrack] : [], queue) : queue
     QueueListModel {
         id: queueModel
-        items: root.rows
+        suspended: !root.visible
+        items: suspended ? [] : root.rows
         onUpdated: if (queueScrollFollow.following && !queueScrollFollow.restoring) Qt.callLater(() => queueScrollFollow.center())
     }
     readonly property real queueSeconds: {
+        if (!root.visible)
+            return 0;
         let total = 0;
         for (let i = 0; i < root.queue.length; ++i)
             total += root.seconds(root.queue[i]);
@@ -415,7 +419,9 @@ Item {
                         contentItem: Rectangle {
                             implicitWidth: 4
                             radius: 2
-                            color: vbar.pressed ? "#80ffffff" : vbar.hovered ? "#55ffffff" : "#30ffffff"
+                        color: NumaAppearance.rosePine
+                            ? vbar.pressed ? "#80ffffff" : vbar.hovered ? "#55ffffff" : "#30ffffff"
+                            : root.tint(root.accentColor, vbar.pressed || vbar.hovered ? 0.95 : 0.65)
                         }
                     }
 

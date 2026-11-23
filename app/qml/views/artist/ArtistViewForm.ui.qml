@@ -82,6 +82,7 @@ Item {
     readonly property bool heroBleeds: hero.bleeding
 
     property alias scroll: scroll
+    readonly property alias navigationScroll: scroll
     property alias hero: hero
     property alias backButton: backButton
     property alias latestCard: latestCard
@@ -161,6 +162,11 @@ Item {
             Item {
                 width: 1
                 height: 10
+            }
+
+            LoadingSkeleton {
+                width: Math.min(parent.width, 420)
+                loading: root.loading && root.tracks.length === 0 && root.orderedSections.length === 0
             }
 
             Item {
@@ -416,7 +422,7 @@ Item {
         id: pageLoad
         anchors.fill: parent
         loading: root.loading
+        showSkeleton: false
         errorMessage: root.errorMessage
-        accentColor: root.accentColor
     }
 }

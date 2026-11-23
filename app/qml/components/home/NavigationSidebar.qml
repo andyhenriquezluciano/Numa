@@ -403,7 +403,7 @@ Item {
                         height: 12
                         name: shortcut.modelData.source === "download" ? "circle-arrow-down" : "hard-drive"
                         color: shortcut.modelData.source === "download"
-                            ? (NumaAppearance.rosePine ? NumaAppearance.accentColor : "#ebbcba") : "#7f898d"
+                            ? NumaAppearance.downloadedColor : "#7f898d"
                     }
 
                 }

@@ -5,6 +5,7 @@ import "../../components"
 import "../../components/home"
 
 ScrollView {
+    ScrollBar.vertical: ThemedScrollBar {}
     id: root
     property int period: 0
     property string query: ""

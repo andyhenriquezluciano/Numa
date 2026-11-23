@@ -55,30 +55,41 @@ ColumnLayout {
         to: root.to
         stepSize: root.stepSize
         value: root.value
+        hoverEnabled: true
         Accessible.name: root.label
-        background: Rectangle {
+        background: Item {
             x: slider.leftPadding
-            y: slider.topPadding + slider.availableHeight / 2 - height / 2
+            y: slider.topPadding
             width: slider.availableWidth
-            height: 4
-            radius: 2
-            color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#3e423b"
+            height: slider.availableHeight
+            implicitHeight: 20
+
             Rectangle {
-                width: slider.visualPosition * parent.width
-                height: parent.height
-                radius: 2
-                color: root.enabled ? NumaAppearance.accentColor : "#69756b"
+                anchors.verticalCenter: parent.verticalCenter
+                width: parent.width
+                height: slider.enabled && (slider.hovered || slider.pressed || slider.activeFocus) ? 6 : 4
+                radius: height / 2
+                color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#3e423b"
+
+                Behavior on height {
+                    NumberAnimation { duration: 180; easing.type: Easing.OutBack; easing.overshoot: 2 }
+                }
+
+                Rectangle {
+                    width: slider.visualPosition * parent.width
+                    height: parent.height
+                    radius: parent.radius
+                    color: root.enabled ? NumaAppearance.accentColor : "#69756b"
+                }
+                Rectangle {
+                    anchors.fill: parent
+                    radius: parent.radius
+                    color: "transparent"
+                    border.color: NumaAppearance.textColor
+                    visible: slider.visualFocus
+                }
             }
         }
-        handle: Rectangle {
-            x: slider.leftPadding + slider.visualPosition * (slider.availableWidth - width)
-            y: slider.topPadding + slider.availableHeight / 2 - height / 2
-            width: 16
-            height: 16
-            radius: 8
-            color: root.enabled ? NumaAppearance.accentColor : "#69756b"
-            border.width: slider.activeFocus ? 2 : 0
-            border.color: "white"
-        }
+        handle: Item {}
     }
 }

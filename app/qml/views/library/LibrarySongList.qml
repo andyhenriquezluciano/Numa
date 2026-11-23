@@ -26,6 +26,7 @@ import QtQuick
 // Saved songs as a sortable table inside a translucent panel.
 Item {
     id: root
+    property alias navigationScroll: list
 
     property var tracks: []
     property string sortKey
@@ -58,7 +59,6 @@ Item {
         width: parent.width - 16
         showArtwork: true
         showAlbum: true
-        labelColor: NumaAppearance.mutedColor
         activeColor: NumaAppearance.textColor
         sortable: true
         sortKey: root.sortKey
@@ -78,6 +78,7 @@ Item {
         model: root.tracks
 
         delegate: CollectionTrackRow {
+            artworkViewport: list
             id: row
 
             required property var modelData

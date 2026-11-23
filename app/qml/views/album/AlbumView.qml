@@ -27,6 +27,7 @@ import QtQuick.Effects
 
 Item {
     id: root
+    readonly property alias navigationScroll: scroll
 
     property bool sharedBackground: false
     property var detail: NumaAlbum.detail || ({
@@ -293,7 +294,6 @@ Item {
                 CollectionTrackHeader {
                     width: parent.width
                     showArtwork: false
-                    labelColor: root.tint(root.accentSoftColor, 0.6)
                 }
 
                 Item {
@@ -305,6 +305,7 @@ Item {
                     model: root.tracks
 
                     delegate: CollectionTrackRow {
+                        artworkViewport: scroll
                         id: trackRow
 
                         required property var modelData
@@ -383,30 +384,11 @@ Item {
         onBackToTopClicked: scroll.contentY = 0
     }
 
-    Column {
-        anchors.centerIn: parent
-        width: Math.min(parent.width - 48, 360)
-        spacing: 14
-        visible: NumaAlbum.loading
-        BusyIndicator {
-            anchors.horizontalCenter: parent.horizontalCenter
-            running: parent.visible
-            palette.dark: NumaAppearance.accentColor
-        }
-        Text {
-            width: parent.width
-            text: qsTr("Loading album…")
-            color: NumaAppearance.textColor
-            font.pixelSize: 14
-            horizontalAlignment: Text.AlignHCenter
-        }
-    }
-
     PageLoadState {
         anchors.fill: parent
         loading: NumaAlbum.loading
+        showSkeleton: root.tracks.length === 0
         errorMessage: NumaAlbum.errorMessage
-        accentColor: root.accentColor
         onRetryRequested: NumaAlbum.retry()
     }
 

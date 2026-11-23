@@ -79,11 +79,13 @@
 #include <QSGRendererInterface>
 #include <QQuickStyle>
 #include <QSurfaceFormat>
+#include <QStandardPaths>
 #include <QTextStream>
 #include <QTimer>
 #include <QUrl>
 #include <QVulkanInstance>
 #include <chrono>
+#include <atomic>
 #include <cstdlib>
 #include <memory>
 #include <thread>
@@ -97,29 +99,54 @@
 #endif
 
 #include <QNetworkAccessManager>
+#include <QNetworkDiskCache>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QQmlNetworkAccessManagerFactory>
 
-class NoHttp2NetworkAccessManager : public QNetworkAccessManager {
+class QmlNetworkAccessManager : public QNetworkAccessManager {
 public:
-  explicit NoHttp2NetworkAccessManager(QObject *parent = nullptr)
-      : QNetworkAccessManager(parent) {}
+  explicit QmlNetworkAccessManager(int cacheSlot, QObject *parent)
+      : QNetworkAccessManager(parent) {
+    const QString cacheRoot = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+    // The QML engine and image loader can each own a manager on different threads.
+    if (cacheRoot.isEmpty() || cacheSlot >= 2)
+      return;
+    auto *disk = new QNetworkDiskCache(this);
+    disk->setMaximumCacheSize(96 * 1024 * 1024);
+    disk->setCacheDirectory(QDir(cacheRoot).filePath(QStringLiteral("qml-thumbnails-%1").arg(cacheSlot)));
+    setCache(disk);
+  }
 
 protected:
   QNetworkReply *createRequest(Operation op, const QNetworkRequest &request,
                                QIODevice *outgoingData = nullptr) override {
     QNetworkRequest req(request);
     req.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
+    const QString host = req.url().host();
+    const bool publicThumbnail = op == GetOperation && req.url().scheme() == QLatin1String("https") &&
+        req.url().userInfo().isEmpty() && !req.hasRawHeader("Authorization") && !req.hasRawHeader("Cookie") &&
+        (host.endsWith(QLatin1String(".ytimg.com")) || host.endsWith(QLatin1String(".ggpht.com")) ||
+         host == QLatin1String("lh3.googleusercontent.com") || host == QLatin1String("i.scdn.co"));
+    if (publicThumbnail) {
+      req.setAttribute(QNetworkRequest::CacheLoadControlAttribute, QNetworkRequest::PreferCache);
+      req.setAttribute(QNetworkRequest::CookieLoadControlAttribute, QNetworkRequest::Manual);
+      req.setAttribute(QNetworkRequest::CookieSaveControlAttribute, QNetworkRequest::Manual);
+    } else {
+      req.setAttribute(QNetworkRequest::CacheSaveControlAttribute, false);
+    }
     return QNetworkAccessManager::createRequest(op, req, outgoingData);
   }
 };
 
-class NoHttp2NetworkFactory : public QQmlNetworkAccessManagerFactory {
+class QmlNetworkFactory : public QQmlNetworkAccessManagerFactory {
 public:
   QNetworkAccessManager *create(QObject *parent) override {
-    return new NoHttp2NetworkAccessManager(parent);
+    return new QmlNetworkAccessManager(m_nextSlot++, parent);
   }
+
+private:
+  std::atomic_int m_nextSlot{0};
 };
 
 // Keep release history in the build so About works even when the update server does not.
@@ -334,6 +361,7 @@ int main(int argc, char *argv[]) {
   // Talks to the bootstrapper that launched us; inert in development builds.
   BootstrapperClient updates;
 
+  QmlNetworkFactory networkFactory;
   QQmlApplicationEngine engine;
   uiLanguage.setEngine(&engine);
   QObject::connect(&engine, &QQmlEngine::warnings, &application,
@@ -345,7 +373,6 @@ int main(int argc, char *argv[]) {
   engine.rootContext()->setContextProperty(QStringLiteral("NumaLanguage"), &uiLanguage);
   engine.rootContext()->setContextProperty(QStringLiteral("NumaAnimatedArtwork"), &animatedArtwork);
   engine.rootContext()->setContextProperty(QStringLiteral("NumaArtworkVideos"), &artworkVideos);
-  NoHttp2NetworkFactory networkFactory;
   engine.setNetworkAccessManagerFactory(&networkFactory);
   engine.rootContext()->setContextProperty(QStringLiteral("NumaBackend"),
                                            &backend);

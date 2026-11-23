@@ -183,44 +183,55 @@ Zone summarizeZone(const QImage &image, Rectangle rectangle)
     return {average, middle, clampLightness(mixRgb(average, middle, 0.68))};
 }
 
-std::pair<double, bool> supportingHue(const QImage &image, double fallbackHue)
+Rgb artworkAccent(const QImage &image)
 {
     const qint64 pixels = qint64(image.width()) * image.height();
     const int stride = std::max(1, int(std::floor(std::sqrt(double(pixels) / 160'000.0))));
-    std::array<HueBin, 4096> bins{};
+    constexpr int hueBins = 24;
+    constexpr Rgb neutral{184, 184, 184};
+    std::array<HueBin, hueBins> bins{};
+    double visibleWeight = 0;
+    double coloredWeight = 0;
     for (int y = 0; y < image.height(); y += stride) {
         const uchar *row = image.constScanLine(y);
         for (int x = 0; x < image.width(); x += stride) {
             const uchar *pixel = row + x * 4;
             const double alpha = pixel[3] / 255.0;
             if (alpha < 0.12) continue;
-            const int key = ((pixel[0] >> 4) << 8) | ((pixel[1] >> 4) << 4) | (pixel[2] >> 4);
-            HueBin &bin = bins[key];
-            bin.weight += alpha;
-            for (int i = 0; i < 3; ++i) bin.sums[i] += pixel[i] * alpha;
+            visibleWeight += alpha;
+            const Rgb rgb{pixel[0], pixel[1], pixel[2]};
+            const auto [low, high] = std::minmax_element(rgb.begin(), rgb.end());
+            const int chroma = *high - *low;
+            if (chroma < 28) continue;
+            coloredWeight += alpha;
+            const Hsl hsl = rgbToHsl(rgb);
+            HueBin &bin = bins[int(std::round(hsl.hue / 15.0)) % hueBins];
+            const double weight = alpha * (0.65 + 0.35 * chroma / 255.0);
+            bin.weight += weight;
+            for (int i = 0; i < 3; ++i) bin.sums[i] += rgb[i] * weight;
         }
     }
 
-    double bestHue = fallbackHue;
-    double bestScore = 0;
-    bool found = false;
-    for (const HueBin &bin : bins) {
-        if (bin.weight == 0) continue;
-        const Rgb rgb{channel(bin.sums[0] / bin.weight), channel(bin.sums[1] / bin.weight),
-                      channel(bin.sums[2] / bin.weight)};
-        const Hsl hsl = rgbToHsl(rgb);
-        if (hsl.saturation < 0.34 || hsl.lightness < 0.14 || hsl.lightness > 0.84) continue;
-        const double difference = std::abs(hsl.hue - fallbackHue);
-        const double distance = std::min(difference, 360.0 - difference);
-        const double score = std::sqrt(bin.weight) * hsl.saturation * (0.24 + hsl.lightness)
-                             * (distance <= 48.0 ? 1.18 : 0.82);
-        if (!found || score > bestScore) {
-            bestHue = hsl.hue;
-            bestScore = score;
-            found = true;
+    // Tiny colored details and compression noise shouldn't tint monochrome covers.
+    if (visibleWeight == 0 || coloredWeight < 0.12 * visibleWeight)
+        return neutral;
+
+    HueBin dominant;
+    for (int i = 0; i < hueBins; ++i) {
+        HueBin neighborhood = bins[i];
+        for (const int offset : {-1, 1}) {
+            const HueBin &neighbor = bins[(i + hueBins + offset) % hueBins];
+            neighborhood.weight += 0.75 * neighbor.weight;
+            for (int channel = 0; channel < 3; ++channel)
+                neighborhood.sums[channel] += 0.75 * neighbor.sums[channel];
         }
+        if (neighborhood.weight > dominant.weight)
+            dominant = neighborhood;
     }
-    return {bestHue, found};
+    const Rgb rgb{channel(dominant.sums[0] / dominant.weight), channel(dominant.sums[1] / dominant.weight),
+                  channel(dominant.sums[2] / dominant.weight)};
+    const Hsl hsl = rgbToHsl(rgb);
+    return hslToRgb(hsl.hue, std::min(hsl.saturation, 0.88), std::clamp(hsl.lightness, 0.58, 0.78));
 }
 
 QJsonArray jsonRgb(Rgb rgb)
@@ -235,32 +246,29 @@ QJsonObject jsonZone(const Zone &zone)
             {QStringLiteral("seam"), jsonRgb(zone.seam)}};
 }
 
-QJsonObject samplePixels(const QImage &image)
+QJsonObject samplePixels(const QImage &image, bool includeZones)
 {
     QJsonObject zones;
-    for (const auto &[name, rectangle] : rectangles(image.width(), image.height()))
-        zones.insert(QLatin1String(name), jsonZone(summarizeZone(image, rectangle)));
-
-    const auto seamOf = [&zones](const char *name) -> Rgb {
-        const QJsonArray values = zones.value(QLatin1String(name)).toObject().value(QStringLiteral("seam")).toArray();
-        return {quint8(values[0].toInt()), quint8(values[1].toInt()), quint8(values[2].toInt())};
-    };
+    const auto regions = rectangles(image.width(), image.height());
+    constexpr size_t firstPaletteRegion = 4;
+    std::array<Rgb, 8> seams{};
+    for (size_t index = includeZones ? 0 : firstPaletteRegion; index < regions.size(); ++index) {
+        const auto &[name, rectangle] = regions[index];
+        const Zone zone = summarizeZone(image, rectangle);
+        if (includeZones)
+            zones.insert(QLatin1String(name), jsonZone(zone));
+        if (index >= firstPaletteRegion)
+            seams[index - firstPaletteRegion] = zone.seam;
+    }
     const Rgb seam = clampLightness(weightedRgb({
-        {seamOf("leftStrip"), 1.0}, {seamOf("rightStrip"), 1.0},
-        {seamOf("topStrip"), 1.0}, {seamOf("bottomStrip"), 1.0},
-        {seamOf("topLeft"), 0.5}, {seamOf("topRight"), 0.5},
-        {seamOf("bottomRight"), 0.5}, {seamOf("bottomLeft"), 0.5},
+        {seams[0], 1.0}, {seams[1], 1.0}, {seams[2], 1.0}, {seams[3], 1.0},
+        {seams[4], 0.5}, {seams[5], 0.5}, {seams[6], 0.5}, {seams[7], 0.5}
     }));
-    const Hsl edge = rgbToHsl(seam);
-    const auto [supporting, hasSupporting] = supportingHue(image, edge.hue);
-    const double accentHue = edge.saturation >= 0.34 ? edge.hue : supporting;
-    const bool monochrome = !hasSupporting && edge.saturation < 0.18;
-    const double accentSaturation = monochrome ? 0.08 : std::clamp(std::max(edge.saturation, 0.82), 0.82, 1.0);
-    const double accentLightness = monochrome ? 0.72 : edge.lightness > 0.72 ? 0.48 : 0.61;
-    const Rgb accent = hslToRgb(accentHue, accentSaturation, accentLightness);
+    const Rgb accent = artworkAccent(image);
 
     const QJsonObject palette{
         {QStringLiteral("seam"), jsonRgb(seam)},
+        {QStringLiteral("footer"), jsonRgb(seams[3])},
         {QStringLiteral("accent"), jsonRgb(accent)},
         {QStringLiteral("accentSoft"), jsonRgb(mixRgb(accent, {255, 255, 255}, 0.18))},
         {QStringLiteral("deep"), jsonRgb(mixRgb(seam, {5, 2, 3}, 0.58))},
@@ -269,13 +277,14 @@ QJsonObject samplePixels(const QImage &image)
         {QStringLiteral("surfaceRaised"), jsonRgb(mixRgb(seam, {28, 10, 13}, 0.56))},
         {QStringLiteral("onAccent"), jsonRgb(readableAccentText(accent))},
     };
+    if (!includeZones)
+        return palette;
     return {{QStringLiteral("method"), QStringLiteral("image-qt-raw-edge-zones-v1")},
             {QStringLiteral("width"), image.width()}, {QStringLiteral("height"), image.height()},
             {QStringLiteral("zones"), zones}, {QStringLiteral("palette"), palette}};
 }
-} // namespace
 
-QJsonObject sampleArtwork(const QByteArray &encoded)
+QJsonObject sample(const QByteArray &encoded, bool includeZones)
 {
     if (encoded.isEmpty() || encoded.size() > kMaxArtworkBytes) return {};
     QBuffer buffer;
@@ -293,5 +302,16 @@ QJsonObject sampleArtwork(const QByteArray &encoded)
         image.convertToColorSpace(QColorSpace(QColorSpace::SRgb), QImage::Format_RGBA8888);
     else
         image = image.convertToFormat(QImage::Format_RGBA8888);
-    return image.isNull() ? QJsonObject() : samplePixels(image);
+    return image.isNull() ? QJsonObject() : samplePixels(image, includeZones);
+}
+} // namespace
+
+QJsonObject sampleArtwork(const QByteArray &encoded)
+{
+    return sample(encoded, true);
+}
+
+QJsonObject sampleArtworkPalette(const QByteArray &encoded)
+{
+    return sample(encoded, false);
 }

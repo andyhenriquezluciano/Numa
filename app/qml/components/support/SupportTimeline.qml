@@ -139,7 +139,7 @@ Item {
             spacing: 2
             model: NumaSupport.activeEvents
             boundsBehavior: Flickable.StopAtBounds
-            ScrollBar.vertical: ScrollBar {}
+            ScrollBar.vertical: ThemedScrollBar {}
             // Newest at the bottom, like the issue page; open at the latest news.
             onCountChanged: Qt.callLater(positionViewAtEnd)
 
@@ -255,12 +255,6 @@ Item {
                 color: "#7c857f"
                 font.family: "Inter"
                 font.pixelSize: 12
-            }
-
-            BusyIndicator {
-                anchors.centerIn: parent
-                running: NumaSupport.activeLoading && events.count === 0
-                visible: running
             }
 
             FlickableWheel {

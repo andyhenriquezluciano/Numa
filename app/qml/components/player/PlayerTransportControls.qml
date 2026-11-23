@@ -37,6 +37,7 @@ RowLayout {
         Button {
             id: transportButton
             HandCursor {}
+            objectName: mainButton ? "miniPlayPauseButton" : ""
 
             required property string modelData
             readonly property bool modeButton: modelData === "shuffle" || modelData === "repeat"
@@ -119,7 +120,7 @@ RowLayout {
                     if (transportButton.modeButton && !transportButton.enabled)
                         return "transparent";
                     if (transportButton.mainButton) {
-                        if (bar.lightTheme)
+                        if (!NumaAppearance.rosePine || bar.lightTheme)
                             return transportButton.down ? Qt.darker(bar.accentColor, 1.12) : bar.accentColor;
                         if (transportButton.down)
                             return "#e5e2da";
@@ -144,7 +145,7 @@ RowLayout {
                 name: transportButton.iconName
                 color: {
                     if (transportButton.mainButton)
-                        return bar.lightTheme ? NumaAppearance.surfaceColor : "#121212";
+                        return !NumaAppearance.rosePine ? bar.onAccentColor : bar.lightTheme ? NumaAppearance.surfaceColor : "#121212";
 
                     if (!transportButton.enabled)
                         return "#6b6f68";

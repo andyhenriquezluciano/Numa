@@ -38,6 +38,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <optional>
 
 class YouTubeProvider;
 class AuthManager;
@@ -438,6 +439,7 @@ private:
   bool m_bestMixSorted{false};
   QString m_error;
   QString m_playlistId;
+  QVariantMap m_playlistOrigin;
   QString m_queueContinuation;
   QString m_queueError;
   QSet<QString> m_queuePages;
@@ -458,6 +460,13 @@ private:
   bool m_suppressHistory{false};
   bool m_persistenceEnabled{true};
   bool m_restoringPlayback{false};
+  struct PersistedQueueSnapshot {
+    QVariantList queue;
+    QVariantList history;
+    QVariantList shuffleSource;
+  };
+  std::optional<PersistedQueueSnapshot> m_persistedQueueSnapshot;
+  bool queueNeedsSaving() const;
   QTimer m_persistTimer;
   QTimer m_queuePersistTimer;
   QTimer m_trackSwitchTimer;

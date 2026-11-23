@@ -46,10 +46,15 @@ Row {
         id: captionControl
         property string windowAction
         readonly property bool dawn: NumaAppearance.theme === "rose_pine_dawn"
-        readonly property color actionColor: !NumaAppearance.rosePine ? "#eb6f92"
+        readonly property color actionColor: !NumaAppearance.rosePine ? NumaAppearance.brandColor
             : windowAction === "minimize" ? (dawn ? "#ea9d34" : "#f6c177")
             : windowAction === "maximize" ? (dawn ? "#286983" : "#31748f")
             : (dawn ? "#b4637a" : "#eb6f92")
+        readonly property color hoverFill: {
+            const rose = NumaAppearance.rosePine;
+            const fill = rose ? actionColor : Qt.darker(actionColor, 2);
+            return Qt.rgba(fill.r, fill.g, fill.b, rose ? 0.16 : down ? 0.82 : 0.68);
+        }
         readonly property color glyphColor: hovered ? actionColor
             : NumaAppearance.rosePine ? NumaAppearance.textColor : NumaAppearance.mutedColor
         width: 40
@@ -63,9 +68,7 @@ Row {
         Accessible.name: text
         background: Rectangle {
             radius: 10
-            color: captionControl.hovered
-                ? Qt.rgba(captionControl.actionColor.r, captionControl.actionColor.g, captionControl.actionColor.b, 0.16)
-                : "transparent"
+            color: captionControl.hovered ? captionControl.hoverFill : "transparent"
             border.color: NumaAppearance.textColor
             border.width: captionControl.visualFocus ? 1 : 0
         }

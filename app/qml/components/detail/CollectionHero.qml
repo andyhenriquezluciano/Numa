@@ -316,7 +316,7 @@ Item {
                 id: downloadButton
                 visible: root.downloadable
                 glyph: root.downloadState === "done" ? "circle-arrow-down" : "download"
-                glyphColor: root.downloadState === "done" ? NumaAppearance.accentColor : NumaAppearance.textColor
+                glyphColor: root.downloadState === "done" ? NumaAppearance.downloadedColor : NumaAppearance.textColor
                 enabled: root.downloadEnabled
                 opacity: !enabled ? 0.4 : root.downloadState === "busy" ? 0.7 : 1
                 Accessible.name: ToolTip.text

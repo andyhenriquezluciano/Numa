@@ -25,15 +25,20 @@ Switch {
     id: control
     HandCursor {}
 
+    property color checkedColor: control.Window.window && control.Window.window.playbackAccentColor !== undefined
+        ? control.Window.window.playbackAccentColor : NumaAppearance.accentColor
+    property color checkedKnobColor: control.Window.window && control.Window.window.playbackAccentInk !== undefined
+        ? control.Window.window.playbackAccentInk : "#121212"
+
     indicator: Rectangle {
         implicitWidth: 40
         implicitHeight: 24
         x: control.leftPadding
         y: control.topPadding + control.availableHeight / 2 - height / 2
-        radius: 12
+        radius: 8
         // Translucent when off so the glass shows through.
-        color: control.checked ? (NumaAppearance.rosePine ? NumaAppearance.accentColor : "#9470bd") : (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#2cffffff")
-        border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : control.visualFocus ? NumaAppearance.accentColor : "transparent"
+        color: control.checked ? (NumaAppearance.rosePine ? NumaAppearance.accentColor : control.checkedColor) : (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#2cffffff")
+        border.color: NumaAppearance.rosePine ? NumaAppearance.borderColor : control.visualFocus ? control.checkedColor : "transparent"
         border.width: NumaAppearance.rosePine ? 0 : 2
         Behavior on color { ColorAnimation { duration: 180 } }
 
@@ -43,8 +48,9 @@ Switch {
             // Knob stretches while held, like it's bracing for the jump.
             width: control.down ? 22 : 18
             height: 18
-            radius: 9
-            color: NumaAppearance.theme === "rose_pine_dawn" ? (control.checked ? NumaAppearance.surfaceColor : NumaAppearance.accentColor) : control.checked && NumaAppearance.rosePine ? "#191724" : "#e0def4"
+            radius: 6
+            color: NumaAppearance.theme === "rose_pine_dawn" ? (control.checked ? NumaAppearance.surfaceColor : NumaAppearance.accentColor)
+                : control.checked ? (NumaAppearance.rosePine ? "#191724" : control.checkedKnobColor) : NumaAppearance.textColor
             Behavior on x { NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 1.4 } }
             Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
             Behavior on color { ColorAnimation { duration: 180 } }

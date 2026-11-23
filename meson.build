@@ -1,4 +1,4 @@
-project('Numa', ['c', 'cpp'], version: '2.6.1', meson_version: '>=1.12.0',
+project('Numa', ['c', 'cpp'], version: '2.9', meson_version: '>=1.12.0',
   subproject_dir: 'third_party', default_options: ['cpp_std=c++20', 'b_lto=false'])
 
 cmake = import('cmake')
@@ -311,10 +311,12 @@ app_dep = declare_dependency(link_with: app_lib, include_directories: app_inc,
   dependencies: app_dependencies, compile_args: app_args)
 
 qml_type_headers = [
+  'app/src/playlist/playlist_track_model.h',
   'app/src/appearance/artwork_palette.h',
   'app/src/appearance/kawarp_background.h',
   'app/src/appearance/liquid_glass.h',
 ]
+qml_type_inc = [app_inc, include_directories('app/src/playlist')]
 # Meson's Qt helper puts every source at the module root. Thin wrappers keep
 # each real QML file beside the relative imports it expects.
 qml_wrappers = []
@@ -351,7 +353,7 @@ qml_module = qt6.qml_module('Numa', version: '1.0',
   rcc_extra_arguments: rcc_args,
   moc_headers: qml_type_headers,
   resources_prefix: 'qt/qml',
-  include_directories: app_inc,
+  include_directories: qml_type_inc,
   dependencies: [qt_dep])
 exe_moc = qt6.compile_moc(sources: ['app/src/appearance/liquid_glass.cpp'],
   include_directories: app_inc, dependencies: [qt_dep, qt_gui_private])
@@ -387,12 +389,21 @@ if host_machine.system() == 'windows'
   app_platform_resources += windows.compile_resources(
     'app/src/platform/windows/numa.rc',
     depend_files: files('app/src/platform/windows/numa.ico'))
+  updater_args = []
+  if cpp.get_id() == 'gcc'
+    updater_args = ['-static-libgcc', '-static-libstdc++']
+  endif
+  executable('numa-windows-updater', 'app/src/platform/windows/update_installer.cpp',
+    dependencies: [cpp.find_library('shell32'), cpp.find_library('bcrypt'),
+      cpp.find_library('ole32'), cpp.find_library('user32')],
+    link_args: updater_args, override_options: ['b_vscrt=mt'],
+    win_subsystem: 'windows', install: true)
 endif
 
 numa = executable('numa', files(app_executable_sources) + exe_moc +
   qml_module + [qmldir_resources] + qml_files_qrc + assets_qrc + licenses_qrc + docs_qrc + release_notes_qrc +
   [provider_resources, shaders_cpp] + app_platform_resources,
-  include_directories: app_inc,
+  include_directories: qml_type_inc,
   dependencies: [app_dep, qt_dep, qt_gui_private, qt_entry_dep],
   link_depends: adaptive_stage,
   win_subsystem: 'windows', install: true)

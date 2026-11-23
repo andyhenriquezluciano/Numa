@@ -115,7 +115,7 @@ Item {
         visible: false
         media: NumaPlaylist.detail || ({})
         customArtwork: !identity.startsWith("local-playlist:") && typeof NumaSync !== "undefined" && NumaSync.revision >= 0
-            ? NumaSync.artworkFor(identity, "", false) : ""
+            ? NumaSync.artworkFor(kind === "liked" ? "FEmusic_liked_videos" : identity, "", false) : ""
     }
 
     ImmersiveBackground {
@@ -236,7 +236,9 @@ Item {
         id: offlineHomeLoader
         anchors.fill: home
         asynchronous: false
-        active: scene.shell.currentPage === "home" && (NumaNetwork.offline || NumaNetwork.retrying)
+        visible: scene.shell.currentPage === "home"
+        active: (scene.shell.currentPage === "home" || scene.shell.retainedPage === "home")
+                && (NumaNetwork.offline || NumaNetwork.retrying)
 
         sourceComponent: Component {
             OfflineHomeView {
@@ -251,7 +253,8 @@ Item {
         id: libraryLoader
         anchors.fill: home
         asynchronous: true
-        active: scene.shell.currentPage === "library"
+        visible: scene.shell.currentPage === "library"
+        active: scene.shell.currentPage === "library" || scene.shell.retainedPage === "library"
         sourceComponent: (NumaNetwork.offline || NumaNetwork.retrying) ? offlineLibraryComponent : onlineLibraryComponent
         onActiveChanged: if (!active) scene.pendingDownloadedSongs = false
         onLoaded: {
@@ -297,7 +300,8 @@ Item {
         anchors.top: topBar.bottom
         anchors.bottom: parent.bottom
         asynchronous: true
-        active: scene.shell.currentPage === "search"
+        visible: scene.shell.currentPage === "search"
+        active: scene.shell.currentPage === "search" || scene.shell.retainedPage === "search"
 
         sourceComponent: Component {
             SearchView {
@@ -308,9 +312,10 @@ Item {
                 errorMessage: NumaSearch.errorMessage
                 onFilterRequested: function(filter) {
                     scene.shell.searchFilter = filter;
-                    NumaSearch.clear();
-                    if (scene.shell.searchQuery.trim())
+                    if (scene.shell.searchQuery.trim()) {
+                        NumaSearch.prepareSearch();
                         scene.shell.searchDebounce.restart();
+                    }
                 }
                 onRetryRequested: NumaSearch.retry()
                 onSongRequested: function(song) {
@@ -371,7 +376,7 @@ Item {
                     });
                     scene.shell.currentPage = "search";
                 }
-                NumaSearch.clear();
+                NumaSearch.prepareSearch();
                 scene.shell.searchDebounce.restart();
             } else {
                 scene.shell.searchDebounce.stop();
@@ -397,7 +402,8 @@ Item {
         anchors.top: topBar.bottom
         anchors.bottom: parent.bottom
         asynchronous: true
-        active: scene.shell.currentPage === "album"
+        visible: scene.shell.currentPage === "album"
+        active: scene.shell.currentPage === "album" || scene.shell.retainedPage === "album"
 
         sourceComponent: Component {
             AlbumView {
@@ -439,7 +445,8 @@ Item {
         anchors.top: topBar.bottom
         anchors.bottom: parent.bottom
         asynchronous: true
-        active: scene.shell.currentPage === "artist"
+        visible: scene.shell.currentPage === "artist"
+        active: scene.shell.currentPage === "artist" || scene.shell.retainedPage === "artist"
 
         sourceComponent: Component {
             ArtistView {
@@ -468,7 +475,8 @@ Item {
         anchors.top: topBar.bottom
         anchors.bottom: parent.bottom
         asynchronous: true
-        active: scene.shell.currentPage === "playlist"
+        visible: scene.shell.currentPage === "playlist"
+        active: scene.shell.currentPage === "playlist" || scene.shell.retainedPage === "playlist"
         onLoaded: if (scene.shell.currentPage === "playlist") item.forceActiveFocus()
 
         sourceComponent: Component {

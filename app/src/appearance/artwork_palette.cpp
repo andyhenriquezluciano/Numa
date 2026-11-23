@@ -20,6 +20,7 @@
 #include "artwork_palette.h"
 #include "appearance/artwork_sampler.h"
 
+#include <QCache>
 #include <QFile>
 #include <QFutureWatcher>
 #include <QJsonObject>
@@ -30,12 +31,10 @@
 namespace {
 
 // Shared across instances so skipping back to a track recolors instantly.
-QHash<QString, QVariantMap> &paletteCache() {
-  static QHash<QString, QVariantMap> cache;
+QCache<QString, QVariantMap> &paletteCache() {
+  static QCache<QString, QVariantMap> cache(64);
   return cache;
 }
-
-constexpr qsizetype kPaletteCacheLimit = 64;
 
 } // namespace
 
@@ -62,18 +61,19 @@ void ArtworkPalette::setSource(const QUrl &source) {
   }
 
   const QString key = source.toString();
-  const auto cached = paletteCache().constFind(key);
-  if (cached != paletteCache().constEnd()) {
+  if (const auto *cached = paletteCache().object(key)) {
     publish(*cached, true);
     return;
   }
 
-  // Keep the previous palette until the new one lands so colors glide instead
-  // of flashing back to the fallback.
+  // Keep the old samples for backdrop transitions, but mark them as belonging
+  // to the previous cover until this source is decoded.
+  publish(m_palette, false);
   if (source.isLocalFile()) {
-    QFile file(source.toLocalFile());
-    if (file.open(QIODevice::ReadOnly))
-      sample(file.readAll(), generation);
+    sample([path = source.toLocalFile()] {
+      QFile file(path);
+      return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray{};
+    }, generation);
     return;
   }
 
@@ -97,33 +97,36 @@ void ArtworkPalette::loadRemote() {
     if (m_reply != reply || generation != m_generation)
       return;
     m_reply = nullptr;
-    if (reply->error() != QNetworkReply::NoError)
+    if (reply->error() != QNetworkReply::NoError) {
+      publish({}, false);
       return;
-    sample(reply->readAll(), generation);
+    }
+    sample([bytes = reply->readAll()] { return bytes; }, generation);
   });
 }
 
-void ArtworkPalette::sample(QByteArray bytes, quint64 generation) {
-  if (bytes.isEmpty())
-    return;
+void ArtworkPalette::sample(std::function<QByteArray()> readArtwork, quint64 generation) {
   const QString key = m_source.toString();
   auto *watcher = new QFutureWatcher<QVariantMap>(this);
   connect(watcher, &QFutureWatcher<QVariantMap>::finished, this,
           [this, watcher, generation, key] {
             const QVariantMap palette = watcher->result();
             watcher->deleteLater();
-            if (palette.isEmpty())
+            if (palette.isEmpty()) {
+              if (generation == m_generation)
+                publish({}, false);
               return;
-            auto &cache = paletteCache();
-            if (cache.size() >= kPaletteCacheLimit)
-              cache.clear();
-            cache.insert(key, palette);
+            }
+            paletteCache().insert(key, new QVariantMap(palette));
             if (generation == m_generation)
               publish(palette, true);
           });
   watcher->setFuture(
-      QtConcurrent::run([bytes = std::move(bytes)]() -> QVariantMap {
-        return sampleArtwork(bytes).value(QStringLiteral("palette")).toObject().toVariantMap();
+      QtConcurrent::run([readArtwork = std::move(readArtwork)]() -> QVariantMap {
+        const QByteArray bytes = readArtwork();
+        if (bytes.isEmpty())
+          return {};
+        return sampleArtworkPalette(bytes).toVariantMap();
       }));
 }
 

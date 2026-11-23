@@ -67,7 +67,7 @@ Rectangle {
                 height: implicitHeight
             }
 
-            ScrollBar.vertical: ScrollBar {}
+            ScrollBar.vertical: ThemedScrollBar {}
 
             FlickableWheel {
                 view: pageScroller

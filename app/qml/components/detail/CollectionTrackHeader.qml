@@ -27,7 +27,7 @@ Item {
 
     property bool showArtwork: true
     property bool showAlbum: false
-    property color labelColor: "#99ffffff"
+    property color labelColor: NumaAppearance.textColor
     property color activeColor: "white"
     // Sorting is opt-in; albums already come in the order the artist meant.
     property bool sortable: false
@@ -195,7 +195,8 @@ Item {
         text: qsTr("ALBUM")
     }
     SortLabel {
-        x: root.width - 8 - 36 - width
+        anchors.right: sortButton.left
+        anchors.rightMargin: root.sortable ? 8 : 0
         key: "duration"
         icon: "clock"
         alignRight: true
@@ -213,7 +214,7 @@ Item {
         Accessible.name: qsTr("Sort tracks")
         onClicked: sortMenu.popup(sortButton, sortButton.width - sortMenu.width, sortButton.height)
         background: Rectangle {
-            radius: width / 2
+            radius: 8
             color: sortButton.hovered || sortMenu.visible ? "#1fffffff" : "transparent"
         }
         contentItem: LucideIcon {

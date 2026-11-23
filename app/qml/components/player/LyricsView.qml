@@ -25,19 +25,20 @@ import QtQuick.Effects
 Item {
     id: root
 
-    readonly property color lyricColor: NumaAppearance.rosePine ? NumaAppearance.accentColor : primaryText
+    readonly property color lyricColor: NumaAppearance.rosePine ? NumaAppearance.accentColor : accentColor
     property color accentColor: NumaAppearance.textColor
     property color primaryText: NumaAppearance.textColor
     property color mutedText: "#858a82"
     property bool running: visible
+    readonly property bool tracking: running && !NumaWindowState.idle
 
     readonly property var lines: NumaLyrics.lines || []
     readonly property bool synced: NumaLyrics.mode === "synced"
     property int pixelSize: 21
     // A line stays lit until the next one starts; providers often end lines before the last word trails off.
     // Read lines here so a new track refreshes the highlight even at the same clock value.
-    readonly property int currentIndex: synced && lines.length ? NumaLyrics.indexAt(Math.max(0, clock - 0.25)) : -1
-    readonly property int pauseIndex: synced ? pauseAt(Math.max(0, clock - 0.25)) : -2
+    readonly property int currentIndex: synced && lines.length ? NumaLyrics.indexAt(wordClock) : -1
+    readonly property int pauseIndex: synced ? pauseAt(currentIndex, wordClock) : -2
     readonly property real wordClock: Math.max(0, clock - 0.25)
     readonly property color fillColor: Qt.rgba(accentColor.r * 0.4 + primaryText.r * 0.6,
                                                accentColor.g * 0.4 + primaryText.g * 0.6,
@@ -77,8 +78,7 @@ Item {
         return pauseStart < nextStart ? { start: pauseStart, end: nextStart } : null;
     }
 
-    function pauseAt(time) {
-        const index = NumaLyrics.indexAt(time);
+    function pauseAt(index, time) {
         const window = pauseWindow(index);
         return window && time >= window.start && time < window.end ? index : -2;
     }
@@ -164,11 +164,19 @@ Item {
     }
 
     onReportedChanged: {
+        if (!tracking)
+            return;
         // Snap on seeks and pauses; otherwise ease toward the player so ticks never cause visible jumps.
         if (!NumaPlayback.playing || Math.abs(reported - clock) > 0.35)
             clock = reported;
         else
             clock += (reported - clock) * 0.25;
+    }
+    onTrackingChanged: {
+        if (tracking) {
+            clock = reported;
+            Qt.callLater(scrollToCurrent, false);
+        }
     }
     onCurrentIndexChanged: scrollToCurrent(true)
     onPauseIndexChanged: Qt.callLater(scrollToCurrent, true)
@@ -182,7 +190,7 @@ Item {
     onHeightChanged: Qt.callLater(scrollToCurrent, false)
 
     FrameAnimation {
-        running: root.running && root.synced && NumaPlayback.playing
+        running: root.tracking && root.synced && NumaPlayback.playing
         onTriggered: root.clock = Math.min(root.clock + frameTime, root.reported + 0.10)
     }
 
@@ -379,7 +387,9 @@ Item {
                                     width: parent.width
                                     visible: line.words.length === 0 || line.translated
                                     text: line.translated ? line.translation : line.modelData.text || ""
-                                    color: line.translated ? (line.current ? root.primaryText : root.tint(root.primaryText, 0.24)) : line.current ? root.lyricColor : line.restColor
+                                    color: line.translated && NumaAppearance.rosePine
+                                        ? (line.current ? root.primaryText : root.tint(root.primaryText, 0.24))
+                                        : line.current ? root.lyricColor : line.restColor
                                     horizontalAlignment: line.alternate ? Text.AlignRight : Text.AlignLeft
                                     font.family: "Inter"
                                     font.pixelSize: root.synced ? root.pixelSize : 16
@@ -490,11 +500,21 @@ Item {
 
     // Loading, missing, and idle all share one quiet placeholder.
     LyricsPlaceholder {
+        id: lyricsPlaceholder
         anchors.centerIn: parent
+        anchors.verticalCenterOffset: lyricSkeleton.active ? -(lyricSkeleton.height + 18) / 2 : 0
         width: parent.width - 28
         accentColor: root.accentColor
         primaryText: root.primaryText
-        dotColor: root.fillColor
-        running: root.running
+    }
+
+    LoadingSkeleton {
+        id: lyricSkeleton
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: lyricsPlaceholder.bottom
+        anchors.topMargin: 18
+        width: Math.max(0, Math.min(parent.width - 28, 420))
+        loading: root.running && NumaLyrics.status === "loading"
+        lyrics: true
     }
 }

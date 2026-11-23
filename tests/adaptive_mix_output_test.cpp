@@ -81,6 +81,45 @@ class AdaptiveMixOutputTest : public QObject {
     return active;
   }
 private slots:
+  void audioFlushTimerRunsOnlyDuringPlayback() {
+    QMediaPlayer player;
+    AudioPipeline output;
+    quiet(output, player);
+    output.m_recoveryAfterMs = output.m_timingClock.elapsed() + 10000;
+    QVERIFY(!output.m_flushTimer.isActive());
+    output.setPlaying(true);
+    QVERIFY(output.m_flushTimer.isActive());
+    output.setPlaying(false);
+    QVERIFY(!output.m_flushTimer.isActive());
+    output.setPlaying(true);
+    QVERIFY(output.m_flushTimer.isActive());
+  }
+  void periodicPlaybackStateDoesNotRewriteUnchangedQueue() {
+    QSettings().clear();
+    YouTubeProvider provider;
+    AuthManager auth(&provider);
+    YouTubeCatalog catalog(&provider);
+    HomeController home(&catalog, &auth);
+    PlaybackController playback(&provider, &auth, &home);
+    playback.m_prepared = true;
+    const QVariantMap incoming{{"id", "track-a"}}, added{{"id", "track-b"}};
+    playback.replacePartyQueue({incoming});
+    playback.flushPersistedQueue();
+    QCOMPARE(QSettings().value("playback/persistedQueue").toList(), QVariantList{incoming});
+    playback.savePlaybackState();
+    QVERIFY(!playback.m_queuePersistTimer.isActive());
+    playback.replacePartyQueue({incoming, added});
+    playback.savePlaybackState();
+    QVERIFY(playback.m_queuePersistTimer.isActive());
+    playback.flushPersistedQueue();
+    const QVariantList expected{incoming, added};
+    QCOMPARE(QSettings().value("playback/persistedQueue").toList(), expected);
+    playback.setPlaybackPersistenceEnabled(false);
+    QVERIFY(!QSettings().contains("playback/persistedQueue"));
+    playback.setPlaybackPersistenceEnabled(true);
+    QCOMPARE(QSettings().value("playback/persistedQueue").toList(), expected);
+  }
+
   void clockPropertiesNotifyOnPositionChanges() {
     const auto &meta = PlaybackController::staticMetaObject;
     for (const char *name : {"displayDuration", "nonMusicSegment", "canGoPrevious"}) {

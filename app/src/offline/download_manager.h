@@ -43,8 +43,8 @@ class DownloadManager final : public QObject {
   Q_OBJECT
   // Bumps on every change so QML bindings that call isDownloaded() refresh.
   Q_PROPERTY(int revision READ revision NOTIFY changed)
-  Q_PROPERTY(int count READ count NOTIFY changed)
-  Q_PROPERTY(double bytesUsed READ bytesUsed NOTIFY changed)
+  Q_PROPERTY(int count READ count NOTIFY storeChanged)
+  Q_PROPERTY(double bytesUsed READ bytesUsed NOTIFY storeChanged)
   // "saver", "normal" or "high".
   Q_PROPERTY(QString quality READ quality WRITE setQuality NOTIFY settingsChanged)
   Q_PROPERTY(bool animatedArtwork READ animatedArtwork WRITE setAnimatedArtwork NOTIFY settingsChanged)
@@ -108,6 +108,7 @@ public:
 
 signals:
   void changed();
+  void storeChanged();
   void settingsChanged();
   void activityChanged();
   void noticeRequested(const QString &message);
@@ -147,10 +148,11 @@ private:
   // download_manager_files.cpp: art, loops, removal and settings.
   void fetchCover(const QString &id);
   void fetchLoop(const QString &id);
-  void saveCollection(const QVariantMap &collection, const QStringList &ids);
+  bool saveCollection(const QVariantMap &collection, const QStringList &ids);
   void deleteFiles(const offline::TrackRecord &record);
   void dropEmptyCollections();
   void touch();
+  void refreshJobState();
   void activity();
   void scheduleSave();
 

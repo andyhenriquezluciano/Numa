@@ -62,10 +62,6 @@ QAudioFormat AudioPipeline::format() {
   return format;
 }
 
-void AudioPipeline::start() {
-  m_flushTimer.start();
-}
-
 NumaAudioEngineConfig AudioPipeline::trackConfiguration(const QString &trackId) const {
   NumaAudioEngineConfig config = m_config;
   const double gain = m_trackGains.value(trackId, 0.0).toDouble();
@@ -112,8 +108,11 @@ void AudioPipeline::setMasterVolume(double volume) {
 void AudioPipeline::setPlaying(bool playing) {
   m_playing = playing;
   if (playing) {
+    if (!m_flushTimer.isActive())
+      m_flushTimer.start();
     m_meterTimer.start();
   } else {
+    m_flushTimer.stop();
     m_meterTimer.stop();
     emit metersChanged(QList<float>(10, 0.0f), QList<float>(10, 0.0f));
   }

@@ -32,6 +32,7 @@ Item {
     // Private capture resolution relative to device pixels. The blur hides the difference; the GPU notices it.
     property real captureScale: 0.5
     readonly property bool sharedBackdrop: root.backdrop !== null && root.backdrop.layer.enabled
+    readonly property bool needsCapture: root.visible && !root.sharedBackdrop && !NumaAppearance.performanceMode
 
     property alias blurRadius: lens.blurRadius
     property real bevelDepth: Math.min(18, root.radius)
@@ -58,25 +59,17 @@ Item {
         readonly property real scale: Screen.devicePixelRatio * root.captureScale
 
         // Idle when the backdrop is shared: no source item, no layer, no work.
-        sourceItem: root.sharedBackdrop || NumaAppearance.performanceMode ? null : root.backdrop
+        sourceItem: root.needsCapture ? root.backdrop : null
         sourceRect: lens.backdropRect
         textureSize: Qt.size(Math.max(1, Math.ceil(root.width * scale)), Math.max(1, Math.ceil(root.height * scale)))
-        live: false
+        // Qt refreshes a live capture only when its source scene graph is dirty.
+        live: root.needsCapture && root.live && !NumaWindowState.backgroundIdle
         recursive: false
         hideSource: false
         visible: false
-        Component.onCompleted: scheduleUpdate()
-        onSourceItemChanged: scheduleUpdate()
-        onSourceRectChanged: scheduleUpdate()
-    }
-
-    Timer {
-        interval: 66
-        repeat: true
-        running: root.live && root.visible && !root.sharedBackdrop
-                 && !NumaAppearance.performanceMode
-                 && !NumaWindowState.backgroundIdle
-        onTriggered: capture.scheduleUpdate()
+        Component.onCompleted: if (sourceItem) scheduleUpdate()
+        onSourceItemChanged: if (sourceItem) scheduleUpdate()
+        onSourceRectChanged: if (sourceItem && !live) scheduleUpdate()
     }
 
     // Tuned for dark UI under ink washes: frosted, a thin lens at the rim, no specular glare.

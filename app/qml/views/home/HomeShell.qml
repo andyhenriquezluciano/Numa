@@ -42,6 +42,8 @@ Item {
     property string noticeMessage: ""
     readonly property alias searchDebounce: searchDebounce
     property var history: []
+    property string retainedPage: ""
+    property var scrollRestore: null
     property var currentItem: ({
     })
     readonly property bool canopy: NumaAppearance.layoutStyle === "canopy"
@@ -51,14 +53,14 @@ Item {
         // Unloaded pages arrive in playlist order, so a sorted queue stops at what is loaded.
         const continuation = NumaPlaylist.sortKey ? "" : NumaPlaylist.detail.continuation || "";
         const detail = NumaPlaylist.detail || {};
-        const pid = String(detail.browseId || detail.playlistId || detail.id || "");
+        const pid = String(detail.playlistId || detail.browseId || detail.id || "");
         const ptitle = String(detail.title || "").toLowerCase();
-        const isLiked = pid.endsWith("LM") || pid === "LM" || pid === "VLLM"
-            || ptitle === "liked music" || ptitle === "your likes"
-            || ptitle.indexOf("gusta") !== -1;
+        const sourceId = pid.replace(/^offline-playlist:/, "").replace(/^VL/, "");
+        const isLiked = detail.source !== "local" && (sourceId === "LM" || sourceId === "FEmusic_liked_videos"
+            || /^(liked music|liked songs|your likes|música que te gusta|música que me gusta)$/.test(ptitle));
         const origin = {
             kind: "playlist",
-            id: pid,
+            id: isLiked ? "FEmusic_liked_videos" : pid,
             title: detail.title || "",
             liked: isLiked
         };
@@ -89,6 +91,8 @@ Item {
     function navigateTo(page) {
         searchDebounce.stop();
         root.history = [];
+        root.retainedPage = "";
+        root.scrollRestore = null;
         root.currentItem = ({
         });
         if (page !== "search") {
@@ -108,7 +112,7 @@ Item {
     function detailKey(item) {
         if (!item)
             return "";
-        return item.browseId || (item.browsePayload || {}).browseId || item.playlistId || "";
+        return item.browseId || (item.browsePayload || {}).browseId || item.playlistId || item.id || "";
     }
 
     function openDetail(page, item) {
@@ -116,14 +120,20 @@ Item {
         const key = detailKey(item);
         if (key && page === currentPage && key === detailKey(currentItem))
             return ;
+        const previousView = viewFor(currentPage);
+        const scroll = previousView ? previousView.navigationScroll : null;
         history = history.concat([{
             "page": currentPage,
-            "item": currentItem
+            "item": currentItem,
+            "scrollOffset": scroll ? scroll.contentY - scroll.originY : null
         }]);
+        scrollRestore = null;
+        retainedPage = page !== currentPage && ["home", "playlist", "album", "artist", "library", "search"].includes(currentPage)
+            ? currentPage : "";
         showDetail(page, item);
     }
 
-    function showDetail(page, item) {
+    function showDetail(page, item, reuseView = false) {
         if (page === "playlist") {
             const id = String(item.id || item.playlistId || item.browseId || "");
             if (id.startsWith("local-playlist:") && !(NumaLocal.playlists || []).some(playlist => playlist.id === id)) {
@@ -133,14 +143,15 @@ Item {
         }
         currentItem = item;
         currentPage = page;
-        if (page === "artist")
+        if (page === "artist" && !reuseView)
             NumaArtist.openAlbum(item);
 
-        if (page === "album")
+        if (page === "album" && !reuseView)
             NumaAlbum.openAlbum(item);
 
         if (page === "playlist") {
-            NumaPlaylist.openPlaylist(item);
+            if (!reuseView)
+                NumaPlaylist.openPlaylist(item);
             Qt.callLater(() => {
                 if (scene.playlistLoader.item)
                     scene.playlistLoader.item.forceActiveFocus();
@@ -167,6 +178,11 @@ Item {
                   album: scene.albumLoader, artist: scene.artistLoader, playlist: scene.playlistLoader })[page] || null;
     }
 
+    function viewFor(page) {
+        const entry = pageItem(page);
+        return entry && entry.item !== undefined ? entry.item : entry;
+    }
+
     // Results come from YouTube online and from downloads offline, so they restart when that flips.
     function rerunSearch() {
         NumaSearch.clear();
@@ -176,12 +192,41 @@ Item {
 
     function goBack() {
         if (!history.length) {
+            retainedPage = "";
+            scrollRestore = null;
             currentPage = "home";
             return ;
         }
         const previous = history[history.length - 1];
         history = history.slice(0, -1);
-        showDetail(previous.page, previous.item);
+        const reuseView = previous.page === retainedPage && !!viewFor(previous.page);
+        showDetail(previous.page, previous.item, reuseView);
+        retainedPage = "";
+        scrollRestore = !reuseView && previous.scrollOffset !== null
+            ? { page: previous.page, offset: previous.scrollOffset, deadline: Date.now() + 8000 } : null;
+    }
+
+    Timer {
+        interval: 48
+        repeat: true
+        running: root.scrollRestore !== null
+        onTriggered: {
+            const saved = root.scrollRestore;
+            if (saved.page !== root.currentPage || Date.now() >= saved.deadline) {
+                root.scrollRestore = null;
+                return;
+            }
+            const view = root.viewFor(saved.page);
+            const scroll = view ? view.navigationScroll : null;
+            const loading = saved.page === "playlist" ? (NumaPlaylist.loading || NumaPlaylist.loadingPage)
+                : saved.page === "album" ? NumaAlbum.loading : saved.page === "artist" ? NumaArtist.loading : false;
+            if (!scroll || (loading && scroll.contentHeight - scroll.height < saved.offset))
+                return;
+            root.scrollRestore = null;
+            if (scroll.pinnedToTop !== undefined)
+                scroll.pinnedToTop = saved.offset <= 0;
+            scroll.contentY = scroll.originY + Math.min(saved.offset, Math.max(0, scroll.contentHeight + scroll.bottomMargin - scroll.height));
+        }
     }
 
     // Re-measure on both edges so the cover flies to wherever the pill sits right now.
@@ -335,6 +380,7 @@ Item {
 
         // Album and artist pages need YouTube; the offline home is the way back.
         function onLost() {
+            root.retainedPage = "";
             if (root.currentPage === "album" || root.currentPage === "artist")
                 root.navigateTo("home");
             if (["videos", "albums", "artists"].includes(root.searchFilter))
@@ -344,6 +390,7 @@ Item {
         }
 
         function onRestored() {
+            root.retainedPage = "";
             root.rerunSearch();
             root.showNotice(qsTr("Back online."));
             NumaHome.refresh();
@@ -436,6 +483,7 @@ Item {
         sourceComponent: Component {
             FullscreenPlayer {
                 accentColor: player.accentColor
+                playGlyphColor: player.onAccentColor
                 mixAccentColor: player.mixAccentColor
                 inkColor: player.inkColor
                 originRect: root.fullscreenOrigin
@@ -453,6 +501,20 @@ Item {
         property: "playerInset"
         value: scene.playerDock.height
         when: root.Window.window !== null
+    }
+
+    Binding {
+        target: root.Window.window
+        property: "playbackAccentColor"
+        value: (NumaPlayback.track || {}).id ? player.accentColor : NumaAppearance.mutedColor
+        when: root.Window.window !== null && root.Window.window.playbackAccentColor !== undefined
+    }
+
+    Binding {
+        target: root.Window.window
+        property: "playbackAccentInk"
+        value: (NumaPlayback.track || {}).id ? player.onAccentColor : "#121212"
+        when: root.Window.window !== null && root.Window.window.playbackAccentInk !== undefined
     }
 
     HomeOverlays {

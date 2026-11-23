@@ -32,6 +32,7 @@ Item {
 
     property bool open: true
     property color accentColor: NumaAppearance.textColor
+    property color playGlyphColor: "#121212"
     property color mixAccentColor: NumaAppearance.textColor
     property color inkColor: "#0b0d0a"
     // Player pill artwork in this item's coordinates; the flight starts and ends here.
@@ -413,6 +414,7 @@ Item {
         scale: root.layout.controlsScale
         transformOrigin: Item.TopLeft
         accentColor: root.accentColor
+        playGlyphColor: root.playGlyphColor
         primaryText: root.primaryText
         secondaryText: root.secondaryText
         mutedText: root.mutedText

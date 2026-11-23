@@ -44,7 +44,6 @@ ColumnLayout {
     property alias deviceList: deviceList
 
     spacing: 16
-    CloudSyncSetting { }
 
     Text {
         Layout.fillWidth: true
@@ -135,6 +134,8 @@ ColumnLayout {
             text: qsTr("Sign out")
         }
     }
+
+    CloudSyncSetting { }
 
     Text {
         visible: root.signedIn

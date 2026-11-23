@@ -28,6 +28,8 @@ import QtQuick.Controls
 // Library while offline: downloaded and local songs, plus saved playlists.
 Item {
     id: root
+    readonly property Item navigationScroll: filter === "all" ? shelves : filter === "metrics" ? metrics.contentItem
+                                          : filter === "songs" ? songs.navigationScroll : grid
 
     property string filter: "all"
     // Applies to the songs table; empty keeps the newest-first order.
@@ -39,7 +41,8 @@ Item {
         { key: "songs", title: qsTr("Songs"), empty: qsTr("Songs you download or add from this computer appear here.") },
         { key: "playlists", title: qsTr("Playlists"), empty: qsTr("Downloaded playlists and playlists made from local files appear here.") }
     ]
-    readonly property var localTracks: new Map((NumaOffline.songs || []).map(song => [song.id, song]))
+    readonly property var offlineSongs: NumaOffline.songs || []
+    readonly property var localTracks: new Map(offlineSongs.map(song => [song.id, song]))
     readonly property var metricTracks: {
         const tracks = NumaSync.revision >= 0 ? NumaSync.section("metrics") : [];
         return tracks.map(track => {
@@ -49,11 +52,20 @@ Item {
     }
     readonly property var loadedSections: categories.map(category => ({
         key: category.key, title: category.title, empty: category.empty,
-        items: category.key === "metrics" ? root.metricTracks : category.key === "songs" ? NumaOffline.songs : (typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.visiblePlaylists(NumaOffline.playlists) : NumaOffline.playlists)
+        items: category.key === "metrics" ? root.metricTracks : category.key === "songs" ? root.offlineSongs : (typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.visiblePlaylists(NumaOffline.playlists) : NumaOffline.playlists)
     }))
-    readonly property var sections: loadedSections.map(section => visibleSection(section))
-    readonly property var selectedSection: sections.find(section => section.key === filter) || ({ items: [] })
+    readonly property var shelfSections: {
+        if (filter !== "all")
+            return [];
+        const sections = loadedSections.map(section => visibleSection(section));
+        return query ? sections.filter(section => section.items.length > 0) : sections;
+    }
+    readonly property var selectedSection: {
+        const section = loadedSections.find(section => section.key === filter);
+        return section ? visibleSection(section) : ({ items: [] });
+    }
     readonly property var counts: Object.fromEntries(loadedSections.map(section => [section.key, section.items.length]))
+    readonly property var queryTokens: query ? query.split(/\s+/) : []
 
     signal playlistRequested(var playlist)
     signal albumRequested(var album)
@@ -62,7 +74,7 @@ Item {
     function matches(item) {
         const text = [item.title, item.artist, item.author, (item.artists || []).join(" "), item.album]
             .filter(Boolean).join(" ").toLowerCase();
-        return query.split(/\s+/).every(token => text.includes(token));
+        return queryTokens.every(token => text.includes(token));
     }
 
     function sortValue(item) {
@@ -75,11 +87,13 @@ Item {
 
     function sortedTracks(items) {
         const direction = sortDescending ? -1 : 1;
-        return items.slice().sort((a, b) => {
-            const left = sortValue(a);
-            const right = sortValue(b);
+        const entries = items.map(item => ({ item, key: sortValue(item) }));
+        entries.sort((a, b) => {
+            const left = a.key;
+            const right = b.key;
             return direction * (typeof left === "number" ? left - right : String(left).localeCompare(String(right)));
         });
+        return entries.map(entry => entry.item);
     }
 
     // Filter first, then sort, so the queue plays what the table shows.
@@ -160,7 +174,7 @@ Item {
         visible: root.filter === "all"
         spacing: 24
         cacheBuffer: 400
-        model: root.query ? root.sections.filter(section => section.items.length > 0) : root.sections
+        model: root.shelfSections
 
         delegate: Column {
             id: sectionColumn
@@ -242,7 +256,7 @@ Item {
         anchors.topMargin: 24
         anchors.bottom: parent.bottom
         visible: root.filter === "songs"
-        tracks: visible ? root.selectedSection.items : []
+        tracks: root.filter === "songs" ? root.selectedSection.items : []
         sortKey: root.sortKey
         sortDescending: root.sortDescending
         emptyText: root.sectionStatus(root.selectedSection)
@@ -270,12 +284,13 @@ Item {
         readonly property int cardWidth: 178
         cellWidth: width / Math.max(1, Math.floor(width / (cardWidth + 14)))
         cellHeight: 242 + 14
-        model: visible ? root.selectedSection.items : []
+        model: root.filter === "playlists" ? root.selectedSection.items : []
         cacheBuffer: 300
         bottomMargin: shelves.playerInset
         ScrollBar.vertical: ThemedScrollBar { bottomPadding: shelves.playerInset }
 
         delegate: MediaCard {
+            artworkViewport: grid
             required property var modelData
             media: modelData
             width: Math.min(grid.cardWidth, grid.cellWidth - 14)

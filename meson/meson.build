@@ -576,4 +576,8 @@ helper_moc_headers = [
 ]
 
 # Timing constants are a QML singleton.
-qml_singletons = ['app/qml/motion/Motion.qml', 'app/qml/local/LocalPickers.qml']
+qml_singletons = [
+  'app/qml/motion/Motion.qml',
+  'app/qml/local/LocalPickers.qml',
+  'app/qml/components/home/ThumbnailQueue.qml',
+]

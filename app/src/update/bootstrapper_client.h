@@ -20,6 +20,7 @@
 #pragma once
 
 #include <QObject>
+#include <QByteArray>
 #include <QString>
 #include <QTimer>
 
@@ -43,6 +44,7 @@ class BootstrapperClient final : public QObject
     Q_PROPERTY(qint64 total READ total NOTIFY changed)
     Q_PROPERTY(bool autoUpdate READ autoUpdate NOTIFY changed)
     Q_PROPERTY(QString releaseNotes READ releaseNotes NOTIFY changed)
+    Q_PROPERTY(bool installsInApp READ installsInApp NOTIFY changed)
 
 public:
     explicit BootstrapperClient(QObject *parent = nullptr);
@@ -55,6 +57,7 @@ public:
 #endif
     }
     [[nodiscard]] QString releaseNotes() const { return m_releaseNotes; }
+    [[nodiscard]] bool installsInApp() const;
     // idle | checking | up-to-date | downloading | staging | ready | error | cancelled
     [[nodiscard]] QString state() const { return m_state; }
     [[nodiscard]] QString currentVersion() const { return m_current; }
@@ -82,6 +85,7 @@ private:
     void checkStandalone();
     void fetchStandaloneMetadata(QNetworkAccessManager *network, const QUrl &url, bool fallback);
     void checkStandaloneFallback(QNetworkAccessManager *network);
+    void downloadStandaloneUpdate();
     void run(const QStringList &arguments, bool detached);
 
     QString m_bootstrapper;
@@ -94,6 +98,7 @@ private:
     QString m_error;
     QString m_releaseNotes;
     QString m_installerUrl;
+    QByteArray m_installerHash;
     qint64 m_downloaded{0};
     qint64 m_total{0};
     bool m_autoUpdate{true};

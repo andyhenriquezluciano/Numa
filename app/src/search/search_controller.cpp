@@ -24,6 +24,7 @@
 #include "providers/youtube/catalog/youtube_catalog.h"
 
 #include <QStringList>
+#include <utility>
 
 SearchController::SearchController(YouTubeCatalog *catalog, AuthManager *auth,
                                    QObject *parent)
@@ -35,7 +36,10 @@ SearchController::SearchController(YouTubeCatalog *catalog, AuthManager *auth,
           &SearchController::receiveSearch);
   connect(m_catalog, &YouTubeCatalog::requestFailed, this,
           &SearchController::receiveFailure);
-  connect(m_auth, &AuthManager::sessionChanged, this, &SearchController::clear);
+  connect(m_auth, &AuthManager::sessionChanged, this, [this] {
+    m_recent.clear();
+    clear();
+  });
 }
 
 QString SearchController::normalizedFilter(const QString &filter) {
@@ -52,21 +56,28 @@ void SearchController::search(const QString &query, const QString &filter) {
   m_requestId = 0;
   m_query = query.simplified();
   m_filter = normalizedFilter(filter);
-  m_sections.clear();
   m_errorMessage.clear();
   m_loading = false;
 
   if (m_query.isEmpty()) {
+    setSections({});
     emit stateChanged();
     return;
   }
   if (m_offline && m_offline->offline()) {
-    m_sections = m_offline->search(m_query, m_filter);
+    setSections(m_offline->search(m_query, m_filter));
     emit stateChanged();
     return;
   }
   if (!m_auth->isSignedIn()) {
+    setSections({});
     m_errorMessage = tr("Sign in to search YouTube Music.");
+    emit stateChanged();
+    return;
+  }
+
+  if (const auto *cached = m_recent.object(cacheKey()); cached && !cached->expires.hasExpired()) {
+    setSections(cached->sections);
     emit stateChanged();
     return;
   }
@@ -80,13 +91,33 @@ void SearchController::search(const QString &query, const QString &filter) {
 }
 
 void SearchController::retry() {
-  if (!m_query.isEmpty())
+  if (!m_query.isEmpty()) {
+    m_recent.remove(cacheKey());
     search(m_query, m_filter);
+  }
+}
+
+void SearchController::prepareSearch() {
+  m_requestId = 0;
+  m_errorMessage.clear();
+  m_loading = true;
+  emit stateChanged();
+}
+
+QString SearchController::cacheKey() const {
+  return m_filter + QLatin1Char('\n') + m_query;
+}
+
+void SearchController::setSections(QVariantList sections) {
+  if (m_sections == sections)
+    return;
+  m_sections = std::move(sections);
+  emit sectionsChanged();
 }
 
 void SearchController::clear() {
   m_requestId = 0;
-  m_sections.clear();
+  setSections({});
   m_errorMessage.clear();
   m_query.clear();
   m_filter = QStringLiteral("all");
@@ -96,23 +127,25 @@ void SearchController::clear() {
 
 void SearchController::receiveSearch(quint64 requestId,
                                      const QJsonObject &search) {
-  if (requestId != m_requestId)
+  if (!m_requestId || requestId != m_requestId)
     return;
 
   m_requestId = 0;
   m_loading = false;
   m_errorMessage.clear();
-  m_sections = search.value(QStringLiteral("sections")).toArray().toVariantList();
+  setSections(search.value(QStringLiteral("sections")).toArray().toVariantList());
+  m_recent.insert(cacheKey(), new CachedResult{m_sections, QDeadlineTimer(120'000)});
   emit stateChanged();
 }
 
 void SearchController::receiveFailure(quint64 requestId,
                                       const QString &message) {
-  if (requestId != m_requestId)
+  if (!m_requestId || requestId != m_requestId)
     return;
 
   m_requestId = 0;
   m_loading = false;
   m_errorMessage = message;
+  setSections({});
   emit stateChanged();
 }

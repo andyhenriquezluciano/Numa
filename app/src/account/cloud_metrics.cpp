@@ -19,7 +19,9 @@ void CloudLibrary::sample() {
         record(m_lastTrack, elapsed, count);
     }
     const auto track = m_playback->shownTrack();
-    if (track.value("id") != m_lastTrack.value("id") || track.value("queueOrigin") != m_lastTrack.value("queueOrigin")) updateAutomaticCover(track);
+    if (track.value("id") != m_lastTrack.value("id") || track.value("queueOrigin") != m_lastTrack.value("queueOrigin") ||
+        track.value("thumbnail") != m_lastTrack.value("thumbnail") || track.value("artworkUrl") != m_lastTrack.value("artworkUrl"))
+        updateAutomaticCover(track);
     if (track.value("id") != m_lastTrack.value("id")) { m_heard = 0; m_counted = false; }
     m_lastTrack = track;
     m_wasPlaying = m_playback->shownPlaying() && !m_playback->remoteActive() && !track.value("id").toString().isEmpty();

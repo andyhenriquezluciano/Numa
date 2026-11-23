@@ -28,27 +28,11 @@ ColumnLayout {
 
     property color accentColor: NumaAppearance.textColor
     property color primaryText: NumaAppearance.textColor
-    property color dotColor: accentColor
-    property bool running: true
 
     spacing: 10
     opacity: NumaLyrics.status !== "ready" ? 1 : 0
     visible: opacity > 0
     Behavior on opacity { NumberAnimation { duration: 220 } }
-
-    Item {
-        Layout.alignment: Qt.AlignHCenter
-        Layout.preferredWidth: 64
-        Layout.preferredHeight: 44
-        visible: NumaLyrics.status === "loading"
-
-        LyricsPauseDots {
-            anchors.centerIn: parent
-            color: placeholder.dotColor
-            running: placeholder.running
-            active: parent.visible
-        }
-    }
 
     LucideIcon {
         Layout.alignment: Qt.AlignHCenter

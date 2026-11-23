@@ -166,6 +166,7 @@ ColumnLayout {
     }
 
     ScrollView {
+        ScrollBar.vertical: ThemedScrollBar {}
         id: scroller
         Layout.fillWidth: true
         Layout.fillHeight: true

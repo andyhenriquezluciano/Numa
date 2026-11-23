@@ -41,6 +41,7 @@ Button {
     property color accentColor: NumaAppearance.textColor
     property color primaryText: "#f7f5f0"
     property color inkColor: "#0b0d0a"
+    property color playGlyphColor: Qt.darker(inkColor, 1.2)
     property alias nudgeAnimation: nudgeAnim
 
     implicitWidth: main ? 68 : mode ? 40 : 52
@@ -73,7 +74,7 @@ Button {
         radius: 10
         border.width: 1
         border.color: transport.activeFocus ? transport.primaryText : "transparent"
-        color: NumaAppearance.rosePine && transport.main ? (transport.hovered || transport.down ? Qt.darker(NumaAppearance.accentColor, 1.08) : NumaAppearance.accentColor) : transport.main ? (transport.hovered ? Qt.lighter(transport.primaryText, 1.05) : transport.primaryText)
+        color: transport.main ? (transport.hovered || transport.down ? Qt.darker(transport.accentColor, 1.08) : transport.accentColor)
              : NumaAppearance.rosePine && transport.modeActive ? NumaAppearance.highlightColor : transport.modeActive ? Qt.rgba(transport.accentColor.r, transport.accentColor.g, transport.accentColor.b, transport.hovered ? 0.3 : 0.2)
              : transport.hovered && transport.enabled ? (NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#1cffffff") : "transparent"
         opacity: transport.enabled ? 1 : 0.4
@@ -93,7 +94,7 @@ Button {
             width: transport.main ? 28 : transport.mode ? 18 : 24
             height: width
             name: transport.glyph
-            color: transport.main ? (NumaAppearance.rosePine ? NumaAppearance.baseColor : Qt.darker(transport.inkColor, 1.2))
+            color: transport.main ? (NumaAppearance.rosePine ? NumaAppearance.baseColor : transport.playGlyphColor)
                  : !transport.enabled ? "#6b6f68"
                  : transport.modeActive ? (NumaAppearance.rosePine ? NumaAppearance.accentColor : transport.accentColor) : transport.primaryText
             opacity: shown ? 1 : 0
@@ -111,7 +112,7 @@ Button {
             width: 28
             height: width
             name: transport.altGlyph
-            color: (NumaAppearance.rosePine ? NumaAppearance.baseColor : Qt.darker(transport.inkColor, 1.2))
+            color: NumaAppearance.rosePine ? NumaAppearance.baseColor : transport.playGlyphColor
             opacity: shown ? 1 : 0
             scale: shown ? 1 : 0.4
             rotation: shown ? 0 : -90

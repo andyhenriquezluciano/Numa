@@ -22,10 +22,13 @@ import QtQuick
 import QtQuick.Controls
 import ".."
 import "../home"
+import "../MediaNavigation.js" as MediaNavigation
 
 // One song in an album or playlist. Must stay cheap: playlists run into the thousands.
 ItemDelegate {
     id: root
+
+    property Item artworkViewport: null
     HandCursor {}
 
     property var track: ({})
@@ -46,11 +49,14 @@ ItemDelegate {
     property color accentSoftColor: "#c4a7e7"
     readonly property color rowAccent: NumaAppearance.rosePine ? NumaAppearance.borderColor : root.accentColor
     readonly property color rowAccentSoft: NumaAppearance.rosePine ? NumaAppearance.borderColor : root.accentSoftColor
+    readonly property color playingIndicatorColor: NumaAppearance.rosePine ? NumaAppearance.accentColor
+        : (root.Window.window?.playbackAccentColor ?? root.rowAccentSoft)
 
     readonly property bool current: Boolean(NumaPlayback.track.id) && NumaPlayback.track.id === track.id
     // The revision read makes the icon follow downloads finishing or being removed.
     readonly property bool downloaded: NumaDownloads.revision >= 0 && NumaDownloads.isDownloaded(track.id || "")
     readonly property real albumWidth: showAlbum ? Math.round(width * 0.26) : 0
+    readonly property bool menuVisible: trackMenu.item?.visible ?? false
     readonly property string artistLabel: (track.artists && track.artists.length ? track.artists.join(", ") : "")
                                           || track.artist
                                           || fallbackArtist
@@ -68,36 +74,62 @@ ItemDelegate {
     Accessible.name: (trackIndex + 1) + ". " + (track.title || qsTr("Untitled track")) + ", " + artistLabel
                      + (downloaded ? ", " + qsTr("downloaded") : "")
 
-    MediaMenu {
+    function useTrackMenu(action) {
+        trackMenu.active = true;
+        if (trackMenu.item)
+            action(trackMenu.item);
+        Qt.callLater(releaseTrackMenu);
+    }
+
+    function releaseTrackMenu() {
+        const menu = trackMenu.item;
+        if (menu && !menu.visible && !menu.artistChoices.visible)
+            trackMenu.active = false;
+    }
+
+    Loader {
         id: trackMenu
-        media: root.menuMedia
-        removablePlaylistId: root.removablePlaylistId
-        removablePlaylistTitle: root.removablePlaylistTitle
-        likedPlaylist: root.likedPlaylist
-        onAlbumRequested: function(album) { root.albumRequested(album); }
-        onArtistRequested: function(artist) { root.artistRequested(artist); }
-        onPlaylistRequested: function(playlist) { root.playlistRequested(playlist); }
+        objectName: "trackMenuLoader"
+        active: false
+        sourceComponent: Component {
+            MediaMenu {
+                media: root.menuMedia
+                removablePlaylistId: root.removablePlaylistId
+                removablePlaylistTitle: root.removablePlaylistTitle
+                likedPlaylist: root.likedPlaylist
+                onAlbumRequested: function(album) { root.albumRequested(album); }
+                onArtistRequested: function(artist) { root.artistRequested(artist); }
+                onPlaylistRequested: function(playlist) { root.playlistRequested(playlist); }
+                onClosed: Qt.callLater(root.releaseTrackMenu)
+            }
+        }
+    }
+    Connections {
+        target: trackMenu.item?.artistChoices ?? null
+        function onClosed() { Qt.callLater(root.releaseTrackMenu); }
     }
     TapHandler {
         acceptedButtons: Qt.RightButton
-        onTapped: function(point) { trackMenu.popup(root, point.position.x, point.position.y); }
+        onTapped: function(point) {
+            root.useTrackMenu(menu => menu.popup(root, point.position.x, point.position.y));
+        }
     }
 
     background: RoundedSurfaceFrame {
         radius: 10
-        softGlow: root.current || root.hovered || trackMenu.visible || root.searchMatch
+        softGlow: root.current || root.hovered || root.menuVisible || root.searchMatch
         showBorder: softGlow || root.activeFocus
         fillColor: NumaAppearance.rosePine ? (root.current || root.searchMatch ? NumaAppearance.highlightColor
-                 : NumaAppearance.theme === "rose_pine_dawn" ? (root.hovered || trackMenu.visible ? "#ede8e4" : "transparent")
-                 : root.tint(NumaAppearance.textColor, (root.hovered || trackMenu.visible) ? 0.08 : 0.0))
+                 : NumaAppearance.theme === "rose_pine_dawn" ? (root.hovered || root.menuVisible ? "#ede8e4" : "transparent")
+                 : root.tint(NumaAppearance.textColor, (root.hovered || root.menuVisible) ? 0.08 : 0.0))
                  : root.searchMatch ? root.tint(root.rowAccent, 0.3)
-                 : root.current ? root.tint(root.rowAccent, (root.hovered || trackMenu.visible) ? 0.22 : 0.14)
-                 : (root.hovered || trackMenu.visible) ? "#16ffffff" : "transparent"
+                 : root.current ? root.tint(root.rowAccent, (root.hovered || root.menuVisible) ? 0.22 : 0.14)
+                 : (root.hovered || root.menuVisible) ? "#16ffffff" : "transparent"
         border.color: NumaAppearance.rosePine ? (showBorder ? NumaAppearance.borderColor : "transparent")
                     : root.searchMatch ? root.rowAccent
                     : root.activeFocus ? root.rowAccentSoft
-                    : root.current ? root.tint(root.rowAccentSoft, (root.hovered || trackMenu.visible) ? 0.52 : 0.34)
-                    : (root.hovered || trackMenu.visible) ? "#32ffffff" : "transparent"
+                    : root.current ? root.tint(root.rowAccentSoft, (root.hovered || root.menuVisible) ? 0.52 : 0.34)
+                    : (root.hovered || root.menuVisible) ? "#32ffffff" : "transparent"
         glowColor: root.current ? root.rowAccentSoft : "#ffffff"
         Behavior on fillColor {
             enabled: NumaAppearance.theme !== "rose_pine_dawn"
@@ -125,7 +157,7 @@ ItemDelegate {
                 anchors.centerIn: parent
                 visible: !root.hovered && !root.current
                 text: root.trackIndex + 1
-                color: NumaAppearance.rosePine ? NumaAppearance.mutedColor : "#8c928c"
+                color: NumaAppearance.textColor
                 font.family: "Inter"
                 font.pixelSize: 13
                 font.features: { "tnum": 1 }
@@ -149,6 +181,7 @@ ItemDelegate {
                         model: [0.9, 0.55, 0.75]
                         Rectangle {
                             id: bar
+                            objectName: "playingIndicatorBar"
                             required property real modelData
                             required property int index
                             x: index * 5
@@ -156,7 +189,7 @@ ItemDelegate {
                             width: 3
                             radius: 1.5
                             height: 14 * modelData
-                            color: NumaAppearance.rosePine ? NumaAppearance.accentColor : root.rowAccentSoft
+                            color: root.playingIndicatorColor
                             SequentialAnimation on height {
                                 running: NumaPlayback.playing
                                 loops: Animation.Infinite
@@ -171,6 +204,7 @@ ItemDelegate {
         }
 
         RoundedArtwork {
+            loadViewport: root.artworkViewport
             id: art
             x: numberCell.x + numberCell.width + 14
             anchors.verticalCenter: parent.verticalCenter
@@ -253,7 +287,7 @@ ItemDelegate {
                     width: 14
                     height: 14
                     name: "circle-arrow-down"
-                    color: NumaAppearance.rosePine ? NumaAppearance.accentColor : root.rowAccentSoft
+                    color: NumaAppearance.downloadedColor
                 }
             }
             Text {
@@ -268,10 +302,12 @@ ItemDelegate {
                 MouseArea {
                     id: artistMouse
                     anchors.fill: parent
-                    enabled: trackMenu.artistIds.length > 0 && !NumaNetwork.offline
+                    enabled: MediaNavigation.artistIds(root.menuMedia).length > 0 && !NumaNetwork.offline
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: function(mouse) { trackMenu.viewArtist(parent, mouse.x, mouse.y); }
+                    onClicked: function(mouse) {
+                        root.useTrackMenu(menu => menu.viewArtist(parent, mouse.x, mouse.y));
+                    }
                 }
             }
         }
@@ -290,10 +326,10 @@ ItemDelegate {
             MouseArea {
                 id: albumMouse
                 anchors.fill: parent
-                enabled: Boolean(trackMenu.albumId) && !NumaNetwork.offline
+                enabled: Boolean(MediaNavigation.albumId(root.menuMedia)) && !NumaNetwork.offline
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: trackMenu.viewAlbum()
+                onClicked: root.useTrackMenu(menu => menu.viewAlbum())
             }
         }
 
@@ -318,10 +354,10 @@ ItemDelegate {
             height: 36
             anchors.verticalCenter: parent.verticalCenter
             padding: 10
-            opacity: root.hovered || trackMenu.visible || activeFocus ? 1 : 0
+            opacity: root.hovered || root.menuVisible || activeFocus ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 110 } }
             Accessible.name: qsTr("More options for %1").arg(root.track.title || qsTr("track"))
-            onClicked: trackMenu.popup(moreButton, 0, moreButton.height)
+            onClicked: root.useTrackMenu(menu => menu.popup(moreButton, 0, moreButton.height))
             background: Item {}
             contentItem: LucideIcon { name: "ellipsis"; color: NumaAppearance.textColor }
         }

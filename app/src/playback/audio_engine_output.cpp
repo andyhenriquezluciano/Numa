@@ -76,7 +76,6 @@ AudioEngineOutput::AudioEngineOutput(QObject *parent) : QObject(parent) {
           });
   m_audioThread.setObjectName(QStringLiteral("NumaAudio"));
   m_audioThread.start(QThread::HighestPriority);
-  post([pipeline = m_pipeline] { pipeline->start(); });
   applyConfiguration();
   ensureAudioBackend();
 }

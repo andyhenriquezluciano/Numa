@@ -20,6 +20,7 @@
 import Numa
 import QtQuick
 import QtQuick.Controls
+import "MediaNavigation.js" as MediaNavigation
 
 Menu {
     id: root
@@ -69,12 +70,8 @@ Menu {
     // "downloaded", "queued", "downloading", "failed" or "none"; the revision read refreshes it.
     readonly property string downloadState: isSong && !isLocalSong && NumaDownloads.revision >= 0
         ? NumaDownloads.stateOf(media.id) : "none"
-    readonly property string albumId: media.type === "album" || media.kind === "album"
-        ? (media.browsePayload || {}).browseId || media.browseId || media.albumId || ""
-        : media.albumId || ""
-    readonly property var artistIds: isArtist
-        ? [media.browseId || (media.browsePayload || {}).browseId].filter(Boolean)
-        : (media.artistBrowseIds && media.artistBrowseIds.length ? media.artistBrowseIds : (media.artistBrowseId || media.artistId ? [media.artistBrowseId || media.artistId] : []))
+    readonly property string albumId: MediaNavigation.albumId(media)
+    readonly property var artistIds: MediaNavigation.artistIds(media)
     readonly property string songLinkId: {
         if (Boolean(root.media.id) && (["song", "track", "video"].includes(root.media.type) || !root.media.type))
             return root.media.id;

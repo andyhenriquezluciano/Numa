@@ -94,9 +94,11 @@ Item {
                 }
 
                 MixDotFill {
+                    objectName: "miniPlaybackFill"
                     anchors.fill: parent
                     fraction: progress.visualPosition
-                    baseColor: bar.lightTheme ? bar.progressColor : Qt.rgba(1, 1, 1, progress.hovered || progress.pressed ? 1 : 0.82)
+                    baseColor: !NumaAppearance.rosePine || bar.lightTheme ? bar.progressColor
+                        : Qt.rgba(1, 1, 1, progress.hovered || progress.pressed ? 1 : 0.82)
                     dotColor: bar.mixAccentColor
                     amount: row.mixAmount
                     maxBand: 160

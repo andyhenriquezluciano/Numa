@@ -52,55 +52,135 @@ Item {
 
     GlassPopup {
         id: updatePrompt
+        objectName: "updatePrompt"
+        readonly property bool readyToInstall: NumaUpdates.state === "ready"
+        readonly property bool downloading: NumaUpdates.state === "downloading"
+        readonly property bool authorizing: NumaUpdates.state === "authorizing"
+        readonly property string notes: (NumaUpdates.releaseNotes || "").trim()
         backdrop: overlays.stage
-        width: Math.min(620, parent.width - 48)
-        height: Math.min(520, parent.height - 48)
+        width: Math.max(1, Math.min(540, parent.width - 32))
+        height: Math.max(1, Math.min(implicitHeight, parent.height - 32))
+        padding: width < 400 ? 14 : 22
+
         contentItem: ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: 24
             spacing: 16
-            Text {
+
+            RowLayout {
                 Layout.fillWidth: true
-                text: qsTr("NÜMA update")
+                spacing: 12
+
+                Rectangle {
+                    Layout.preferredWidth: 42
+                    Layout.preferredHeight: 42
+                    Layout.alignment: Qt.AlignTop
+                    radius: 12
+                    color: NumaAppearance.rosePine ? NumaAppearance.highlightColor : "#14ffffff"
+
+                    LucideIcon {
+                        anchors.centerIn: parent
+                        width: 20
+                        height: 20
+                        name: updatePrompt.readyToInstall ? "refresh-cw" : "download"
+                        color: NumaAppearance.rosePine ? NumaAppearance.textColor : NumaAppearance.accentColor
+                    }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 4
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("NÜMA update")
+                        color: NumaAppearance.textColor
+                        font.family: "Inter"
+                        font.pixelSize: 22
+                        font.weight: Font.DemiBold
+                        wrapMode: Text.Wrap
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: updatePrompt.authorizing ? qsTr("Confirm the Windows prompt to continue.")
+                            : updatePrompt.downloading ? (NumaUpdates.total > 0
+                                ? qsTr("Downloading update… %1%").arg(Math.floor(100 * NumaUpdates.downloaded / NumaUpdates.total))
+                                : qsTr("Downloading update…"))
+                            : updatePrompt.readyToInstall ? qsTr("Update ready. Restart Numa to install.")
+                            : qsTr("Version %1 is available.").arg(NumaUpdates.latestVersion)
+                        color: NumaAppearance.mutedColor
+                        font.family: "Inter"
+                        font.pixelSize: 13
+                        wrapMode: Text.Wrap
+                    }
+                }
+            }
+
+            Text {
+                objectName: "updateError"
+                Layout.fillWidth: true
+                visible: text !== ""
+                text: NumaUpdates.error
                 color: NumaAppearance.textColor
-                font.family: "Inter"
-                font.pixelSize: 23
-                font.bold: true
+                wrapMode: Text.Wrap
             }
-            Text {
-                Layout.fillWidth: true
-                text: qsTr("Version %1 is available.").arg(NumaUpdates.latestVersion)
-                color: NumaAppearance.mutedColor
-                wrapMode: Text.WordWrap
-            }
+
             ScrollView {
+                id: updateNotes
+                objectName: "updateNotes"
+                visible: updatePrompt.notes !== ""
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.preferredHeight: notesText.implicitHeight + topPadding + bottomPadding
+                Layout.minimumHeight: 0
+                padding: 14
                 clip: true
                 contentWidth: availableWidth
+                contentHeight: notesText.implicitHeight
+                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                ScrollBar.vertical: ThemedScrollBar { policy: ScrollBar.AsNeeded }
+
+                background: Rectangle {
+                    radius: 12
+                    color: NumaAppearance.rosePine ? NumaAppearance.overlayColor : "#0fffffff"
+                }
+
                 Text {
-                    width: parent.width
-                    text: NumaUpdates.releaseNotes
+                    id: notesText
+                    width: updateNotes.contentWidth
+                    text: updatePrompt.notes
                     textFormat: Text.MarkdownText
                     color: NumaAppearance.textColor
-                    wrapMode: Text.WordWrap
+                    wrapMode: Text.Wrap
                     font.family: "Inter"
                     font.pixelSize: 14
                 }
             }
-            RowLayout {
+
+            GridLayout {
+                id: updateActions
                 Layout.alignment: Qt.AlignRight
+                columns: updatePrompt.availableWidth >= laterButton.implicitWidth + installButton.implicitWidth + columnSpacing ? 2 : 1
+                columnSpacing: 8
+                rowSpacing: 6
+
                 SettingsButton {
+                    id: laterButton
+                    Layout.fillWidth: updateActions.columns === 1
                     text: qsTr("Later")
                     onClicked: updatePrompt.close()
                 }
                 SettingsButton {
+                    id: installButton
+                    objectName: "updateInstallButton"
+                    Layout.fillWidth: updateActions.columns === 1
                     prominent: true
-                    text: NumaUpdates.state === "ready" ? qsTr("Restart to update") : qsTr("Download installer")
+                    enabled: !updatePrompt.downloading && !updatePrompt.authorizing
+                    text: updatePrompt.readyToInstall ? qsTr("Restart to update")
+                        : NumaUpdates.installsInApp ? qsTr("Update and restart") : qsTr("Download installer")
                     onClicked: {
-                        if (NumaUpdates.state === "ready") NumaUpdates.restartToUpdate();
+                        if (updatePrompt.readyToInstall) NumaUpdates.restartToUpdate();
                         else NumaUpdates.downloadInstaller();
-                        updatePrompt.close();
+                        if (!NumaUpdates.installsInApp) updatePrompt.close();
                     }
                 }
             }

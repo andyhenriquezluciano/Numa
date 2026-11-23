@@ -69,7 +69,8 @@ ColumnLayout {
 
     QueueListModel {
         id: queueModel
-        items: pane.rowItems
+        suspended: !pane.visible
+        items: suspended ? [] : pane.rowItems
         onUpdated: if (scrollFollow.following && !scrollFollow.restoring) Qt.callLater(() => scrollFollow.center())
     }
 
@@ -165,6 +166,7 @@ ColumnLayout {
 
         ScrollBar.vertical: ThemedScrollBar {
             id: upNextBar
+            thumbColor: NumaAppearance.rosePine ? NumaAppearance.accentColor : pane.accentColor
             policy: upNext.contentHeight > upNext.height ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
         }
 

@@ -47,14 +47,17 @@ Item {
     readonly property int controlSize: canopy ? 28 : 32
     // The fullscreen player launches its cover from here.
     readonly property Item artworkItem: artworkSlot
+    // Keep the last cover's colors until sampling the next cover finishes.
     readonly property var artPalette: artworkPalette.palette
+    readonly property string currentCover: coverSource(NumaPlayback.track)
+    readonly property string incomingCover: coverSource(NumaPlayback.transitionTrack)
 
     readonly property color accentColor: NumaAppearance.rosePine ? NumaAppearance.accentColor : theme.accent
     readonly property color onAccentColor: theme.onAccent
     readonly property color inkColor: theme.ink
     // The next song's accent, lifted so dots read on the dark track.
     readonly property color mixAccentColor: {
-        const value = (incomingPalette.palette || {})["accent"];
+        const value = incomingPalette.ready ? incomingPalette.palette["accent"] : null;
         const c = value && value.length >= 3
             ? Qt.rgba(Number(value[0]) / 255, Number(value[1]) / 255, Number(value[2]) / 255, 1)
             : root.accentColor;
@@ -68,7 +71,11 @@ Item {
     readonly property bool lightTheme: NumaAppearance.theme === "rose_pine_dawn"
     readonly property color controlColor: NumaAppearance.rosePine ? NumaAppearance.textColor : "#e6e4dc"
     readonly property color trackColor: lightTheme ? NumaAppearance.highlightColor : "#33ffffff"
-    readonly property color progressColor: lightTheme ? NumaAppearance.accentColor : "#e6e4dc"
+    readonly property color progressColor: !NumaAppearance.rosePine || lightTheme ? root.accentColor : "#e6e4dc"
+
+    function coverSource(track) {
+        return track ? track.thumbnail || track.artworkUrl || track.coverUrl || "" : "";
+    }
 
     function paletteColor(key, fallback) {
         const value = (root.artPalette || {})[key];
@@ -160,13 +167,12 @@ Item {
 
         // Recolor at the crossfade midpoint so the pill follows what you hear.
         source: NumaPlayback.crossfadeActive && NumaPlayback.crossfadeProgress >= 0.5
-                ? (NumaPlayback.transitionTrack.thumbnail || "")
-                : (NumaPlayback.track.thumbnail || "")
+                ? root.incomingCover : root.currentCover
     }
 
     ArtworkPalette {
         id: incomingPalette
-        source: NumaPlayback.crossfadeActive ? (NumaPlayback.transitionTrack.thumbnail || "") : ""
+        source: NumaPlayback.crossfadeActive ? root.incomingCover : ""
     }
 
     // Explicit fade: a Behavior on these custom color properties crashes QQmlData::deferData (Qt 6).
@@ -174,7 +180,7 @@ Item {
     Item {
         id: theme
 
-        readonly property color accentTarget: root.paletteColor("accent", [240, 238, 231])
+        readonly property color accentTarget: root.paletteColor("accent", [184, 184, 184])
         // Thin outlined glyphs need more contrast than the palette's tinted onAccent gives.
         readonly property color onAccentTarget: {
             const lin = (c) => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
@@ -222,8 +228,7 @@ Item {
         onWheel: function(wheel) { wheel.accepted = true; }
     }
 
-    // The glass draws its own shadow analytically, so it follows width animations for free.
-    // A shadow that doesn't follow you is just a stain.
+    // The floating bar gets its depth from the backdrop, with a clean rounded edge.
     Glass {
         id: glass
 
@@ -231,9 +236,10 @@ Item {
         backdrop: root.backdrop
         radius: root.cornerRadius
         live: root.backdropLive
-        shadowOpacity: 0.14
-        shadowSpread: 16
-        shadowOffsetY: 8
+        shadowOpacity: 0
+        bevelDepth: 0
+        refraction: 0
+        chromaticAberration: 0
         edgeHighlight: 0
     }
 
@@ -305,8 +311,8 @@ Item {
 
             TransitionArtwork {
                 anchors.fill: parent
-                source: NumaPlayback.track.thumbnail || ""
-                incomingSource: NumaPlayback.transitionTrack.thumbnail || ""
+                source: root.currentCover
+                incomingSource: root.incomingCover
                 transitioning: NumaPlayback.crossfadeActive
                 progress: NumaPlayback.crossfadeProgress
                 radius: artworkSlot.artRadius

@@ -24,3 +24,6 @@
 
 // Returns the color-managed edge-zone sample, or an empty object for invalid artwork.
 QJsonObject sampleArtwork(const QByteArray &encoded);
+
+// Uses the same palette while skipping the extra diagnostic edge samples.
+QJsonObject sampleArtworkPalette(const QByteArray &encoded);

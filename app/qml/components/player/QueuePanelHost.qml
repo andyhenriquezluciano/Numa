@@ -87,6 +87,7 @@ Item {
                 backdropLive: visible && !NumaWindowState.backgroundIdle && !NumaAppearance.performanceMode
                 motionArtwork: visible && !NumaWindowState.backgroundIdle && !host.shell.fullscreenOpen
                 accentColor: host.player.accentColor
+                playGlyphColor: host.player.onAccentColor
                 mixAccentColor: host.player.mixAccentColor
                 inkColor: host.player.inkColor
                 enabled: host.shell.compactMode || host.shell.queueOpen

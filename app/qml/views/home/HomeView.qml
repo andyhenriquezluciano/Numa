@@ -94,9 +94,6 @@ Item {
         boundsBehavior: Flickable.StopAtBounds
         model: root.feed
         cacheBuffer: 400
-        onModelChanged: Qt.callLater(() => {
-            return scroll.positionViewAtBeginning();
-        })
 
         populate: Transition {
             NumberAnimation {
@@ -237,12 +234,6 @@ Item {
         spacing: 16
         visible: root.feed.length === 0
 
-        BusyIndicator {
-            anchors.horizontalCenter: parent.horizontalCenter
-            running: NumaHome.loading
-            visible: running
-        }
-
         Text {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
@@ -251,6 +242,11 @@ Item {
             color: "#a4adb1"
             font.family: "Inter"
             font.pixelSize: 13
+        }
+
+        LoadingSkeleton {
+            width: parent.width
+            loading: NumaHome.loading && root.feed.length === 0
         }
 
         Button {

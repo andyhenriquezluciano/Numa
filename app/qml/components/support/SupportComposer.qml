@@ -71,6 +71,7 @@ Item {
     }
 
     ScrollView {
+        ScrollBar.vertical: ThemedScrollBar {}
         id: scroll
         anchors.fill: parent
         contentWidth: availableWidth
@@ -141,6 +142,7 @@ Item {
                 }
 
                 ScrollView {
+                    ScrollBar.vertical: ThemedScrollBar {}
                     Layout.fillWidth: true
                     Layout.preferredHeight: 150
                     background: Rectangle {

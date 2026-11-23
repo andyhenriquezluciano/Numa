@@ -32,6 +32,7 @@ RequestExecutionLevel admin
 SetCompressor /SOLID ${NUMA_COMPRESSOR}
 ShowInstDetails show
 ShowUnInstDetails show
+Var InAppUpdate
 
 !define MUI_ICON "..\bootstrapper\src\platform\windows\numa.ico"
 !define MUI_UNICON "..\bootstrapper\src\platform\windows\numa.ico"
@@ -63,6 +64,33 @@ VIAddVersionKey "LegalCopyright" "Copyright (C) 2026 NÜMA"
 !insertmacro MUI_LANGUAGE "Spanish"
 !insertmacro MUI_LANGUAGE "English"
 
+Function .onInit
+  StrCpy $InAppUpdate "0"
+  ${GetParameters} $0
+  ClearErrors
+  ${GetOptions} $0 "/NUMA_WAIT_PID=" $1
+  IfErrors done
+  IfSilent 0 failed
+  StrCpy $InAppUpdate "1"
+  ReadRegStr $INSTDIR HKLM "Software\Numa" "Install_Dir"
+  StrCmp $INSTDIR "" failed
+  IfFileExists "$INSTDIR\numa.exe" 0 failed
+
+  ; SYNCHRONIZE only. If the process already exited, there is nothing to wait for.
+  System::Call 'kernel32::OpenProcess(i 0x00100000, i 0, i r1) p.r2 ?e'
+  Pop $3
+  StrCmp $2 0 0 wait
+  StrCmp $3 87 done failed
+wait:
+  System::Call 'kernel32::WaitForSingleObject(p r2, i 120000) i.r3'
+  System::Call 'kernel32::CloseHandle(p r2)'
+  StrCmp $3 0 done
+failed:
+  SetErrorLevel 2
+  Abort
+done:
+FunctionEnd
+
 Function un.onInit
   nsExec::ExecToLog '"$SYSDIR\taskkill.exe" /F /T /IM numa.exe'
   nsExec::ExecToLog '"$SYSDIR\taskkill.exe" /F /T /IM numa-auth-helper.exe'
@@ -74,16 +102,22 @@ Function CreateDesktopShortcut
 FunctionEnd
 
 Section "Numa" SecNuma
+  ClearErrors
   SetOutPath "$INSTDIR"
 
   File /r "${STAGE_DIR}\*.*"
+  IfErrors 0 +3
+    SetErrorLevel 2
+    Abort
 
   WriteRegStr HKLM "Software\Numa" "Install_Dir" "$INSTDIR"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 
+  StrCmp $InAppUpdate "1" registry
   CreateDirectory "$SMPROGRAMS\NÜMA"
   CreateShortcut "$SMPROGRAMS\NÜMA\NÜMA.lnk" "$INSTDIR\numa.exe" "" "$INSTDIR\numa.exe" 0
   CreateShortcut "$SMPROGRAMS\NÜMA\Desinstalar NÜMA.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
+registry:
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Numa" "DisplayName" "NÜMA"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Numa" "DisplayIcon" "$INSTDIR\numa.exe,0"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Numa" "DisplayVersion" "${NUMA_VERSION}"

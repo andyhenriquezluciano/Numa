@@ -320,6 +320,7 @@ Item {
                     background: Rail {
                         control: progress
                         fill: progress.visualPosition
+                        fillColor: panel.accentColor
                         mixAmount: popup.mixAmount
                         mixDotColor: popup.mixAccentColor
                     }
@@ -439,10 +440,9 @@ Item {
         hoverEnabled: true; focusPolicy: Qt.TabFocus
         background: Rectangle {
             radius: parent.main ? 12 : 10
-            color: NumaAppearance.rosePine && parent.main
-                ? (parent.down || parent.hovered ? Qt.darker(NumaAppearance.accentColor, 1.08) : NumaAppearance.accentColor)
-                : parent.main ? (parent.down ? "#e5e2da" : parent.hovered ? "#ffffff" : "#f7f5f0")
-                               : NumaAppearance.rosePine ? (parent.active || parent.hovered || parent.down ? NumaAppearance.highlightColor : "transparent") : parent.active ? (parent.hovered ? "#3dffffff" : "#2effffff")
+            color: parent.main
+                ? (parent.down || parent.hovered ? Qt.darker(panel.accentColor, 1.08) : panel.accentColor)
+                : NumaAppearance.rosePine ? (parent.active || parent.hovered || parent.down ? NumaAppearance.highlightColor : "transparent") : parent.active ? (parent.hovered ? "#3dffffff" : "#2effffff")
                                                : parent.hovered ? "#1fffffff" : "transparent"
             border.color: parent.activeFocus ? panel.primaryText : "transparent"
             opacity: parent.enabled ? 1 : 0.4
@@ -451,7 +451,7 @@ Item {
         }
         contentItem: LucideIcon {
             name: parent.glyph
-            color: parent.main ? (NumaAppearance.rosePine ? NumaAppearance.baseColor : "#121212") : !parent.enabled ? "#6b6f68" : parent.active ? NumaAppearance.accentColor : panel.primaryText
+            color: parent.main ? (NumaAppearance.rosePine ? NumaAppearance.baseColor : panel.playGlyphColor) : !parent.enabled ? "#6b6f68" : parent.active ? NumaAppearance.accentColor : panel.primaryText
             implicitWidth: parent.main ? 19 : 16; implicitHeight: implicitWidth
         }
     }
@@ -460,6 +460,8 @@ Item {
         id: rail
         required property Slider control
         required property real fill
+        property color fillColor: NumaAppearance.rosePine ? NumaAppearance.accentColor
+            : Qt.rgba(1, 1, 1, control.hovered || control.pressed ? 1 : 0.75)
         property real mixAmount: 0
         property color mixDotColor: panel.accentColor
         readonly property color trackColor: NumaAppearance.rosePine
@@ -477,7 +479,7 @@ Item {
             MixDotFill {
                 anchors.fill: parent
                 fraction: Math.max(0, Math.min(1, rail.fill))
-                baseColor: NumaAppearance.rosePine ? NumaAppearance.accentColor : Qt.rgba(1, 1, 1, rail.control.hovered || rail.control.pressed ? 1 : 0.75)
+                baseColor: rail.fillColor
                 dotColor: rail.mixDotColor
                 amount: rail.mixAmount
                 maxBand: 160; rows: 2

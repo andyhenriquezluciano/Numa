@@ -34,23 +34,24 @@ Item {
     property var artworkPalette: NumaPlaylist.palette || ({})
     readonly property var tracks: detail.tracks || []
     property string filterQuery: ""
+    property var filterIndex: null
     // Playlists kept on this computer can be edited, reordered and never leave it.
     readonly property bool isLocal: detail.source === "local"
     // Saved for offline listening; shows only the songs still downloaded.
     readonly property bool isOffline: detail.source === "download"
     readonly property bool isLikedPlaylist: {
         const id = String(detail.playlistId || detail.browseId || detail.id || "").replace(/^offline-playlist:/, "").replace(/^VL/, "");
-        return !isLocal && (id === "LM" || id === "FEmusic_liked_videos" || ["liked music", "liked songs", "your likes", "música que te gusta"].includes(String(detail.title || "").toLowerCase()));
+        return !isLocal && (id === "LM" || id === "FEmusic_liked_videos" || /^(liked music|liked songs|your likes|música que te gusta|música que me gusta)$/.test(String(detail.title || "").toLowerCase()));
     }
     readonly property var downloadInfo: NumaDownloads.revision >= 0 ? NumaDownloads.collectionState(tracks) : ({})
     readonly property string downloadState: downloadInfo.total > 0 && downloadInfo.downloaded >= downloadInfo.total ? "done"
         : downloadInfo.pending > 0 ? "busy" : downloadInfo.downloaded > 0 ? "partial" : "none"
 
-    readonly property color accentColor: rgb(artworkPalette.accent, [183, 155, 237])
-    readonly property color accentSoftColor: NumaAppearance.rosePine ? NumaAppearance.accentColor : rgb(artworkPalette.accentSoft, [196, 167, 231])
+    readonly property color accentColor: NumaAppearance.rosePine ? rgb(artworkPalette.accent, [183, 155, 237]) : NumaAppearance.textColor
+    readonly property color accentSoftColor: NumaAppearance.rosePine ? NumaAppearance.accentColor : NumaAppearance.textColor
     readonly property color deepColor: rgb(artworkPalette.deep, [15, 21, 18])
     readonly property color inkColor: rgb(artworkPalette.ink, [8, 12, 10])
-    readonly property color onAccentColor: rgb(artworkPalette.onAccent, [9, 16, 11])
+    readonly property color onAccentColor: NumaAppearance.rosePine ? rgb(artworkPalette.onAccent, [9, 16, 11]) : "#121212"
 
     // Rows reveal on the first non-empty load. Removals, sorts and pages keep the list put.
     property bool hadTracks: false
@@ -60,38 +61,48 @@ Item {
             revealWindow.restart();
         hadTracks = tracks.length > 0;
     }
-    // Assigning a new array resets the list to the top, so appended pages restore the scroll position.
-    property var shownTracks: []
+    readonly property alias navigationScroll: scroll
     function normalizeSearchText(value) {
         return String(value || "").normalize("NFKD")
             .replace(/[\u0300-\u036f]/g, "").toLowerCase();
     }
-    function trackMatches(track, query) {
+    function searchableTrackText(track) {
         const artists = track.artists && track.artists.length
             ? track.artists.map(artist => artist && artist.name ? artist.name : artist).join(" ") : "";
         const searchable = [track.title, track.artist, artists, track.album,
                             track.show, track.podcast, track.author].join(" ");
-        return normalizeSearchText(searchable).includes(query);
+        return normalizeSearchText(searchable);
     }
     function filteredTracks() {
         const query = normalizeSearchText(filterQuery).trim();
-        return query ? tracks.filter(track => trackMatches(track, query)) : tracks;
+        if (!query)
+            return tracks;
+        if (filterIndex === null)
+            filterIndex = tracks.map(track => searchableTrackText(track));
+        const indexText = filterIndex;
+        return tracks.filter((track, index) => indexText[index].includes(query));
     }
     function showTracks() {
-        const previous = shownTracks;
-        const next = filteredTracks();
-        const appended = !filterQuery.trim() && previous.length > 0 && next.length > previous.length
-            && next[0].id === previous[0].id && !scroll.pinnedToTop;
-        const y = scroll.contentY;
-        shownTracks = next;
-        if (appended)
-            scroll.contentY = y;
-        else if (filterQuery.trim())
-            scroll.positionViewAtBeginning();
+        if (trackRows)
+            trackRows.updateRows(filteredTracks());
     }
-    onTracksChanged: { showTracks(); noteTracks(); }
-    onFilterQueryChanged: showTracks()
+    onTracksChanged: {
+        filterIndex = null;
+        filterDelay.stop();
+        showTracks();
+        noteTracks();
+    }
+    onFilterQueryChanged: filterDelay.restart()
     Component.onCompleted: { showTracks(); noteTracks(); }
+
+    Timer {
+        id: filterDelay
+        interval: 90
+        onTriggered: {
+            root.showTracks();
+            scroll.positionViewAtBeginning();
+        }
+    }
 
     Timer {
         id: revealWindow
@@ -267,7 +278,8 @@ Item {
             showKind: false
             playlistArtwork: true
             customPlaylistArtwork: !root.isLocal && typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.artworkFor(cloudMedia.id || "", "", false) : ""
-            cloudMedia: Object.assign({}, root.detail, {type: "playlist", id: root.detail.playlistId || root.detail.browseId || root.detail.id})
+            cloudMedia: Object.assign({}, root.detail, {type: "playlist", id: root.isLikedPlaylist ? "FEmusic_liked_videos"
+                : root.detail.playlistId || root.detail.browseId || root.detail.id})
             id: hero
             width: parent.width
             compact: root.compact
@@ -338,8 +350,9 @@ Item {
 
         topMargin: 14
         bottomMargin: 14 + playerInset
+        cacheBuffer: 150
 
-        model: root.shownTracks
+        model: PlaylistTrackModel { id: trackRows }
         // Read by ReorderableRow while a song is being dragged.
         property int dragFrom: -1
         property int dropIndex: -1
@@ -377,8 +390,7 @@ Item {
                     width: parent.width
                     showArtwork: true
                     showAlbum: root.showAlbumColumn
-                    labelColor: root.tint(root.accentSoftColor, 0.6)
-                    activeColor: root.accentSoftColor
+                    activeColor: NumaAppearance.rosePine ? root.accentSoftColor : NumaAppearance.textColor
                     sortable: true
                     sortKey: NumaPlaylist.sortKey
                     sortDescending: NumaPlaylist.sortDescending
@@ -390,7 +402,7 @@ Item {
         delegate: ReorderableRow {
             id: slot
             width: Math.max(0, scroll.width - 18)
-            required property var modelData
+            required property var track
             view: scroll
             // Local playlists keep their order without drag-to-reorder controls.
             reorderable: false
@@ -398,9 +410,10 @@ Item {
             onMoveRequested: function(from, to) { NumaLocal.moveTrack(root.detail.id, from, to); }
 
             CollectionTrackRow {
+                artworkViewport: scroll
                 id: trackRow
                 width: parent.width
-                track: slot.modelData
+                track: slot.track
                 showLocalExtras: root.isLocal
                 trackIndex: slot.index
                 reveal: root.revealRows
@@ -413,7 +426,7 @@ Item {
                 searchMatch: !root.filterQuery.trim() && quickSearch.visible && quickSearch.focusedTrackIndex === slot.index
                 accentColor: root.accentColor
                 accentSoftColor: root.accentSoftColor
-                onClicked: root.trackRequested(slot.modelData, slot.index)
+                onClicked: root.trackRequested(slot.track, slot.index)
                 onAlbumRequested: function(album) { root.albumRequested(album); }
                 onArtistRequested: function(artist) { root.artistRequested(artist); }
                 onPlaylistRequested: function(playlist) { root.playlistRequested(playlist); }
@@ -421,18 +434,24 @@ Item {
         }
 
         footer: Item {
+            readonly property alias skeletonVisible: playlistSkeleton.active
             width: Math.max(0, scroll.width - 18)
-            height: NumaPlaylist.loadingPage || NumaPlaylist.errorMessage ? 100 : emptyMessage.visible ? 88 : 16
+            height: playlistSkeleton.active ? playlistSkeleton.height
+                : NumaPlaylist.loadingPage ? 48 : NumaPlaylist.errorMessage ? 100 : emptyMessage.visible ? 88 : 16
 
-            BusyIndicator {
-                anchors.centerIn: parent
-                running: NumaPlaylist.loadingPage
-                visible: running
+            LoadingSkeleton {
+                id: playlistSkeleton
+                anchors.top: parent.top
+                width: parent.width
+                loading: NumaPlaylist.loading && root.tracks.length === 0
+                trackRows: true
+                showAlbum: root.showAlbumColumn
             }
+
             Column {
                 anchors.centerIn: parent
                 width: parent.width
-                visible: Boolean(NumaPlaylist.errorMessage) && root.tracks.length > 0
+                visible: !NumaPlaylist.loadingPage && Boolean(NumaPlaylist.errorMessage) && root.tracks.length > 0
                 Text { width: parent.width; text: NumaPlaylist.errorMessage; color: root.accentSoftColor; wrapMode: Text.Wrap; horizontalAlignment: Text.AlignHCenter }
                 Button { anchors.horizontalCenter: parent.horizontalCenter; text: qsTr("Try again"); onClicked: NumaPlaylist.retry() }
             }
@@ -440,7 +459,7 @@ Item {
                 id: emptyMessage
                 anchors.fill: parent
                 anchors.margins: 16
-                visible: !root.shownTracks.length && !NumaPlaylist.loading && !NumaPlaylist.loadingPage
+                visible: trackRows.count === 0 && !NumaPlaylist.loading && !NumaPlaylist.loadingPage
                 text: root.filterQuery.trim() ? qsTr("No tracks match “%1”").arg(root.filterQuery.trim())
                                    : root.isLocal ? qsTr("Nothing here yet. Use Add songs, or drag audio files onto this page.")
                                    : qsTr("No tracks available for this playlist.")
@@ -474,9 +493,10 @@ Item {
 
     PageLoadState {
         anchors.fill: parent
-        loading: NumaPlaylist.loading
+        loading: NumaPlaylist.loading && root.tracks.length === 0
+        showSkeleton: false
+        showLoadingLine: !scroll.footerItem?.skeletonVisible
         errorMessage: root.tracks.length ? "" : NumaPlaylist.errorMessage
-        accentColor: root.accentColor
         onRetryRequested: NumaPlaylist.retry()
     }
 

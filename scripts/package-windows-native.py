@@ -57,6 +57,7 @@ def main() -> None:
     binaries = {
         "numa.exe": "numa.exe",
         "numa-auth-helper.exe": "numa-auth-helper.exe",
+        "numa-windows-updater.exe": "numa-windows-updater.exe",
         "numa-adaptive-mix.exe": "numa-adaptive-mix.exe",
         "webgpu_dawn.dll": "webgpu_dawn.dll",
         "dxil.dll": "dxil.dll",

@@ -32,24 +32,24 @@ QVariantMap section(const QString &key, const QString &title, const QVariantList
   return {{QStringLiteral("key"), key}, {QStringLiteral("title"), title}, {QStringLiteral("items"), items}};
 }
 
-QString haystack(const QVariantMap &item) {
-  QStringList parts{item.value(QStringLiteral("title")).toString(), item.value(QStringLiteral("artist")).toString(),
-                    item.value(QStringLiteral("author")).toString(), item.value(QStringLiteral("album")).toString()};
-  parts.append(item.value(QStringLiteral("artists")).toStringList());
+template <typename ReadField>
+QString haystack(ReadField readField) {
+  QStringList parts{readField(QStringLiteral("title")).toString(), readField(QStringLiteral("artist")).toString(),
+                    readField(QStringLiteral("author")).toString(), readField(QStringLiteral("album")).toString()};
+  parts.append(readField(QStringLiteral("artists")).toStringList());
   return parts.join(QLatin1Char(' '));
 }
 
-QVariantList matching(const QVariantList &items, const QStringList &tokens) {
-  QVariantList found;
-  for (const QVariant &value : items) {
-    const QString text = haystack(value.toMap());
-    bool all = true;
-    for (const QString &token : tokens)
-      all = all && text.contains(token, Qt::CaseInsensitive);
-    if (all)
-      found.append(value);
+bool matches(const QString &text, const QStringList &tokens) {
+  for (const QString &token : tokens) {
+    if (!text.contains(token, Qt::CaseInsensitive))
+      return false;
   }
-  return found;
+  return true;
+}
+
+bool itemMatches(const QVariantMap &item, const QStringList &tokens) {
+  return matches(haystack([&item](const QString &key) { return item.value(key); }), tokens);
 }
 
 } // namespace
@@ -58,7 +58,7 @@ OfflineLibrary::OfflineLibrary(DownloadManager *downloads, LocalLibrary *local, 
                                QObject *parent)
     : QObject(parent), m_downloads(downloads), m_local(local), m_connectivity(connectivity) {
   if (m_downloads)
-    connect(m_downloads, &DownloadManager::changed, this, &OfflineLibrary::changed);
+    connect(m_downloads, &DownloadManager::storeChanged, this, &OfflineLibrary::changed);
   if (m_local)
     connect(m_local, &LocalLibrary::changed, this, &OfflineLibrary::changed);
 }
@@ -134,12 +134,35 @@ QVariantList OfflineLibrary::search(const QString &query, const QString &filter)
     return {};
   QVariantList sections;
   if (filter == QLatin1String("all") || filter == QLatin1String("songs")) {
-    const QVariantList found = matching(songs(), tokens);
+    QVariantList found;
+    if (m_downloads) {
+      const offline::OfflineStore &store = m_downloads->store();
+      for (const QString &id : store.order) {
+        const auto track = store.tracks.constFind(id);
+        if (track == store.tracks.cend())
+          continue;
+        const QString text = haystack([&track](const QString &key) { return track->meta.value(key).toVariant(); });
+        // Only resolve local cover and loop paths for songs that match the query.
+        if (matches(text, tokens))
+          found.append(offline::trackToVariant(track.value()));
+      }
+    }
+    if (m_local) {
+      for (const QVariant &song : m_local->songs()) {
+        const QVariantMap track = song.toMap();
+        if (!track.value(QStringLiteral("missing")).toBool() && itemMatches(track, tokens))
+          found.append(song);
+      }
+    }
     if (!found.isEmpty())
       sections.append(section(QStringLiteral("songs"), tr("Songs"), found));
   }
   if (filter == QLatin1String("all") || filter == QLatin1String("playlists")) {
-    const QVariantList found = matching(playlists(), tokens);
+    QVariantList found;
+    for (const QVariant &playlist : playlists()) {
+      if (itemMatches(playlist.toMap(), tokens))
+        found.append(playlist);
+    }
     if (!found.isEmpty())
       sections.append(section(QStringLiteral("playlists"), tr("Playlists"), found));
   }

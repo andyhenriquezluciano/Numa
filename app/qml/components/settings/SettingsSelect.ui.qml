@@ -125,6 +125,11 @@ ComboBox {
             model: select.popup.visible ? select.delegateModel : null
             currentIndex: select.highlightedIndex
         }
-        background: PopupBloomSurface { sampleOverlay: false; radius: 12; performanceColor: NumaAppearance.surfaceColor }
+        background: PopupBloomSurface {
+            sampleOverlay: false
+            radius: 12
+            neutralTintColor: NumaAppearance.surfaceColor
+            tintOpacity: 0.72
+        }
     }
 }

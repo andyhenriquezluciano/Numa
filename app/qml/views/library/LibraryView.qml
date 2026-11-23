@@ -27,6 +27,8 @@ import QtQuick.Controls
 
 Item {
     id: root
+    readonly property Item navigationScroll: filter === "all" ? shelves : filter === "metrics" ? metrics.contentItem
+                                          : isSongs(filter) ? songs.navigationScroll : grid
 
     property string filter: "all"
     // Applies to the songs table; empty keeps the order YouTube Music sent.
@@ -48,9 +50,16 @@ Item {
         return { key: category.key, title: category.title, empty: category.empty,
                  items: data.items || [], error: data.error || "" };
     })
-    readonly property var sections: loadedSections.map(section => visibleSection(section))
-    readonly property var shelfSections: query ? sections.filter(section => section.items.length > 0) : sections
-    readonly property var selectedSection: sections.find(section => section.key === filter) || ({ items: [] })
+    readonly property var shelfSections: {
+        if (filter !== "all")
+            return [];
+        const sections = loadedSections.map(section => visibleSection(section));
+        return query ? sections.filter(section => section.items.length > 0) : sections;
+    }
+    readonly property var selectedSection: {
+        const section = loadedSections.find(section => section.key === filter);
+        return section ? visibleSection(section) : ({ items: [] });
+    }
     readonly property var counts: tally(loadedSections)
 
     signal albumRequested(var album)
@@ -122,11 +131,13 @@ Item {
 
     function sortedTracks(items) {
         const direction = sortDescending ? -1 : 1;
-        return items.slice().sort((a, b) => {
-            const left = sortValue(a);
-            const right = sortValue(b);
+        const entries = items.map(item => ({ item, key: sortValue(item) }));
+        entries.sort((a, b) => {
+            const left = a.key;
+            const right = b.key;
             return direction * (typeof left === "number" ? left - right : String(left).localeCompare(String(right)));
         });
+        return entries.map(entry => entry.item);
     }
 
     // Filter first, then sort, so the queue plays what the table shows.
@@ -234,18 +245,29 @@ Item {
             visible: NumaHome.libraryLoading || Boolean(NumaHome.libraryError)
 
             BusyIndicator {
+                id: librarySpinner
                 width: 22
                 height: 22
-                running: root.visible && NumaHome.libraryLoading
-                visible: NumaHome.libraryLoading
+                running: visible
+                visible: NumaHome.libraryLoading && !librarySkeleton.active
             }
             Caption {
-                width: parent.width - (NumaHome.libraryLoading ? 30 : 0)
+                width: parent.width - (librarySpinner.visible ? 30 : 0)
                 text: NumaHome.libraryLoading ? qsTr("Loading your library…") : NumaHome.libraryError
                 color: NumaHome.libraryError ? "#e6a197" : NumaAppearance.mutedColor
                 wrapMode: Text.Wrap
             }
         }
+
+        LoadingSkeleton {
+            id: librarySkeleton
+            width: Math.min(parent.width, 420)
+            loading: NumaHome.libraryLoading
+                && (root.filter === "all"
+                    ? root.loadedSections.every(section => section.items.length === 0)
+                    : ["artists", "albums", "songs", "playlists"].includes(root.filter) && !root.selectedSection.total)
+        }
+
     }
 
     DetailListView {
@@ -255,7 +277,7 @@ Item {
         anchors.top: headerColumn.bottom
         anchors.topMargin: 24
         anchors.bottom: parent.bottom
-        visible: root.filter === "all"
+        visible: root.filter === "all" && !librarySkeleton.active
         spacing: 24
         cacheBuffer: 400
         model: root.shelfSections
@@ -338,7 +360,7 @@ Item {
         anchors.top: headerColumn.bottom
         anchors.topMargin: 24
         anchors.bottom: parent.bottom
-        visible: root.isSongs(root.filter) && root.filter !== "metrics"
+        visible: root.isSongs(root.filter) && root.filter !== "metrics" && !librarySkeleton.active
         tracks: root.isSongs(root.filter) ? root.selectedSection.items : []
         sortKey: root.sortKey
         sortDescending: root.sortDescending
@@ -362,14 +384,14 @@ Item {
         anchors.top: headerColumn.bottom
         anchors.topMargin: 24
         anchors.bottom: parent.bottom
-        visible: root.filter !== "all" && !root.isSongs(root.filter)
+        visible: root.filter !== "all" && !root.isSongs(root.filter) && !librarySkeleton.active
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         readonly property string presentation: root.isPlaylists(root.filter) ? "playlist" : "album"
         readonly property int cardWidth: presentation === "playlist" ? 178 : 158
         cellWidth: (width - 18) / Math.max(1, Math.floor((width - 18) / (cardWidth + 14)))
         cellHeight: (presentation === "playlist" ? 242 : 210) + 14
-        model: visible ? root.selectedSection.items : []
+        model: root.filter !== "all" && !root.isSongs(root.filter) ? root.selectedSection.items : []
         cacheBuffer: 300
         bottomMargin: shelves.playerInset
         ScrollBar.vertical: ThemedScrollBar {
@@ -377,6 +399,7 @@ Item {
         }
 
         delegate: MediaCard {
+            artworkViewport: grid
             required property var modelData
             media: modelData
             width: Math.min(grid.cardWidth, grid.cellWidth - 14)

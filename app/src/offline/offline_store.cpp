@@ -290,7 +290,7 @@ QVariantMap collectionToVariant(const CollectionRecord &collection, const Offlin
   const QString subtitle = QObject::tr("%1 · %n song(s)", nullptr, count).arg(kind);
   QString title = collection.title;
   if (collection.id.endsWith(QLatin1String("LM")) ||
-      title.startsWith(QLatin1String("Listen to your favorite", Qt::CaseInsensitive))) {
+      title.startsWith(QLatin1String("Listen to your favorite"), Qt::CaseInsensitive)) {
     title = QObject::tr("Your Likes");
   }
   return {

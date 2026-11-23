@@ -27,6 +27,7 @@ import QtQuick.Controls
 // Home while offline: shelves of what plays without a connection.
 Item {
     id: root
+    readonly property alias navigationScroll: scroll
 
     readonly property var feed: typeof NumaSync !== "undefined" && NumaSync.revision >= 0 ? NumaSync.visibleSections(NumaOffline.homeSections) : NumaOffline.homeSections
 

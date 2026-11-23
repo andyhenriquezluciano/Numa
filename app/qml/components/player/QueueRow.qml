@@ -206,24 +206,18 @@ Item {
                         anchors.fill: parent
                         radius: 8
                         source: rowItem.modelData.thumbnail || ""
+                        opacity: song.hovered ? 0.48 : 1
+                        Behavior on opacity { NumberAnimation { duration: 140 } }
                     }
 
-                    // Play affordance fades over the cover on hover.
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: 8
-                        color: "#99000000"
+                    LucideIcon {
+                        anchors.centerIn: parent
+                        width: 16
+                        height: 16
+                        name: "play"
+                        color: panel.primaryText
                         opacity: song.hovered ? 1 : 0
-                        antialiasing: true
                         Behavior on opacity { NumberAnimation { duration: 140 } }
-
-                        LucideIcon {
-                            anchors.centerIn: parent
-                            width: 16
-                            height: 16
-                            name: "play"
-                            color: "#ffffff"
-                        }
                     }
                 }
 

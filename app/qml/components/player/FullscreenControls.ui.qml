@@ -29,6 +29,7 @@ ColumnLayout {
     id: controls
 
     property color accentColor: NumaAppearance.textColor
+    property color playGlyphColor: "#121212"
     property color mixAccentColor: NumaAppearance.textColor
     property color primaryText: "#f7f5f0"
     property color secondaryText: "#c3c6bf"
@@ -194,8 +195,7 @@ ColumnLayout {
                 MixDotFill {
                     anchors.fill: parent
                     fraction: Math.min(1, progress.pressed ? progress.shown / progress.to : controls.shownFraction)
-                    baseColor: NumaAppearance.rosePine ? NumaAppearance.accentColor : controls.mixing || progress.hovered || progress.pressed ? "#ffffff"
-                         : Qt.rgba(controls.primaryText.r, controls.primaryText.g, controls.primaryText.b, 0.82)
+                    baseColor: controls.accentColor
                     colorFade: 400
                     dotColor: controls.mixAccentColor
                     amount: controls.mixGlow
@@ -361,6 +361,7 @@ ColumnLayout {
             main: true
             enter: controls.stage52
             accentColor: controls.accentColor
+            playGlyphColor: controls.playGlyphColor
             primaryText: controls.primaryText
             inkColor: controls.inkColor
         }

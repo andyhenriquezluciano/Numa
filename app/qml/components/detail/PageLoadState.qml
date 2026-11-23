@@ -20,19 +20,22 @@
 import Numa
 import QtQuick
 import QtQuick.Controls
+import ".."
 
-// Transparent loading state: an accent hairline over the live page, or an error with retry.
+// Initial page loading and recoverable errors.
 Item {
     id: root
 
     property bool loading: false
+    property bool showSkeleton: loading
+    property bool showLoadingLine: true
     property string errorMessage
     property color accentColor: "#b79bed"
 
     signal retryRequested
 
     // Fast loads finish before the hairline appears.
-    readonly property bool lineShown: loading && delay.passed
+    readonly property bool lineShown: loading && showLoadingLine && delay.passed && !skeleton.active
 
     onLoadingChanged: delay.passed = false
 
@@ -42,8 +45,15 @@ Item {
         property bool passed: false
 
         interval: Motion.loadDelay
-        running: root.loading
+        running: root.loading && root.visible && !passed
         onTriggered: passed = true
+    }
+
+    LoadingSkeleton {
+        id: skeleton
+        anchors.centerIn: parent
+        width: Math.max(0, Math.min(parent.width - 48, 420))
+        loading: root.loading && root.showSkeleton
     }
 
     Item {
@@ -55,7 +65,7 @@ Item {
         height: 2
         clip: true
         opacity: root.lineShown ? 1 : 0
-        visible: opacity > 0
+        visible: root.showLoadingLine && opacity > 0
 
         Behavior on opacity {
             NumberAnimation { duration: Motion.normal; easing.type: Motion.enter }

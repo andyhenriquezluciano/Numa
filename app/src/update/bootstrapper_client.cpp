@@ -20,6 +20,7 @@
 #include "update/bootstrapper_client.h"
 
 #include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
@@ -32,7 +33,15 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QRegularExpression>
+#include <QSettings>
+#include <QStandardPaths>
+#include <QTemporaryDir>
 #include <QVersionNumber>
+#include <memory>
+#ifdef Q_OS_WIN
+#include <qt_windows.h>
+#endif
 
 namespace {
 
@@ -47,8 +56,21 @@ QJsonObject readJson(const QString &path)
 bool busy(const QString &state)
 {
     return state == QLatin1String("checking") || state == QLatin1String("downloading") ||
-           state == QLatin1String("staging");
+           state == QLatin1String("staging") || state == QLatin1String("authorizing");
 }
+
+#ifdef Q_OS_WIN
+QString updateHelper()
+{
+    return QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("numa-windows-updater.exe"));
+}
+
+QDir updateWorkDir()
+{
+    return QDir(QDir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation))
+                    .filePath(QStringLiteral("windows-updates")));
+}
+#endif
 
 } // namespace
 
@@ -59,6 +81,11 @@ BootstrapperClient::BootstrapperClient(QObject *parent) : QObject(parent)
     if (bootstrapper.isEmpty() || m_root.isEmpty() || !QFileInfo::exists(bootstrapper)) {
         m_current = QCoreApplication::applicationVersion();
 #ifdef Q_OS_WIN
+        const auto jobs = updateWorkDir().entryInfoList({QStringLiteral("job-*")}, QDir::Dirs | QDir::NoSymLinks);
+        for (const QFileInfo &job : jobs) {
+            if (job.lastModified().daysTo(QDateTime::currentDateTime()) > 1)
+                QDir(job.absoluteFilePath()).removeRecursively();
+        }
         QTimer::singleShot(3000, this, &BootstrapperClient::checkForUpdates);
 #endif
         return;
@@ -170,6 +197,10 @@ void BootstrapperClient::fetchStandaloneMetadata(QNetworkAccessManager *network,
         } else {
             m_latest = version;
             m_installerUrl = installer;
+            const auto digest = metadata.value(QStringLiteral("sha256")).toString();
+            static const QRegularExpression sha256(QStringLiteral("\\A[0-9a-fA-F]{64}\\z"));
+            m_installerHash = metadata.value(QStringLiteral("installProtocol")).toString() == QLatin1String("nsis-wait-v1") &&
+                    sha256.match(digest).hasMatch() ? QByteArray::fromHex(digest.toLatin1()) : QByteArray();
             m_releaseNotes = metadata.value(QStringLiteral("releaseNotes")).toString();
             m_state = QVersionNumber::compare(parsed, QVersionNumber::fromString(m_current)) > 0
                 ? QStringLiteral("available") : QStringLiteral("up-to-date");
@@ -214,8 +245,133 @@ void BootstrapperClient::checkStandaloneFallback(QNetworkAccessManager *network)
 
 void BootstrapperClient::downloadInstaller()
 {
-    if (m_state == QLatin1String("available") && !m_installerUrl.isEmpty())
+    if (m_state != QLatin1String("available") || m_installerUrl.isEmpty())
+        return;
+    if (installsInApp())
+        downloadStandaloneUpdate();
+    else
         QDesktopServices::openUrl(QUrl(m_installerUrl));
+}
+
+bool BootstrapperClient::installsInApp() const
+{
+#ifdef Q_OS_WIN
+    if (!m_bootstrapper.isEmpty() || m_installerHash.isEmpty() || !QFileInfo(updateHelper()).isFile())
+        return false;
+    const QSettings registry(QStringLiteral("HKEY_LOCAL_MACHINE\\Software\\Numa"), QSettings::Registry32Format);
+    const QString installedDir = registry.value(QStringLiteral("Install_Dir")).toString();
+    return !installedDir.isEmpty() && QDir::cleanPath(QDir::fromNativeSeparators(installedDir))
+        .compare(QCoreApplication::applicationDirPath(), Qt::CaseInsensitive) == 0;
+#else
+    return false;
+#endif
+}
+
+void BootstrapperClient::downloadStandaloneUpdate()
+{
+#ifdef Q_OS_WIN
+    const auto fail = [this](const QString &error) {
+        m_state = QStringLiteral("available");
+        m_error = error;
+        emit changed();
+    };
+    const QDir directory = updateWorkDir();
+    if (!QDir().mkpath(directory.absolutePath())) {
+        fail(tr("Could not save the update installer."));
+        return;
+    }
+    auto job = std::make_shared<QTemporaryDir>(directory.filePath(QStringLiteral("job-XXXXXX")));
+    auto file = std::make_shared<QFile>(job->filePath(QStringLiteral("Numa-Setup.exe")));
+    if (!job->isValid() || !file->open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
+        fail(tr("Could not save the update installer."));
+        return;
+    }
+
+    m_downloaded = m_total = 0;
+    m_error.clear();
+    m_state = QStringLiteral("downloading");
+    emit changed();
+    auto *network = new QNetworkAccessManager(this);
+    QNetworkRequest request{QUrl(m_installerUrl)};
+    request.setTransferTimeout(30000);
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::UserVerifiedRedirectPolicy);
+    auto *reply = network->get(request);
+    reply->setReadBufferSize(256 * 1024);
+    connect(reply, &QNetworkReply::redirected, reply, [reply](const QUrl &url) {
+        if (url.scheme() == QLatin1String("https") && url.host() == QLatin1String("release-assets.githubusercontent.com") &&
+            url.userInfo().isEmpty() && url.port(443) == 443)
+            emit reply->redirectAllowed();
+        else
+            reply->abort();
+    });
+
+    constexpr qint64 maxInstallerSize = 2LL * 1024 * 1024 * 1024;
+    auto hash = std::make_shared<QCryptographicHash>(QCryptographicHash::Sha256);
+    const auto writeChunk = [reply, file, hash] {
+        const auto data = reply->readAll();
+        if (file->size() + data.size() > maxInstallerSize || file->write(data) != data.size())
+            return false;
+        hash->addData(data);
+        return true;
+    };
+    connect(reply, &QNetworkReply::readyRead, this, [reply, writeChunk] {
+        if (!writeChunk())
+            reply->abort();
+    });
+    connect(reply, &QNetworkReply::downloadProgress, this, [this](qint64 done, qint64 total) {
+        m_downloaded = done;
+        m_total = total;
+        emit changed();
+    });
+    connect(reply, &QNetworkReply::finished, this, [this, job, file, hash, network, reply, writeChunk, fail] {
+        network->deleteLater();
+        const bool saved = reply->error() == QNetworkReply::NoError && writeChunk() && file->flush();
+        file->close();
+        if (!saved) {
+            fail(tr("Could not download the update. Please try again."));
+            return;
+        }
+        if (hash->result() != m_installerHash) {
+            fail(tr("The downloaded installer could not be verified."));
+            return;
+        }
+        const QString helper = job->filePath(QStringLiteral("numa-windows-updater.exe"));
+        const QString status = job->filePath(QStringLiteral("status"));
+        qint64 helperPid = 0;
+        if (!QFile::copy(updateHelper(), helper) || !QProcess::startDetached(helper, {
+            file->fileName(), status, QCoreApplication::applicationFilePath(),
+            QString::number(QCoreApplication::applicationPid()), QString::fromLatin1(m_installerHash.toHex())
+        }, job->path(), &helperPid)) {
+            fail(tr("Could not start the Windows updater."));
+            return;
+        }
+        job->setAutoRemove(false);
+        const std::shared_ptr<void> process(OpenProcess(SYNCHRONIZE, FALSE, DWORD(helperPid)), [](HANDLE handle) {
+            if (handle)
+                CloseHandle(handle);
+        });
+        m_state = QStringLiteral("authorizing");
+        emit changed();
+        auto *poll = new QTimer(this);
+        connect(poll, &QTimer::timeout, this, [poll, job, status, process, fail] {
+            QFile file(status);
+            const QByteArray result = file.open(QIODevice::ReadOnly) ? file.read(1) : QByteArray();
+            file.close();
+            if (result.isEmpty() && process && WaitForSingleObject(process.get(), 0) == WAIT_TIMEOUT)
+                return;
+            poll->stop();
+            poll->deleteLater();
+            if (result == "1") {
+                QCoreApplication::quit();
+            } else {
+                job->setAutoRemove(true);
+                fail(result == "0" ? tr("Installation canceled. NÜMA is still open.")
+                                   : tr("Could not start the Windows installer."));
+            }
+        });
+        poll->start(250);
+    });
+#endif
 }
 
 void BootstrapperClient::cancelDownload()

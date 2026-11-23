@@ -45,8 +45,8 @@ GridView {
     cellHeight: (presentation === "video" ? Math.round((cellWidth - 14) * 9 / 16) + 57 : cellWidth - 14 + 52) + 18
     bottomMargin: grid.playerInset + 14
 
-    ScrollBar.vertical: ScrollBar {
-        width: 5
+    ScrollBar.vertical: ThemedScrollBar {
+        width: 5; padding: 0
         bottomPadding: grid.playerInset
     }
 

@@ -31,6 +31,7 @@
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QTimer>
+#include <QUrl>
 #include <QtTest>
 
 namespace {
@@ -432,7 +433,9 @@ private slots:
     QTemporaryDir dir;
     {
       offline::OfflineStore store(dir.path());
-      store.put(record(QStringLiteral("s1"), dir.path(), QStringLiteral("Blue Monday")));
+      auto blue = record(QStringLiteral("s1"), dir.path(), QStringLiteral("Blue Monday"));
+      blue.thumbnailPath = writePng(dir.filePath("art/s1.png"));
+      store.put(blue);
       store.put(record(QStringLiteral("s2"), dir.path(), QStringLiteral("Red Rain")));
       offline::CollectionRecord collection;
       collection.id = offline::kCollectionPrefix + QStringLiteral("PL5");
@@ -453,6 +456,8 @@ private slots:
     QCOMPARE(all.size(), 2);
     QCOMPARE(all.at(0).toMap().value("key").toString(), QStringLiteral("songs"));
     QCOMPARE(all.at(0).toMap().value("items").toList().size(), 1);
+    QCOMPARE(all.at(0).toMap().value("items").toList().first().toMap().value("thumbnail").toString(),
+             QUrl::fromLocalFile(dir.filePath("art/s1.png")).toString());
     QCOMPARE(all.at(1).toMap().value("key").toString(), QStringLiteral("playlists"));
     QCOMPARE(library.search(QStringLiteral("blue"), QStringLiteral("songs")).size(), 1);
     QCOMPARE(library.search(QStringLiteral("blue"), QStringLiteral("albums")).size(), 0);
@@ -466,6 +471,13 @@ private slots:
     QCOMPARE(library.collectionIdFor({{"playlistId", "VLPL5"}}), id);
     QCOMPARE(library.collectionIdFor({{"browseId", "VLPL5"}}), id);
     QVERIFY(library.collectionIdFor({{"browseId", "VLother"}}).isEmpty());
+
+    QSignalSpy libraryUpdates(&library, &OfflineLibrary::changed);
+    emit manager.changed();
+    QCOMPARE(libraryUpdates.count(), 0);
+    manager.remove(QStringLiteral("s1"));
+    QCOMPARE(libraryUpdates.count(), 1);
+    QVERIFY(library.search(QStringLiteral("blue")).isEmpty());
   }
 };
 

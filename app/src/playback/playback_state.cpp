@@ -113,21 +113,32 @@ void PlaybackController::savePlaybackState() {
   settings.setValue(QStringLiteral("playback/repeatMode"), m_repeatMode);
   settings.setValue(QStringLiteral("playback/shuffleEnabled"),
                     m_shuffleEnabled);
-  m_queuePersistTimer.start();
+  if (queueNeedsSaving())
+    m_queuePersistTimer.start();
+}
+
+bool PlaybackController::queueNeedsSaving() const {
+  return !m_persistedQueueSnapshot || m_persistedQueueSnapshot->queue != m_queue ||
+      m_persistedQueueSnapshot->history != m_history ||
+      m_persistedQueueSnapshot->shuffleSource != m_orderedQueue;
 }
 
 void PlaybackController::flushPersistedQueue() {
   if (!m_persistenceEnabled || !m_prepared || m_restoringPlayback)
     return;
   m_queuePersistTimer.stop();
+  if (!queueNeedsSaving())
+    return;
 
   QSettings settings;
-  settings.setValue(QStringLiteral("playback/persistedQueue"),
-                    sanitizeTrackList(m_queue, 2500));
-  settings.setValue(QStringLiteral("playback/persistedHistory"),
-                    sanitizeTrackList(m_history, 50));
-  settings.setValue(QStringLiteral("playback/persistedShuffleSource"),
-                    sanitizeTrackList(m_orderedQueue, 2500));
+  const auto &saved = m_persistedQueueSnapshot;
+  if (!saved || saved->queue != m_queue)
+    settings.setValue(QStringLiteral("playback/persistedQueue"), sanitizeTrackList(m_queue, 2500));
+  if (!saved || saved->history != m_history)
+    settings.setValue(QStringLiteral("playback/persistedHistory"), sanitizeTrackList(m_history, 50));
+  if (!saved || saved->shuffleSource != m_orderedQueue)
+    settings.setValue(QStringLiteral("playback/persistedShuffleSource"), sanitizeTrackList(m_orderedQueue, 2500));
+  m_persistedQueueSnapshot = PersistedQueueSnapshot{m_queue, m_history, m_orderedQueue};
 }
 
 void PlaybackController::savePage(const QVariantMap &page) {
@@ -326,6 +337,7 @@ void PlaybackController::setPlaybackPersistenceEnabled(bool enabled) {
   } else {
     m_persistTimer.stop();
     m_queuePersistTimer.stop();
+    m_persistedQueueSnapshot.reset();
     QSettings settings;
     settings.remove(QStringLiteral("playback/persistedTrack"));
     settings.remove(QStringLiteral("playback/persistedPosition"));

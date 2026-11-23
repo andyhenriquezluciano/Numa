@@ -34,6 +34,7 @@ qml_sources = [
   'app/qml/components/GlassPopup.qml',
   'app/qml/components/PopupBloomSurface.qml',
   'app/qml/components/RoundedSurfaceFrame.qml',
+  'app/qml/components/LoadingSkeleton.qml',
   'app/qml/components/docs/DocsPopup.qml',
   'app/qml/components/docs/DocsView.qml',
   'app/qml/components/docs/DocsSidebar.qml',

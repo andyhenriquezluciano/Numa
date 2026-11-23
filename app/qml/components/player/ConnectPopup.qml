@@ -11,7 +11,7 @@ GlassPopup {
         clip: true
         contentHeight: content.implicitHeight + 48
         boundsBehavior: Flickable.StopAtBounds
-        ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+        ScrollBar.vertical: ThemedScrollBar { policy: ScrollBar.AsNeeded }
         ColumnLayout {
             id: content
             x: 24
