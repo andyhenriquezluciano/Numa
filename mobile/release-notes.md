@@ -1,5 +1,5 @@
-- Cristal adapta los controles y los iconos al color de la canción.
+- Cristal adapta los controles y los iconos al color de la canción. Cristal oscuro también se aplica a Inicio, las listas, sus menús y la cola.
 - Mejor mezcla se activa desde la lista. Al salir de ese modo o de Aleatorio, la cola vuelve al orden alfabético.
-- Las letras siguen más de cerca la voz.
+- Las letras siguen más de cerca la voz. El botón de traducción vuelve a estar disponible y usa el color de la canción cuando está activo.
 - Los esqueletos de carga coinciden con el diseño de las listas y las letras.
 - Recortar carátulas es más fácil con una vista más grande y una cuadrícula.

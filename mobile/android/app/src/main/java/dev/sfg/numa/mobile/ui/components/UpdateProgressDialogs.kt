@@ -72,6 +72,13 @@ import dev.sfg.numa.mobile.ui.theme.CanopyColors
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
 
 @Composable
+internal fun Modifier.updateDialogPane(): Modifier =
+    padding(16.dp)
+        .widthIn(max = 440.dp)
+        .fillMaxWidth()
+        .glassPane(RoundedCornerShape(20.dp), GlassTone.OVERLAY)
+
+@Composable
 internal fun UpdateProgressDialog(version: String, installing: Boolean, onHide: () -> Unit) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseScale by infiniteTransition.animateFloat(
@@ -91,10 +98,7 @@ internal fun UpdateProgressDialog(version: String, installing: Boolean, onHide: 
         Surface(
             shape = RoundedCornerShape(20.dp),
             color = androidx.compose.ui.graphics.Color.Transparent,
-            modifier = Modifier.glassPane(RoundedCornerShape(20.dp), GlassTone.OVERLAY)
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .widthIn(max = 400.dp),
+            modifier = Modifier.updateDialogPane(),
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),

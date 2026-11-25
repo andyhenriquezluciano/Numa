@@ -19,7 +19,6 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
-import dev.sfg.numa.mobile.ui.glass.crystalControlSurface
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 
@@ -81,7 +80,6 @@ internal fun LyricLines(
     val translate = translationChoice ?: preferences.translateLyrics
     val offsetFlow = remember(graph, songId) { graph.settings.lyricOffset(songId) }
     val offsetMs = offsetFlow.collectAsStateWithLifecycle(initialValue = 0)
-    var adjustingSync by androidx.compose.runtime.saveable.rememberSaveable(songId) { mutableStateOf(false) }
     // Project the sampled playhead on each frame and compensate for visual latency.
     val clock = dev.sfg.numa.mobile.ui.components.LocalPlayerClock.current
     val synced = remember(lines) { lines.any { it.startMs != null } }
@@ -279,31 +277,8 @@ internal fun LyricLines(
             }
         }
 
-        Row(
-            Modifier.align(Alignment.TopEnd).padding(top = 8.dp, end = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Box(Modifier.align(Alignment.TopEnd).padding(top = 8.dp, end = 16.dp)) {
             LyricTranslateChip(translate, { translationChoice = it })
-            if (synced && songId.isNotBlank()) {
-                androidx.compose.material3.IconButton(onClick = { adjustingSync = true }) {
-                    val shape = RoundedCornerShape(12.dp)
-                    Box(
-                        Modifier.size(34.dp).crystalControlSurface(shape) {
-                            glassPane(shape, dev.sfg.numa.mobile.ui.glass.GlassTone.CONTROL)
-                        },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(Icons.Rounded.Sync, uiText("Adjust lyric timing", "Ajustar sincronización de letras"),
-                            modifier = Modifier.size(18.dp))
-                    }
-                }
-            }
-        }
-        if (adjustingSync && synced) {
-            LyricTimingDialog(offsetMs.value, onClose = { adjustingSync = false }, onSave = {
-                graph.settings.setLyricOffset(songId, it)
-                adjustingSync = false
-            })
         }
 
         if (browsing && synced) {

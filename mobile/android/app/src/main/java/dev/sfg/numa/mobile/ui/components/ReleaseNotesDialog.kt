@@ -83,46 +83,27 @@ internal fun ReleaseNoteSectionCard(section: ReleaseNoteSection) {
         Column(
             modifier = Modifier.padding(12.dp),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f),
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(categoryColor.copy(alpha = 0.16f), RoundedCornerShape(7.dp)),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .background(categoryColor.copy(alpha = 0.16f), RoundedCornerShape(7.dp)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            categoryIcon(section.category),
-                            contentDescription = null,
-                            tint = categoryColor,
-                            modifier = Modifier.size(14.dp),
-                        )
-                    }
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        section.title,
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                    Icon(
+                        categoryIcon(section.category),
+                        contentDescription = null,
+                        tint = categoryColor,
+                        modifier = Modifier.size(14.dp),
                     )
                 }
-                Surface(
-                    color = androidx.compose.ui.graphics.Color.Transparent,
-                    shape = CircleShape,
-                    modifier = Modifier.glassPane(CircleShape, GlassTone.CONTROL)) {
-                    Text(
-                        "${section.items.size}",
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                    )
-                }
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    if (section.title.equals("What's new", ignoreCase = true)) uiText("What's new", "Novedades")
+                    else section.title,
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                )
             }
 
             Spacer(Modifier.height(8.dp))

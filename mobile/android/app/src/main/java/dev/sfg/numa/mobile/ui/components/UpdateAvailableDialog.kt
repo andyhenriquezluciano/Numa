@@ -37,7 +37,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -72,6 +71,11 @@ import dev.sfg.numa.mobile.MobileUpdateMetadata
 import dev.sfg.numa.mobile.UpdateState
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
 
 @Composable
 internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (MobileUpdateMetadata) -> Unit, onDismiss: () -> Unit) {
@@ -80,6 +84,13 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
     val currentVersion = remember(context) {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }
             .getOrNull() ?: BuildConfig.VERSION_NAME
+    }
+    val locale = Locale.getDefault()
+    val publishedDate = remember(metadata.publishedAt, locale) {
+        runCatching {
+            Instant.parse(metadata.publishedAt).atZone(ZoneId.systemDefault())
+                .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale))
+        }.getOrNull()
     }
     val sections = remember(metadata.releaseNotes) { parseReleaseNoteSections(metadata.releaseNotes) }
     val totalChanges = remember(sections) { sections.sumOf { it.items.size } }
@@ -91,10 +102,7 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
         Surface(
             shape = RoundedCornerShape(20.dp),
             color = androidx.compose.ui.graphics.Color.Transparent,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-                .fillMaxWidth()
-                .glassPane(RoundedCornerShape(20.dp), GlassTone.OVERLAY)
-                .widthIn(max = 440.dp)
+            modifier = Modifier.updateDialogPane()
                 .heightIn(max = 680.dp),
         ) {
             Column(
@@ -131,7 +139,8 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
                                 color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
-                                if (metadata.publishedAt.isNotBlank()) "Published ${metadata.publishedAt}" else uiText("Update available", "Actualización disponible"),
+                                publishedDate?.let { uiText("Published $it", "Publicado el $it") }
+                                    ?: uiText("Update available", "Actualización disponible"),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             )
