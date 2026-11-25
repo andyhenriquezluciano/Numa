@@ -83,14 +83,13 @@ class NumaPlaybackService : MediaLibraryService() {
     private lateinit var playbackVolume: PlaybackVolumeMonitor
     // Adaptive mixes and standard fades run at the head of each pipeline; a splicer stays with its player.
     private val splicers = java.util.IdentityHashMap<ExoPlayer, MixSplicer>()
-    private var unshuffledOrder: List<String> = emptyList()
 
     /** Tracks near the current item by media id; written on the main thread, read by loader threads. */
     @Volatile private var queueSnapshot: Map<String, Track> = emptyMap()
     private val handler = Handler(Looper.getMainLooper())
     private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val persistence by lazy {
-        ServicePlaybackPersistence(handler, ioScope, ::authoritativePlayer, { unshuffledOrder }, { stateStore })
+        ServicePlaybackPersistence(handler, ioScope, ::authoritativePlayer, { stateStore })
     }
     private var loadedAudioVariant = ""
     private val positionSaver = object : Runnable {
@@ -140,7 +139,7 @@ class NumaPlaybackService : MediaLibraryService() {
         observeAudioSettings(graph, ioScope, playbackVolume.state, listOf(playerFilter, spareFilter), listOf(playerEq, spareEq))
         player = buildPlayer(playerFilter, playerEq, handlesAudioFocus = true)
         spare = buildPlayer(spareFilter, spareEq, handlesAudioFocus = false)
-        unshuffledOrder = stateStore.load().also { it.restoreInto(player) }.unshuffledOrder
+        stateStore.load().restoreInto(player)
         // The restored song is known before anything can ask for it. No more amnesiac cold starts.
         snapshotQueue(player)
         val callback = NumaSessionCallback(
@@ -419,12 +418,10 @@ class NumaPlaybackService : MediaLibraryService() {
 
         override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
             if (shuffleModeEnabled) {
-                // Taken before the shuffle, because after it there is nothing left to remember.
-                unshuffledOrder = player.queueMediaIds()
+                player.updateQueueOrderMetadata(alphabetical = false)
                 player.shuffleUpcoming()
             } else {
-                player.restoreUpcoming(unshuffledOrder)
-                unshuffledOrder = emptyList()
+                player.restoreAlphabeticalUpcoming()
             }
         }
 

@@ -49,6 +49,7 @@ import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.ZoomInMap
 import androidx.compose.material.icons.rounded.ZoomOutMap
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
@@ -168,7 +169,7 @@ internal fun MusicVideoFullscreen(
                     PlayerScrubber(playback, { touch(); actions.onSeek(it) }, Modifier.weight(1f))
                     VideoQualityButton(musicVideo, { touch(); actions.onQuality(it) }, Modifier.padding(start = 12.dp),
                         onMenuOpenChange = { qualityOpen = it; touch() })
-                    IconButton(onClick = { fill = !fill; touch() }) {
+                    IconButton(onClick = { fill = !fill; touch() }, shape = MaterialTheme.shapes.small) {
                         Icon(
                             if (fill) Icons.Rounded.ZoomInMap else Icons.Rounded.ZoomOutMap,
                             if (fill) uiText("Original aspect ratio", "Proporción original")
@@ -182,7 +183,7 @@ internal fun MusicVideoFullscreen(
         IconButton(onClick = onExit, modifier = Modifier.align(Alignment.TopStart)
             .systemBarsPadding().padding(start = 24.dp, top = 12.dp)
             .clip(androidx.compose.material3.MaterialTheme.shapes.medium)
-            .background(Color.Black.copy(alpha = 0.22f))) {
+            .background(Color.Black.copy(alpha = 0.22f)), shape = MaterialTheme.shapes.small) {
             Icon(Icons.Rounded.ExpandMore, uiText("Return to portrait video", "Volver al vídeo vertical"), tint = Color.White)
         }
         if (!chrome) {
@@ -236,6 +237,7 @@ private fun RoundControl(icon: ImageVector, label: String, size: Dp, enabled: Bo
         enabled = enabled,
         modifier = Modifier.size(size).clip(androidx.compose.material3.MaterialTheme.shapes.medium)
             .background(Color.Black.copy(alpha = 0.38f)),
+        shape = MaterialTheme.shapes.small,
     ) {
         Icon(icon, label, tint = Color.White, modifier = Modifier.size(size * 0.45f))
     }

@@ -43,6 +43,7 @@ data class PlaybackSnapshot(
     /** The current queue item is using its music-video source rather than album audio. */
     val playingVideo: Boolean = false,
     val sourcePlaylistId: String = "",
+    val alphabeticalQueue: Boolean = false,
 ) {
     val history: List<Track>
         get() = if (currentIndex > 0) queue.subList(0, currentIndex.coerceAtMost(queue.size)) else emptyList()

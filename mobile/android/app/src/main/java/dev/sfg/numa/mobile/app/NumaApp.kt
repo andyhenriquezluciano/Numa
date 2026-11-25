@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.animation.core.tween
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -75,6 +76,9 @@ import dev.sfg.numa.mobile.ui.glass.rememberGlassStyle
 import dev.sfg.numa.mobile.ui.navigation.Routes
 import dev.sfg.numa.mobile.ui.scroll.NumaScrollPhysics
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import dev.sfg.numa.mobile.ui.theme.LocalTrackAccent
+import dev.sfg.numa.mobile.ui.theme.asTrackAccent
+import dev.sfg.numa.mobile.ui.theme.trackControlInk
 
 @Composable
 fun NumaApp(viewModel: NumaViewModel) {
@@ -137,11 +141,11 @@ fun NumaApp(viewModel: NumaViewModel) {
     // apply it themselves where the content actually needs it.
     val isDetail = route == Routes.DETAIL || route?.startsWith("detail") == true
     // Phone Home pads its own header for the status bar so rails scroll under it.
-    val isPhoneHome = route == Routes.HOME && !dev.sfg.numa.mobile.ui.foldable.isFoldableOrWideLayout()
+    val isPhoneHome = route == Routes.HOME && !dev.sfg.numa.mobile.ui.foldable.usesWideHomeLayout()
     val artworkUnderStatusBar = isDetail || isPhoneHome
 
     // When in an album / collection, sample the album cover's palette so the frosted glass
-    // and bottom navigation dynamically reflect the album being viewed.
+    // reflects the album being viewed. Controls follow the playback queue independently.
     val detailState by viewModel.detail.collectAsStateWithLifecycle()
     val detailArtwork by viewModel.detailArtwork.collectAsStateWithLifecycle()
     val collection = (detailState as? LoadState.Content)?.value
@@ -153,50 +157,62 @@ fun NumaApp(viewModel: NumaViewModel) {
         dev.sfg.numa.mobile.ui.components.rememberPlaylistBackdropSource(collection.id, resolvedDetailArtwork)
         else resolvedDetailArtwork
 
+    val accentTrack = playerPlayback.currentTrack ?: playerPlayback.queue.getOrNull(playerPlayback.currentIndex)
+        ?: playerPlayback.queue.firstOrNull()
+    val trackCoverUrl = playerPlayback.currentTrack?.let { dev.sfg.numa.mobile.artwork.trackArtworkUrl(it) }.orEmpty()
     val activeCoverUrl = if (isDetail && !(settings.playlistSongBackground && collection?.kind == dev.sfg.numa.mobile.model.CatalogKind.PLAYLIST && playerPlayback.currentTrack != null)) {
         detailArtworkUrl
     } else {
-        playerPlayback.currentTrack?.let { dev.sfg.numa.mobile.artwork.trackArtworkUrl(it) }.orEmpty()
+        trackCoverUrl
     }
 
     // Sampled once here and handed to both the wash and the glass panes, so the cover the app is
     // tinted by and the cover its panes are tinted by can never disagree.
     val backdropPalette = rememberArtworkPalette(activeCoverUrl)
+    val accentArtworkUrl = accentTrack?.let { dev.sfg.numa.mobile.artwork.trackArtworkUrl(it) }.orEmpty()
+    val trackAccent = when {
+        accentTrack == null -> dev.sfg.numa.mobile.ui.theme.CanopyColors.Accent
+        accentArtworkUrl == activeCoverUrl -> remember(backdropPalette.accent) { backdropPalette.accent.asTrackAccent() }
+        else -> {
+            val sampledAccent = rememberArtworkPalette(accentArtworkUrl).accent
+            remember(sampledAccent) { sampledAccent.asTrackAccent() }
+        }
+    }
     val glassTint = animateColorAsState(
         targetValue = if (activeCoverUrl.isBlank()) Color(0xFFD1B8FF) else backdropPalette.accent,
         animationSpec = tween(900),
         label = "GlassTint",
     )
     val glass = rememberGlassStyle(glassTint, settings.glassTheme, settings.glassBorders)
-    val glassScene = rememberGlassScene(
-        animationTick = rememberGlassAnimationClock(
-            settings.animatedBackground && (playerPlayback.isPlaying || isDetail) && !playerOpen),
+    val idleBackdrop = !isDetail && playerPlayback.currentTrack == null && playerPlayback.queue.isEmpty()
+    val roseTheme = settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE ||
+        settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN
+    val animateBackdrop = settings.animatedBackground && !playerOpen && !roseTheme
+    val glassClock = rememberGlassAnimationClock(
+        animateBackdrop && (idleBackdrop || playerPlayback.isPlaying || isDetail),
     )
-    val effectiveAccent = if ((settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE || settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN)) {
+    val glassScene = rememberGlassScene(
+        animationTick = glassClock,
+    )
+    val effectiveAccent = if (roseTheme) {
         dev.sfg.numa.mobile.ui.theme.rosePinePalette(settings.glassTheme).Rose
     } else {
-        dev.sfg.numa.mobile.ui.theme.CanopyColors.Accent
+        trackAccent
+    }
+    val baseScheme = MaterialTheme.colorScheme
+    val controlsScheme = remember(baseScheme, trackAccent, roseTheme) {
+        if (roseTheme) baseScheme else baseScheme.copy(
+            primary = trackAccent,
+            onPrimary = trackAccent.trackControlInk(),
+            secondary = trackAccent,
+            onSecondary = trackAccent.trackControlInk(),
+        )
     }
     val localLibraryUi = dev.sfg.numa.mobile.ui.components.rememberLocalLibraryUi(viewModel.localLibrary)
     // Bug reports float above navigation so a capture can wander off and come back.
     val supportUi = dev.sfg.numa.mobile.ui.support.rememberSupportUi()
 
-    CompositionLocalProvider(
-        dev.sfg.numa.mobile.ui.components.LocalLibraryUiLocal provides localLibraryUi,
-        dev.sfg.numa.mobile.ui.support.LocalSupportUi provides supportUi,
-        LocalGlass provides glass,
-        LocalGlassScene provides glassScene,
-        LocalAccent provides effectiveAccent,
-        dev.sfg.numa.mobile.ui.theme.LocalGlassTheme provides settings.glassTheme,
-        dev.sfg.numa.mobile.ui.theme.LocalGlassBorders provides settings.glassBorders,
-        LocalOverscrollFactory provides NumaScrollPhysics.overscrollFactory,
-        LocalPlayerClock provides playerPresentation.clock,
-        dev.sfg.numa.mobile.ui.components.LocalNonMusicSkip provides nonMusicSkip,
-        dev.sfg.numa.mobile.model.LocalBestMixJob provides bestMixJob,
-        dev.sfg.numa.mobile.model.LocalQobuzLinked provides qobuzStatus.isConnected,
-        dev.sfg.numa.mobile.model.LocalMaxActive provides maxActive,
-        dev.sfg.numa.mobile.model.LocalQobuzAlbumQuality provides albumQualityLoader,
-    ) {
+    val content: @Composable () -> Unit = {
         Scaffold(
             // Transparent so the artwork wash below shows through every screen.
             containerColor = Color.Transparent,
@@ -214,7 +230,7 @@ fun NumaApp(viewModel: NumaViewModel) {
             Box(Modifier.fillMaxSize().glassSceneSource(if (playerOpen) null else glassScene)) {
                 Box(Modifier.fillMaxSize().glassWashSource(if (playerOpen) null else glassScene)) {
                     CompositionLocalProvider(LocalGlassCapture provides GlassCapture.WASH) {
-                        if ((settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE || settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN)) {
+                        if (roseTheme) {
                             Box(
                                 Modifier
                                     .fillMaxSize()
@@ -223,7 +239,8 @@ fun NumaApp(viewModel: NumaViewModel) {
                         } else {
                             ArtworkBackdrop(
                                 palette = backdropPalette,
-                                animated = settings.animatedBackground && !playerOpen,
+                                animated = animateBackdrop,
+                                idleClock = if (idleBackdrop) glassClock else null,
                             )
                             // The main tabs share the current song's artwork; the shader idles when playback pauses.
                             dev.sfg.numa.mobile.ui.components.HomeBackdrop(
@@ -391,6 +408,26 @@ fun NumaApp(viewModel: NumaViewModel) {
                 onDismiss = viewModel::dismissShare,
             )
         }
+    }
+
+    CompositionLocalProvider(
+        dev.sfg.numa.mobile.ui.components.LocalLibraryUiLocal provides localLibraryUi,
+        dev.sfg.numa.mobile.ui.support.LocalSupportUi provides supportUi,
+        LocalGlass provides glass,
+        LocalGlassScene provides glassScene,
+        LocalAccent provides effectiveAccent,
+        LocalTrackAccent provides trackAccent,
+        dev.sfg.numa.mobile.ui.theme.LocalGlassTheme provides settings.glassTheme,
+        dev.sfg.numa.mobile.ui.theme.LocalGlassBorders provides settings.glassBorders,
+        LocalOverscrollFactory provides NumaScrollPhysics.overscrollFactory,
+        LocalPlayerClock provides playerPresentation.clock,
+        dev.sfg.numa.mobile.ui.components.LocalNonMusicSkip provides nonMusicSkip,
+        dev.sfg.numa.mobile.model.LocalBestMixJob provides bestMixJob,
+        dev.sfg.numa.mobile.model.LocalQobuzLinked provides qobuzStatus.isConnected,
+        dev.sfg.numa.mobile.model.LocalMaxActive provides maxActive,
+        dev.sfg.numa.mobile.model.LocalQobuzAlbumQuality provides albumQualityLoader,
+    ) {
+        MaterialTheme(colorScheme = controlsScheme, content = content)
     }
 }
 

@@ -73,7 +73,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.songlinks.SongShareState
-import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.LocalAccent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -110,7 +110,7 @@ fun SongShareBottomSheet(
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
-                IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp), shape = MaterialTheme.shapes.small) {
                     Icon(Icons.Rounded.Close, contentDescription = uiText("Close", "Cerrar"), tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -214,7 +214,7 @@ fun SongShareBottomSheet(
                                 if (copied) Icons.Rounded.Check else Icons.Rounded.ContentCopy,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
-                                tint = if (copied) CanopyColors.Accent else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                                tint = if (copied) LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(if (copied) uiText("Copied", "Copiado") else uiText("Copy", "Copiar"),

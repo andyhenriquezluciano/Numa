@@ -28,6 +28,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
+import dev.sfg.numa.mobile.ui.theme.trackControlInk
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 
@@ -36,7 +38,6 @@ import dev.sfg.numa.mobile.ui.text.uiText
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -51,10 +52,11 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -71,6 +73,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -82,6 +87,8 @@ import dev.sfg.numa.mobile.ui.components.QobuzAlbumQualityChip
 import dev.sfg.numa.mobile.model.BrowseDetail
 import dev.sfg.numa.mobile.model.CatalogKind
 import dev.sfg.numa.mobile.model.Track
+import dev.sfg.numa.mobile.model.isBestMixTitle
+import dev.sfg.numa.mobile.library.libraryPlaylistId
 import dev.sfg.numa.mobile.ui.components.AnimatedArtworkVideo
 import dev.sfg.numa.mobile.ui.components.ArtworkPalette
 import dev.sfg.numa.mobile.ui.components.ArtworkTile
@@ -90,15 +97,14 @@ import dev.sfg.numa.mobile.ui.components.DetailHeroFrame
 import dev.sfg.numa.mobile.ui.components.ExplicitBadge
 import dev.sfg.numa.mobile.ui.components.HeroAbout
 import dev.sfg.numa.mobile.ui.components.HeroActionButton
+import dev.sfg.numa.mobile.ui.components.HeroShuffleButton
 import dev.sfg.numa.mobile.ui.components.HeroGutter
 import dev.sfg.numa.mobile.ui.components.HeroPlayRow
 import dev.sfg.numa.mobile.ui.components.collectionDownloadAction
+import dev.sfg.numa.mobile.ui.components.collectionTitleStyle
 import dev.sfg.numa.mobile.ui.components.heroInfoLine
-import dev.sfg.numa.mobile.ui.components.rememberArtworkPalette
 import dev.sfg.numa.mobile.ui.foldable.isFoldableOrWideLayout
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
-import dev.sfg.numa.mobile.ui.theme.LocalAccent
-import dev.sfg.numa.mobile.ui.theme.legibleOnDarkChrome
 
 private fun BrowseDetail.supportsBestMix(enabled: Boolean) =
     enabled && (kind == CatalogKind.PLAYLIST || kind == CatalogKind.ALBUM) && tracks.size > 1
@@ -112,7 +118,6 @@ internal fun CollectionHero(
     detail: BrowseDetail,
     playback: dev.sfg.numa.mobile.model.PlaybackSnapshot = dev.sfg.numa.mobile.model.PlaybackSnapshot(),
     onTogglePlayback: (() -> Unit)? = null,
-    palette: ArtworkPalette,
     shuffleAvailable: Boolean,
     onPlayAll: (List<Track>, String) -> Unit,
     onShuffle: (List<Track>, String) -> Unit,
@@ -125,16 +130,37 @@ internal fun CollectionHero(
     smartCrossfadeEnabled: Boolean = false,
 ) {
     val isAlbum = detail.kind == CatalogKind.ALBUM
+    val isPlaylist = detail.kind == CatalogKind.PLAYLIST
+    val isCurrentCollection = playback.currentTrack != null && playback.sourcePlaylistId.isNotBlank() &&
+        libraryPlaylistId(playback.sourcePlaylistId) == libraryPlaylistId(detail.id)
+    val bestMixActive = isCurrentCollection && !playback.shuffle && playback.contextTitle.isBestMixTitle()
     val rose = currentRosePine()
     val automatic by dev.sfg.numa.mobile.NumaGraph.from(LocalContext.current).automaticPlaylistCovers.state.collectAsState()
     val coverAnimation = animatedArtworkUrl.takeUnless { dev.sfg.numa.mobile.artwork.coverPlaylistKey(detail.id) in automatic.enabled }.orEmpty()
-    val albumAccent = remember(palette.accent) { palette.accent.legibleOnDarkChrome() }
-    // The artist's name takes a colour from their own photograph, so it reads as theirs.
-    val artistPalette = rememberArtworkPalette(artistPortraitUrl)
-    val artistAccent = remember(artistPalette.accent, artistPortraitUrl, albumAccent) {
-        if (artistPortraitUrl.isBlank()) albumAccent else artistPalette.accent.legibleOnDarkChrome()
-    }
+    val accent = playbackAccent()
     val artistName = remember(detail) { collectionArtistName(detail) }
+    val hasExplicitTracks = remember(detail.tracks) { detail.tracks.any { it.explicit } }
+    val explicitLabel = uiText("Explicit", "Explícito")
+    val title = remember(detail.title, hasExplicitTracks, explicitLabel) {
+        buildAnnotatedString {
+            append(detail.title)
+            if (hasExplicitTracks) {
+                append("\u00a0")
+                appendInlineContent("explicit", explicitLabel)
+            }
+        }
+    }
+    val titleContent = remember(hasExplicitTracks) {
+        if (hasExplicitTracks) {
+            mapOf(
+                "explicit" to InlineTextContent(
+                    Placeholder(18.sp, 18.sp, PlaceholderVerticalAlign.TextCenter),
+                ) {
+                    ExplicitBadge(modifier = Modifier.fillMaxSize(), fontSize = 11.sp)
+                },
+            )
+        } else emptyMap()
+    }
     val infoLine = remember(detail) {
         val kind = collectionKindLabel(detail)
         // Some release types already carry the year ("Single • 2021").
@@ -143,33 +169,19 @@ internal fun CollectionHero(
     }
 
     val body: @Composable ColumnScope.() -> Unit = {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
+        Text(
+            text = title,
+            inlineContent = titleContent,
+            style = collectionTitleStyle(),
+            color = rose?.Text ?: CanopyColors.Text,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(horizontal = HeroGutter),
-        ) {
-            Text(
-                text = detail.title,
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 30.sp,
-                    lineHeight = 34.sp,
-                    letterSpacing = (-0.5).sp,
-                ),
-                color = rose?.Text ?: CanopyColors.Text,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false),
-            )
-            if (detail.tracks.any { it.explicit }) {
-                Spacer(Modifier.width(8.dp))
-                ExplicitBadge()
-            }
-        }
+        )
         if (artistName.isNotBlank()) {
             Spacer(Modifier.height(8.dp))
-            ArtistChip(artistName, artistPortraitUrl, rose?.AccentInk ?: artistAccent, onOpenArtist)
+            ArtistChip(artistName, artistPortraitUrl, rose?.AccentInk ?: accent, onOpenArtist)
         }
         Spacer(Modifier.height(8.dp))
         Text(
@@ -192,38 +204,46 @@ internal fun CollectionHero(
         Spacer(Modifier.height(24.dp))
         HeroPlayRow(
             onPlay = {
-                if (playback.sourcePlaylistId == detail.id && playback.currentTrack != null && onTogglePlayback != null) onTogglePlayback()
+                if (isCurrentCollection && onTogglePlayback != null) onTogglePlayback()
                 else onPlayAll(detail.tracks, detail.title)
             },
-            playing = playback.sourcePlaylistId == detail.id && playback.isPlaying,
+            playing = isCurrentCollection && playback.isPlaying,
             playEnabled = detail.tracks.isNotEmpty(),
-            // Albums keep their cover's colour on the button; playlists stay neutral.
-            playFill = if (isAlbum) albumAccent else Color.White,
-            playIconTint = palette.deep,
+            playFill = accent,
+            playIconTint = accent.trackControlInk(),
             leading = {
-                if (!dev.sfg.numa.mobile.local.isLocalPlaylistId(detail.id)) HeroActionButton(
+                if (!dev.sfg.numa.mobile.local.isLocalPlaylistId(detail.id)) HeroShuffleButton(
                     onClick = { onShuffle(detail.tracks, detail.title) },
-                    icon = Icons.Rounded.Shuffle,
-                    contentDescription = uiText("Shuffle", "Aleatorio"),
+                    active = playback.shuffle && (playback.currentTrack != null || playback.queue.isNotEmpty()),
                     enabled = detail.tracks.isNotEmpty() && shuffleAvailable,
                 )
             },
             trailing = {
-                // A playlist on this phone is already in the library; there is nothing to add.
-                if (!dev.sfg.numa.mobile.local.isLocalPlaylistId(detail.id)) {
+                if (isPlaylist) {
+                    PlaylistBestMixButton(bestMix, active = bestMixActive, hasTracks = detail.tracks.size > 1)
+                } else {
                     HeroActionButton(
                         onClick = { onSave(detail) },
                         icon = if (isSaved) Icons.Rounded.Check else Icons.Rounded.Add,
                         contentDescription = if (isSaved) uiText("Saved to library", "Guardado en la biblioteca") else uiText("Add to library", "Añadir a la biblioteca"),
-                        tint = if (isSaved) rose?.AccentInk ?: CanopyColors.Accent else rose?.Text ?: CanopyColors.Text,
+                        tint = if (isSaved) rose?.AccentInk ?: accent else rose?.Text ?: CanopyColors.Text,
                     )
                 }
             },
         )
 
-        if (detail.supportsBestMix(smartCrossfadeEnabled)) {
+        if (isPlaylist && bestMix.isSorting) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                bestMix.statusText,
+                modifier = Modifier.padding(horizontal = HeroGutter),
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        } else if (!isPlaylist && (bestMix.isSorting || detail.supportsBestMix(smartCrossfadeEnabled))) {
             Spacer(Modifier.height(12.dp))
-            BestMixButton(isSorting = bestMix.isSorting, statusText = bestMix.statusText, onClick = bestMix::trigger)
+            BestMixButton(isSorting = bestMix.isSorting, statusText = bestMix.statusText, onClick = { bestMix.trigger() })
         }
 
         if (isAlbum && detail.description.isNotBlank()) {

@@ -1,5 +1,6 @@
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -7,7 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Cast
 import androidx.compose.material.icons.rounded.CastConnected
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import dev.sfg.numa.mobile.ui.components.RoundedControlButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,8 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.ui.text.uiText
-import dev.sfg.numa.mobile.ui.theme.CanopyColors
-import dev.sfg.numa.mobile.ui.theme.LocalAccent
 import androidx.mediarouter.app.MediaRouteButton
 
 @Composable
@@ -36,10 +35,10 @@ internal fun PlayerCastButton() {
             routeButton = button
             supported = button.isEnabled
         }
-        IconButton(onClick = { routeButton?.showDialog() }, enabled = supported && routeButton != null, modifier = Modifier.fillMaxSize()) {
+        RoundedControlButton(onClick = { routeButton?.showDialog() }, enabled = supported && routeButton != null, modifier = Modifier.fillMaxSize()) {
             Icon(if (device == null) Icons.Rounded.Cast else Icons.Rounded.CastConnected,
                 contentDescription = label, modifier = Modifier.size(24.dp),
-                tint = if (!supported) androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant else if (device != null) LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
+                tint = if (!supported) androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant else if (device != null) playbackAccent() else androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
         }
     }
 }

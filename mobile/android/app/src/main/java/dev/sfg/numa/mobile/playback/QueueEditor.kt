@@ -110,6 +110,14 @@ object QueueEditor {
         return Result(updated, currentIndex)
     }
 
+    /** Continues after the current title and wraps to other unplayed titles at the end. */
+    fun <T> alphabeticalAfter(upcoming: List<T>, currentTitle: String, title: (T) -> String): List<T> {
+        val collator = java.text.Collator.getInstance().apply { strength = java.text.Collator.PRIMARY }
+        val sorted = upcoming.sortedWith { left, right -> collator.compare(title(left), title(right)) }
+        val first = sorted.indexOfFirst { collator.compare(title(it), currentTitle) >= 0 }
+        return if (first > 0) sorted.drop(first) + sorted.take(first) else sorted
+    }
+
     /**
      * Puts [upcoming] back into [order], for turning shuffle off. Ids not in [order] (queued or
      * autoplayed since) keep their relative order at the end; a queue replaced wholesale shares no

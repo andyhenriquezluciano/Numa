@@ -95,7 +95,9 @@ fun CollectionTopBar(
             onQueryChange = onSearchQueryChange,
             onClose = onCloseSearch,
             placeholder = searchPlaceholder,
-            modifier = modifier.background(Color.Black.copy(alpha = 0.55f)),
+            modifier = modifier.background(
+                dev.sfg.numa.mobile.ui.theme.currentRosePine()?.Base ?: Color.Black.copy(alpha = 0.55f)
+            ),
         )
         return
     }

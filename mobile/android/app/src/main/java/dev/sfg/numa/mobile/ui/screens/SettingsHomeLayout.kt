@@ -109,13 +109,13 @@ private fun SectionItemRow(
             verticalAlignment = Alignment.CenterVertically) {
             Text(title, Modifier.weight(1f).padding(end = 8.dp),
                 style = MaterialTheme.typography.titleMedium, color = SettingsStyle.Title)
-            IconButton(onClick = onMoveUp, enabled = !isFirst) {
+            IconButton(onClick = onMoveUp, enabled = !isFirst, shape = MaterialTheme.shapes.small) {
                 Box(Modifier.size(32.dp).desktopButtonSurface(), contentAlignment = Alignment.Center) {
                     Icon(Icons.Rounded.ArrowUpward, uiText("Move up", "Mover hacia arriba"),
                         Modifier.size(18.dp), tint = SettingsStyle.Title.copy(alpha = if (isFirst) 0.3f else 1f))
                 }
             }
-            IconButton(onClick = onMoveDown, enabled = !isLast) {
+            IconButton(onClick = onMoveDown, enabled = !isLast, shape = MaterialTheme.shapes.small) {
                 Box(Modifier.size(32.dp).desktopButtonSurface(), contentAlignment = Alignment.Center) {
                     Icon(Icons.Rounded.ArrowDownward, uiText("Move down", "Mover hacia abajo"),
                         Modifier.size(18.dp), tint = SettingsStyle.Title.copy(alpha = if (isLast) 0.3f else 1f))

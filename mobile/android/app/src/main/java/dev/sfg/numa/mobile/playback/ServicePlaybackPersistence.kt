@@ -13,7 +13,6 @@ internal class ServicePlaybackPersistence(
     private val handler: Handler,
     private val scope: CoroutineScope,
     private val source: () -> Player?,
-    private val order: () -> List<String>,
     private val store: () -> PlaybackStateStore,
 ) {
     private val generation = AtomicLong()
@@ -29,7 +28,7 @@ internal class ServicePlaybackPersistence(
     private fun capture(sync: Boolean) {
         val player = source() ?: return
         val version = generation.get()
-        val state = savedPlayback(player, order())
+        val state = savedPlayback(player)
         val write = {
             synchronized(writeLock) {
                 if (version == generation.get()) store().save(state)

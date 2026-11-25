@@ -34,8 +34,9 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.rounded.CreateNewFolder
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
-import androidx.compose.material.icons.rounded.Shuffle
+import dev.sfg.numa.mobile.ui.components.HeroShuffleButton
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -102,7 +103,13 @@ internal fun rememberLocalPlaylistEdit(
 
 /** Import actions aligned to opposite edges of the local playlist. */
 @Composable
-internal fun PlaylistEditBar(local: LocalPlaylistEdit, onShuffle: () -> Unit, shuffleEnabled: Boolean, modifier: Modifier = Modifier) {
+internal fun PlaylistEditBar(
+    local: LocalPlaylistEdit,
+    onShuffle: () -> Unit,
+    shuffleEnabled: Boolean,
+    shuffleActive: Boolean,
+    modifier: Modifier = Modifier,
+) {
     val graph = dev.sfg.numa.mobile.NumaGraph.from(androidx.compose.ui.platform.LocalContext.current)
     val progress by graph.automaticPlaylistLyrics.progress.collectAsState()
     androidx.compose.foundation.layout.Column(modifier) {
@@ -116,9 +123,7 @@ internal fun PlaylistEditBar(local: LocalPlaylistEdit, onShuffle: () -> Unit, sh
         dev.sfg.numa.mobile.ui.components.HeroActionButton(
             onClick = local.onAddSongs, icon = androidx.compose.material.icons.Icons.AutoMirrored.Rounded.PlaylistAdd,
             contentDescription = uiText("Add songs", "Añadir canciones"))
-        dev.sfg.numa.mobile.ui.components.HeroActionButton(onClick = onShuffle,
-            icon = androidx.compose.material.icons.Icons.Rounded.Shuffle,
-            contentDescription = uiText("Shuffle", "Aleatorio"), enabled = shuffleEnabled)
+        HeroShuffleButton(active = shuffleActive, enabled = shuffleEnabled, onClick = onShuffle)
         dev.sfg.numa.mobile.ui.components.HeroActionButton(
             onClick = local.onAddFolder, icon = androidx.compose.material.icons.Icons.Rounded.CreateNewFolder,
             contentDescription = uiText("Add folder", "Añadir carpeta"))
@@ -136,9 +141,9 @@ internal fun LocalPlaylistDialogs(title: String, local: LocalPlaylistEdit?, rena
             title = { Text(uiText("Rename playlist", "Cambiar nombre de la lista")) },
             text = { OutlinedTextField(value = name, onValueChange = { name = it.take(150) }, singleLine = true) },
             confirmButton = {
-                TextButton(enabled = name.isNotBlank(), onClick = { local.onRename(name); onRenameDismiss() }) { Text(uiText("Rename", "Cambiar nombre")) }
+                TextButton(enabled = name.isNotBlank(), onClick = { local.onRename(name); onRenameDismiss() }, shape = MaterialTheme.shapes.small) { Text(uiText("Rename", "Cambiar nombre")) }
             },
-            dismissButton = { TextButton(onClick = onRenameDismiss) { Text(uiText("Cancel", "Cancelar")) } },
+            dismissButton = { TextButton(onClick = onRenameDismiss, shape = MaterialTheme.shapes.small) { Text(uiText("Cancel", "Cancelar")) } },
         )
     }
     if (local != null && confirmingDelete) {

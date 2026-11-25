@@ -23,6 +23,21 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ArtworkUrlTest {
+    @Test
+    fun largerVideoFramesKeepTheOriginalAsFallback() {
+        val video = "https://i.ytimg.com/vi/J8NKwTYkDH8"
+        val original = "$video/hqdefault.jpg"
+        assertEquals(
+            listOf("$video/maxresdefault.jpg", "$video/sddefault.jpg", original, "$video/mqdefault.jpg"),
+            artworkCandidates(original, preferLargeVideoFrame = true),
+        )
+        assertEquals(original, artworkCandidates(original).first())
+        assertEquals(
+            listOf("file:///covers/cached.jpg"),
+            artworkCandidates("file:///covers/cached.jpg", preferLargeVideoFrame = true),
+        )
+    }
+
     @org.junit.Test fun unavailableLargeImagesKeepTheirOriginalAndYouTubeFallbacks() {
         val original = "https://i.ytimg.com/vi_webp/J8NKwTYkDH8/maxresdefault.webp"
         val candidates = artworkCandidates(original)

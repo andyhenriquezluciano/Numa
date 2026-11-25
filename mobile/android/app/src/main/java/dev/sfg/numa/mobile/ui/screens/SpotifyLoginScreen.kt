@@ -96,7 +96,7 @@ fun SpotifyLoginScreen(
         TopAppBar(
             title = { Text(uiText("Log in to Spotify", "Iniciar sesión en Spotify")) },
             navigationIcon = {
-                IconButton(onClick = onCancel) {
+                IconButton(onClick = onCancel, shape = MaterialTheme.shapes.small) {
                     Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = uiText("Back", "Volver"))
                 }
             },
@@ -163,7 +163,7 @@ fun SpotifyLoginScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        TextButton(onClick = { webView?.reload() }) {
+                        TextButton(onClick = { webView?.reload() }, shape = MaterialTheme.shapes.small) {
                             Text(uiText("Retry", "Reintentar"))
                         }
                     }

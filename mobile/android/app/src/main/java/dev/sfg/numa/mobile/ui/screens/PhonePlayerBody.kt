@@ -129,7 +129,6 @@ internal fun PhonePlayerBody(
     autoplayError: String,
     onAutoplayEnabled: ((Boolean) -> Unit)?,
     smartCrossfade: Boolean,
-    onBestMixUpcoming: ((onProgress: (String) -> Unit, onComplete: () -> Unit) -> Unit)?,
     /** Where the controls start over short motion art, in the body's px; they spread below it. */
     artworkSeam: Float? = null,
     /** Reports the px above the controls at their natural height, for the art to grow into. */
@@ -203,15 +202,12 @@ internal fun PhonePlayerBody(
                     onRemove = onRemoveQueueIndex,
                     onMove = onMoveQueueItem,
                     onClearUpcoming = onClearUpcoming,
-                    onShuffleUpcoming = onShuffle,
-                    onShuffle = onShuffle,
                     onRepeat = onRepeat,
                     autoplayEnabled = autoplayEnabled,
                     autoplayLoading = autoplayLoading,
                     autoplayError = autoplayError,
                     onAutoplayEnabled = onAutoplayEnabled,
                     smartCrossfade = smartCrossfade,
-                    onBestMixUpcoming = onBestMixUpcoming,
                     sleepTimerRemainingSeconds = sleepTimerRemainingSeconds,
                     sleepTimerEndOfTrack = sleepTimerEndOfTrack,
                     onSleepTimer = onSleepTimer,

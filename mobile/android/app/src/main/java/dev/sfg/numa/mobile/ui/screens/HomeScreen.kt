@@ -63,7 +63,7 @@ import dev.sfg.numa.mobile.model.NumaSettings
 import dev.sfg.numa.mobile.model.Playlist
 import dev.sfg.numa.mobile.model.Track
 import dev.sfg.numa.mobile.ui.components.CatalogSectionBottomSheet
-import dev.sfg.numa.mobile.ui.components.HomeSectionShimmer
+import dev.sfg.numa.mobile.ui.components.LoadingSkeleton
 import dev.sfg.numa.mobile.ui.components.MessagePanel
 import dev.sfg.numa.mobile.ui.components.NumaChromeHeight
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
@@ -111,7 +111,7 @@ fun HomeScreen(
     onPlayItem: ((CatalogItem) -> Unit)? = null,
     onPlayCollection: ((String, String) -> Unit)? = null,
 ) {
-    if (dev.sfg.numa.mobile.ui.foldable.isFoldableOrWideLayout()) {
+    if (dev.sfg.numa.mobile.ui.foldable.usesWideHomeLayout()) {
         dev.sfg.numa.mobile.ui.foldable.FoldableHomeScreen(
             settings = settings,
             state = state,
@@ -227,10 +227,12 @@ fun HomeScreen(
         )
     }
 
+    val bottomPadding = if (dev.sfg.numa.mobile.ui.foldable.isFoldableOrWideLayout())
+        dev.sfg.numa.mobile.ui.foldable.FoldableChromeHeight else NumaChromeHeight
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = NumaChromeHeight),
+            contentPadding = PaddingValues(bottom = bottomPadding),
         ) {
             // Masthead. Greets you, judges your 3am listening silently.
             item {
@@ -342,7 +344,7 @@ fun HomeScreen(
                                 }
                             }
                             LoadState.Loading -> {
-                                item { HomeSectionShimmer(uiText("Recommendations", "Recomendaciones")) }
+                                item { LoadingSkeleton(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) }
                             }
                             is LoadState.Error -> {
                                 item { HomeLoadFailure(auth, state.message, onSignIn, onRefresh) }
@@ -394,13 +396,7 @@ fun HomeScreen(
                             )
                         } else {
                             item {
-                                MessagePanel(
-                                    title = uiText("No downloaded music", "No hay música descargada"),
-                                    message =
-                                        uiText("You are currently offline. Connect to the internet to stream music, or download tracks to listen offline.", "No tienes conexión. Conéctate a Internet para reproducir música o descarga canciones para escucharlas sin conexión."),
-                                    actionLabel = uiText("Try reconnecting", "Intentar reconectar"),
-                                    onAction = onRefresh,
-                                )
+                                OfflineHomeEmpty(onRefresh)
                             }
                         }
                     }
@@ -408,6 +404,19 @@ fun HomeScreen(
             }
         }
     }
+}
+
+@Composable
+internal fun OfflineHomeEmpty(onRefresh: () -> Unit) {
+    MessagePanel(
+        title = uiText("No downloaded music", "No hay música descargada"),
+        message = uiText(
+            "You are currently offline. Connect to the internet to stream music, or download tracks to listen offline.",
+            "No tienes conexión. Conéctate a Internet para reproducir música o descarga canciones para escucharlas sin conexión.",
+        ),
+        actionLabel = uiText("Try reconnecting", "Intentar reconectar"),
+        onAction = onRefresh,
+    )
 }
 
 private inline fun <reified T : CatalogItem> extractItemsOfKind(

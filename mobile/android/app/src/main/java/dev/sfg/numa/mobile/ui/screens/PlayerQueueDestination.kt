@@ -1,11 +1,11 @@
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import dev.sfg.numa.mobile.ui.glass.GlassTone
 import dev.sfg.numa.mobile.ui.glass.glassPane
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import dev.sfg.numa.mobile.ui.components.RoundedControlButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,16 +24,16 @@ import dev.sfg.numa.mobile.ui.theme.currentRosePine
 internal fun PlayerQueueDestination(count: Int, active: Boolean, onClick: () -> Unit) {
     val rose = currentRosePine()
     Box(Modifier.size(48.dp)) {
-        IconButton(onClick, Modifier.matchParentSize()) {
+        RoundedControlButton(onClick, Modifier.matchParentSize()) {
             Icon(painterResource(R.drawable.ic_desktop_queue),
                 if (active) uiText("Hide queue", "Ocultar cola") else uiText("Queue", "Cola"),
                 Modifier.size(24.dp), tint = if (rose != null) {
                     if (active) rose.GoldInk else rose.SecondaryText
-                } else Color.White.copy(alpha = if (active) 1f else 0.75f))
+                } else if (active) playbackAccent() else Color.White.copy(alpha = 0.75f))
         }
         if (count > 0) {
             Box(Modifier.align(Alignment.TopEnd).defaultMinSize(minWidth = 22.dp, minHeight = 20.dp)
-                .glassPane(CircleShape, GlassTone.CONTROL).padding(horizontal = 4.dp),
+                .glassPane(MaterialTheme.shapes.extraSmall, GlassTone.CONTROL).padding(horizontal = 4.dp),
                 contentAlignment = Alignment.Center) {
                 Text(if (count > 99) "99+" else count.toString(), color = rose?.Text ?: MaterialTheme.colorScheme.onSurface,
                     fontSize = 9.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)

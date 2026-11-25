@@ -37,11 +37,12 @@ data class RestoredPlayback(
     val repeatMode: RepeatMode = RepeatMode.OFF,
     val contextTitle: String = "",
     val playWhenReady: Boolean = false,
-    /** Queue order from before shuffle was turned on, so the toggle stays reversible across a restart. */
+    /** Retained for queues saved before alphabetical restoration was introduced. */
     val unshuffledOrder: List<String> = emptyList(),
     /** Alternate source for the current item; blank means album audio. */
     val currentVideoId: String = "",
     val sourcePlaylistId: String = "",
+    val alphabeticalQueue: Boolean = false,
 )
 
 /** Versioned JSON boundary kept Android-free so restoration rules are unit-testable. */
@@ -57,6 +58,7 @@ internal object PlaybackStateCodec {
                 .getOrDefault(RepeatMode.OFF),
             contextTitle = root.optString("contextTitle"),
             sourcePlaylistId = root.optString("sourcePlaylistId"),
+            alphabeticalQueue = root.optBoolean("alphabeticalQueue"),
             unshuffledOrder = root.optJSONArray("unshuffledOrder")?.let { array ->
                 (0 until array.length()).mapNotNull { array.optString(it).takeIf(String::isNotBlank) }
             }.orEmpty(),
@@ -76,6 +78,7 @@ internal object PlaybackStateCodec {
         .put("repeatMode", state.repeatMode.name)
         .put("contextTitle", state.contextTitle)
         .put("sourcePlaylistId", state.sourcePlaylistId)
+        .put("alphabeticalQueue", state.alphabeticalQueue)
         .put("unshuffledOrder", org.json.JSONArray(state.unshuffledOrder))
         .put("currentVideoId", state.currentVideoId)
 }

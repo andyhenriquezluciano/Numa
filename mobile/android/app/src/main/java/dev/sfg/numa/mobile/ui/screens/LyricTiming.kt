@@ -47,16 +47,22 @@ internal sealed interface LyricDisplayItem {
 private const val LYRIC_PAUSE_MIN_MS = 7_000L
 private const val LYRIC_PAUSE_LINE_TAIL_ACCURATE_MS = 400L
 private const val LYRIC_PAUSE_LINE_TAIL_FALLBACK_MS = 2_400L
+private const val LYRIC_VISUAL_LEAD_MS = 90L
+
+/** Small lookahead for the visual highlight. Seeking still uses the provider's timestamps. */
+internal fun lyricVisualPositionMs(positionMs: Long, playing: Boolean): Long =
+    if (playing) positionMs + LYRIC_VISUAL_LEAD_MS else positionMs
 
 /** A provider's paragraph boundary can follow the first sung word. */
 internal fun lyricHighlightStartMs(line: LyricLine): Long? {
     val firstWord = line.words.minOfOrNull { it.startMs }
-    return listOfNotNull(line.startMs, firstWord).minOrNull()
+    val lineStart = line.startMs ?: return firstWord
+    return firstWord?.let { minOf(lineStart, it) } ?: lineStart
 }
 
 internal fun lyricPauseWindow(line: LyricLine, nextLine: LyricLine): Pair<Long, Long>? {
-    val lineStart = line.startMs ?: return null
-    val nextStart = nextLine.startMs ?: return null
+    val lineStart = lyricHighlightStartMs(line) ?: return null
+    val nextStart = lyricHighlightStartMs(nextLine) ?: return null
 
     val gapLength = nextStart - lineStart
     if (gapLength < LYRIC_PAUSE_MIN_MS) return null

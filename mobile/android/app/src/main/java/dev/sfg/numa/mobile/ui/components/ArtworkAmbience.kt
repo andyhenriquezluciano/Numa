@@ -29,7 +29,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import android.graphics.Color as AndroidColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import coil3.SingletonImageLoader
@@ -40,9 +39,9 @@ import dev.sfg.numa.mobile.artwork.highResolutionArtworkUrl
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 import androidx.compose.ui.graphics.lerp
 
@@ -165,7 +164,7 @@ private fun palette(bitmap: Bitmap, visibleAspect: Float): ArtworkPalette {
     val rawBottom = edgeAverage(bitmap, lastRow - band, lastRow, firstColumn, lastColumn)
     val top = rawTop.toneForBackdrop()
     val bottom = rawBottom.toneForBackdrop()
-    val accent = dominantAccent(bitmap)
+    val accent = dominantArtworkAccent(width, height) { x, y -> bitmap[x, y] }
     val deep = lerp(bottom, CanopyColors.Chrome, 0.40f)
     return ArtworkPalette(
         top = top,
@@ -205,53 +204,61 @@ private fun edgeAverage(bitmap: Bitmap, firstRow: Int, lastRow: Int, firstColumn
 
 private const val EDGE_BAND = 0.05f
 
-/**
- * The cover's dominant colourful hue.
- *
- * Picking the single most saturated pixel let a few square centimetres of skin tone outvote an
- * entire ocean, so hues are binned and weighted by how much of the cover they actually cover.
- * The winning bin is then averaged, which keeps the colour honest rather than extreme.
- */
-private fun dominantAccent(bitmap: Bitmap): Color {
-    val step = (bitmap.width / 40).coerceAtLeast(1)
+private const val HUE_BINS = 24
+private const val MIN_COLOR_COVERAGE = 0.12f
+
+/** Uses the same coverage threshold as desktop so tiny color details cannot tint a gray cover. */
+internal fun dominantArtworkAccent(width: Int, height: Int, pixelAt: (Int, Int) -> Int): Color {
+    val step = (min(width, height) / 40).coerceAtLeast(1)
     val weights = FloatArray(HUE_BINS)
     val reds = FloatArray(HUE_BINS)
     val greens = FloatArray(HUE_BINS)
     val blues = FloatArray(HUE_BINS)
-    val hsv = FloatArray(3)
-
-    var y = 0
-    while (y < bitmap.height) {
-        var x = 0
-        while (x < bitmap.width) {
-            val pixel = bitmap[x, y]
-            if (((pixel shr 24) and 0xFF) < 32) {
-                x += step
-                continue
+    var visibleWeight = 0f
+    var coloredWeight = 0f
+    for (y in 0 until height step step) {
+        for (x in 0 until width step step) {
+            val pixel = pixelAt(x, y)
+            val opacity = (pixel ushr 24) / 255f
+            if (opacity < MIN_COLOR_COVERAGE) continue
+            visibleWeight += opacity
+            val red = (pixel ushr 16) and 0xFF
+            val green = (pixel ushr 8) and 0xFF
+            val blue = pixel and 0xFF
+            val brightest = maxOf(red, green, blue)
+            val chroma = brightest - minOf(red, green, blue)
+            if (chroma < 28) continue
+            coloredWeight += opacity
+            val hueSector = when (brightest) {
+                red -> (green - blue).toFloat() / chroma
+                green -> 2f + (blue - red).toFloat() / chroma
+                else -> 4f + (red - green).toFloat() / chroma
             }
-            AndroidColor.colorToHSV(pixel, hsv)
-            val (hue, saturation, value) = Triple(hsv[0], hsv[1], hsv[2])
-            // Greys carry no hue to bin, and near-black or blown-out pixels report unstable ones.
-            if (saturation >= 0.18f && value in 0.12f..0.97f) {
-                val bin = ((hue / 360f) * HUE_BINS).toInt().coerceIn(0, HUE_BINS - 1)
-                val weight = saturation * (1f - abs(value - 0.62f))
-                weights[bin] += weight
-                reds[bin] += ((pixel shr 16) and 0xFF) / 255f * weight
-                greens[bin] += ((pixel shr 8) and 0xFF) / 255f * weight
-                blues[bin] += (pixel and 0xFF) / 255f * weight
-            }
-            x += step
+            val bin = (hueSector * (HUE_BINS / 6f)).roundToInt().mod(HUE_BINS)
+            val weight = opacity * (0.65f + 0.35f * chroma / 255f)
+            weights[bin] += weight
+            reds[bin] += red * weight
+            greens[bin] += green * weight
+            blues[bin] += blue * weight
         }
-        y += step
     }
 
-    val bin = weights.indices.maxByOrNull { weights[it] } ?: return CanopyColors.PlayerBackdrop
-    val total = weights[bin]
-    if (total <= 0f) return CanopyColors.PlayerBackdrop
-    return Color(reds[bin] / total, greens[bin] / total, blues[bin] / total)
-}
+    if (visibleWeight == 0f || coloredWeight < MIN_COLOR_COVERAGE * visibleWeight) {
+        return Color(0xFFB8B8B8)
+    }
 
-private const val HUE_BINS = 36
+    // Adjacent hue bins count together so a broad range of one color beats a small saturated detail.
+    fun neighborhood(values: FloatArray, index: Int): Float =
+        values[index] + 0.75f * (values[(index - 1).mod(HUE_BINS)] + values[(index + 1) % HUE_BINS])
+
+    val winner = weights.indices.maxBy { neighborhood(weights, it) }
+    val denominator = neighborhood(weights, winner) * 255f
+    return Color(
+        (neighborhood(reds, winner) / denominator).coerceIn(0f, 1f),
+        (neighborhood(greens, winner) / denominator).coerceIn(0f, 1f),
+        (neighborhood(blues, winner) / denominator).coerceIn(0f, 1f),
+    )
+}
 
 private fun Color.shade(factor: Float): Color = Color(red * factor, green * factor, blue * factor)
 

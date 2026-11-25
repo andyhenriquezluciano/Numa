@@ -59,7 +59,8 @@ import androidx.compose.material.icons.filled.StarOutline
 import androidx.compose.ui.res.painterResource
 import dev.sfg.numa.connect.R
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import dev.sfg.numa.mobile.ui.components.RoundedControlButton
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -81,7 +82,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.sfg.numa.mobile.model.PlaybackSnapshot
 import dev.sfg.numa.mobile.ui.components.TrackActionsPopup
-import dev.sfg.numa.mobile.ui.theme.CanopyColors
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 @Composable
@@ -114,7 +114,7 @@ fun AnimatedFavoriteButton(liked: Boolean, onLiked: () -> Unit, modifier: Modifi
             label = "HeartScale",
         )
 
-    IconButton(
+    RoundedControlButton(
         onClick = onLiked,
         modifier =
             modifier.size(48.dp).graphicsLayer {
@@ -125,7 +125,7 @@ fun AnimatedFavoriteButton(liked: Boolean, onLiked: () -> Unit, modifier: Modifi
         Icon(
             imageVector = if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
             contentDescription = if (liked) uiText("Remove from liked songs", "Quitar Me gusta") else uiText("Save to liked songs", "Marcar Me gusta"),
-            tint = if (liked) rose?.FavoriteInk ?: CanopyColors.Favorite else rose?.SecondaryText ?: Color.White.copy(alpha = 0.75f),
+            tint = if (liked) rose?.FavoriteInk ?: playbackAccent() else rose?.SecondaryText ?: Color.White.copy(alpha = 0.75f),
             modifier = Modifier.size(28.dp),
         )
     }
@@ -150,7 +150,7 @@ fun OverflowButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     val rose = currentRosePine()
     Surface(
         onClick = onClick,
-        shape = CircleShape,
+        shape = MaterialTheme.shapes.small,
         color = rose?.Overlay ?: Color.White.copy(alpha = 0.12f),
         modifier = modifier.size(36.dp),
     ) {
@@ -340,11 +340,11 @@ fun PlayerBottomDestinations(
         PlayerCastButton()
 
         // Lyrics Action Button
-        IconButton(onClick = onLyrics, modifier = Modifier.size(44.dp)) {
+        RoundedControlButton(onClick = onLyrics, modifier = Modifier.size(44.dp)) {
             Icon(
                 painter = painterResource(R.drawable.ic_desktop_lyrics),
                 contentDescription = if (lyricsActive) uiText("Hide lyrics", "Ocultar letras") else uiText("Lyrics", "Letras"),
-                tint = if (lyricsActive) rose?.CategoryInk ?: Color.White else rose?.SecondaryText ?: Color.White.copy(alpha = 0.75f),
+                tint = if (lyricsActive) rose?.CategoryInk ?: playbackAccent() else rose?.SecondaryText ?: Color.White.copy(alpha = 0.75f),
                 modifier = Modifier.size(24.dp),
             )
         }

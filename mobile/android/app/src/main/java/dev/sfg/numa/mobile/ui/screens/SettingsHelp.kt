@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -17,13 +18,13 @@ import dev.sfg.numa.mobile.ui.glass.GlassAlertDialog
 @Composable
 internal fun SettingsInfoButton(title: String, description: String) {
     var open by rememberSaveable(title) { mutableStateOf(false) }
-    IconButton(onClick = { open = true }, modifier = Modifier.size(40.dp)) {
+    IconButton(onClick = { open = true }, modifier = Modifier.size(40.dp), shape = MaterialTheme.shapes.small) {
         Icon(Icons.Outlined.Info, contentDescription = uiText("Information about $title", "Información sobre $title"),
             tint = SettingsStyle.Description, modifier = Modifier.size(17.dp))
     }
     if (open) GlassAlertDialog(onDismissRequest = { open = false },
         title = { Text(title) }, text = { Text(description) },
-        confirmButton = { TextButton(onClick = { open = false }) { Text(uiText("Got it", "Entendido")) } })
+        confirmButton = { TextButton(onClick = { open = false }, shape = MaterialTheme.shapes.small) { Text(uiText("Got it", "Entendido")) } })
 }
 
 internal fun settingsHelp(title: String): String? = when (canonicalSettingTitle(title)) {

@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.ast.ASTNode
@@ -312,7 +313,7 @@ internal fun categoryIcon(category: ReleaseNoteCategory): ImageVector = when (ca
 internal fun categoryColor(category: ReleaseNoteCategory): Color = when (category) {
     ReleaseNoteCategory.NEW -> LocalAccent.current
     ReleaseNoteCategory.FIXED -> Color(0xFF4ADE80)
-    ReleaseNoteCategory.CHANGED -> CanopyColors.SecondaryAccent
+    ReleaseNoteCategory.CHANGED -> currentRosePine()?.let { CanopyColors.SecondaryAccent } ?: LocalAccent.current
     ReleaseNoteCategory.SECURITY -> CanopyColors.Warning
     ReleaseNoteCategory.OTHER -> CanopyColors.Eyebrow
 }

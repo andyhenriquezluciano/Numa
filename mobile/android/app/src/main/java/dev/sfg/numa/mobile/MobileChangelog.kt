@@ -30,11 +30,19 @@ object MobileChangelog {
         get() = dev.sfg.numa.mobile.ui.text.uiText(
             """
             ### What's new
-            - **Home and Settings appearance.** See all buttons return to their previous glass finish. Settings dropdowns have less translucent surfaces that retain the artwork tint, and Settings buttons use 14 dp corners.
+            - Crystal matches controls and icons to the song's artwork.
+            - Best Mix is available from playlists. Turning off Best Mix or Shuffle restores alphabetical queue order.
+            - Lyrics follow vocals more closely.
+            - Loading placeholders match the playlist and lyrics layouts.
+            - Cover cropping has a larger preview and a grid.
             """.trimIndent(),
             """
             ### Novedades
-            - **Apariencia de Inicio y Ajustes.** «Ver todo» recupera su cristal anterior. Los desplegables de Ajustes conservan el tinte de la carátula con un fondo más opaco y los botones usan esquinas de 14 dp.
+            - Cristal adapta los controles y los iconos al color de la canción.
+            - Mejor mezcla se activa desde la lista. Al salir de ese modo o de Aleatorio, la cola vuelve al orden alfabético.
+            - Las letras siguen más de cerca la voz.
+            - Los esqueletos de carga coinciden con el diseño de las listas y las letras.
+            - Recortar carátulas es más fácil con una vista más grande y una cuadrícula.
             """.trimIndent(),
         )
 }

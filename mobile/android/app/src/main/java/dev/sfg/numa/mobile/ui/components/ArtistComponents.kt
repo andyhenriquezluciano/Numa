@@ -39,13 +39,11 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.GraphicEq
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
@@ -59,21 +57,22 @@ import androidx.compose.ui.unit.sp
 import dev.sfg.numa.mobile.model.BrowseDetail
 import dev.sfg.numa.mobile.model.Track
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
-import dev.sfg.numa.mobile.ui.theme.legibleOnDarkChrome
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
+import dev.sfg.numa.mobile.ui.theme.trackControlInk
 
 /** Artist hero: faded portrait, drop-cap name, shuffle / play / follow, listener chip, About. */
 @Composable
 fun ArtistHero(
     detail: BrowseDetail,
-    palette: ArtworkPalette,
     onPlayAll: (List<Track>, String) -> Unit,
     onShuffle: (List<Track>, String) -> Unit,
     shuffleAvailable: Boolean,
+    shuffleActive: Boolean,
     onSave: (BrowseDetail) -> Unit,
     isSaved: Boolean,
 ) {
     val rose = currentRosePine()
-    val nameAccent = remember(palette.accent) { palette.accent.legibleOnDarkChrome() }
+    val accent = playbackAccent()
     val name = detail.title.trim()
     DetailHeroFrame(artworkUrl = detail.artworkUrl, description = name) {
         Text(
@@ -90,7 +89,7 @@ fun ArtistHero(
                 lineHeight = 52.sp,
                 letterSpacing = (-1).sp,
             ),
-            color = rose?.AccentInk ?: nameAccent,
+            color = rose?.AccentInk ?: accent,
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -100,14 +99,13 @@ fun ArtistHero(
         HeroPlayRow(
             onPlay = { onPlayAll(detail.tracks, detail.title) },
             playEnabled = detail.tracks.isNotEmpty(),
-            playFill = dev.sfg.numa.mobile.ui.theme.LocalAccent.current,
-            playIconTint = palette.deep,
+            playFill = accent,
+            playIconTint = accent.trackControlInk(),
             sideDrop = 8.dp,
             leading = {
-                HeroActionButton(
+                HeroShuffleButton(
                     onClick = { onShuffle(detail.tracks, detail.title) },
-                    icon = Icons.Rounded.Shuffle,
-                    contentDescription = uiText("Shuffle", "Aleatorio"),
+                    active = shuffleActive,
                     enabled = detail.tracks.isNotEmpty() && shuffleAvailable,
                 )
             },
@@ -116,7 +114,7 @@ fun ArtistHero(
                     onClick = { onSave(detail) },
                     icon = if (isSaved) Icons.Filled.Favorite else Icons.Rounded.FavoriteBorder,
                     contentDescription = if (isSaved) uiText("Unfollow artist", "Dejar de seguir al artista") else uiText("Follow artist", "Seguir artista"),
-                    tint = if (isSaved) rose?.FavoriteInk ?: dev.sfg.numa.mobile.ui.theme.LocalAccent.current else rose?.SecondaryText ?: androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                    tint = if (isSaved) rose?.FavoriteInk ?: dev.sfg.numa.mobile.ui.theme.playbackAccent() else rose?.SecondaryText ?: androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                 )
             },
         )
@@ -134,7 +132,7 @@ fun ArtistHero(
 
 @Composable
 fun DetailBackButton(onBack: () -> Unit, modifier: Modifier = Modifier) {
-    IconButton(onClick = onBack, modifier = modifier.padding(start = 8.dp, top = 8.dp)) {
+    IconButton(onClick = onBack, modifier = modifier.padding(start = 8.dp, top = 8.dp), shape = MaterialTheme.shapes.small) {
         Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = uiText("Back", "Volver"), tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
     }
 }

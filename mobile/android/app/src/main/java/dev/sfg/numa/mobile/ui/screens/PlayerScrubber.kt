@@ -19,6 +19,7 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 
@@ -104,6 +105,7 @@ fun PlayerScrubber(
 ) {
     val clock = LocalPlayerClock.current
     val rose = currentRosePine()
+    val accent = playbackAccent()
     val trackId = playback.currentTrack?.id
     val marker = transition?.takeIf {
         it.trackId.isNotBlank() && it.trackId == trackId && it.startMs > 0 && it.startMs < playback.durationMs
@@ -216,7 +218,7 @@ fun PlayerScrubber(
                         thumbPx = thumbRadius.value.toPx(),
                         rainbow = rainbow,
                         glow = glow,
-                        fillColor = rose?.Rose ?: Color.White,
+                        fillColor = accent,
                         trackColor = rose?.HighlightMed ?: TrackIdle,
                     )
                 },

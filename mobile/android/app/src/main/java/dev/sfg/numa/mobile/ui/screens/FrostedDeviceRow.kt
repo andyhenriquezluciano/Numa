@@ -114,7 +114,7 @@ internal fun FrostedDeviceRow(
                             Modifier.size(7.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (isOnline) CanopyColors.Accent else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
+                                    if (isOnline) LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                     )
                     Spacer(Modifier.width(6.dp))
@@ -139,7 +139,7 @@ internal fun FrostedDeviceRow(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 if (onRename != null) {
-                    IconButton(onClick = onRename, modifier = Modifier.size(34.dp)) {
+                    IconButton(onClick = onRename, modifier = Modifier.size(34.dp), shape = MaterialTheme.shapes.small) {
                         Icon(
                             Icons.Rounded.Edit,
                             contentDescription = uiText("Rename", "Cambiar nombre"),
@@ -150,7 +150,7 @@ internal fun FrostedDeviceRow(
                 }
 
                 if (onRemove != null) {
-                    IconButton(onClick = onRemove, modifier = Modifier.size(34.dp)) {
+                    IconButton(onClick = onRemove, modifier = Modifier.size(34.dp), shape = MaterialTheme.shapes.small) {
                         Icon(
                             Icons.Rounded.DeleteOutline,
                             contentDescription = uiText("Forget device", "Olvidar dispositivo"),

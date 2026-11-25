@@ -20,6 +20,8 @@
 package dev.sfg.numa.mobile.ui.foldable
 
 import dev.sfg.numa.mobile.ui.glass.glassPane
+import dev.sfg.numa.mobile.ui.glass.crystalSearchSurface
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 import dev.sfg.numa.mobile.ui.text.uiText
 
@@ -183,12 +185,14 @@ internal fun FoldableFullBleedHero(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         // Frosted Search Pill
+                        val roseSearch = currentRosePine() != null
                         Surface(
                             onClick = onSearch,
-                            color = Color.Black.copy(alpha = 0.40f),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)),
-                            shape = CircleShape,
-                            modifier = Modifier.width(220.dp).height(40.dp),
+                            color = if (roseSearch) Color.Black.copy(alpha = 0.40f) else Color.Transparent,
+                            border = if (roseSearch) BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)) else null,
+                            shape = MaterialTheme.shapes.small,
+                            modifier = Modifier.width(220.dp).height(40.dp)
+                                .crystalSearchSurface { this },
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp),
@@ -214,7 +218,7 @@ internal fun FoldableFullBleedHero(
                         // User Avatar
                         Surface(
                             onClick = onProfile,
-                            shape = CircleShape,
+                            shape = MaterialTheme.shapes.small,
                             color = Color.Black.copy(alpha = 0.40f),
                             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.22f)),
                             modifier = Modifier.size(40.dp),
@@ -247,7 +251,7 @@ internal fun FoldableFullBleedHero(
                         val isSelected = selectedCategory == category
                         Surface(
                             onClick = { onSelectCategory(category) },
-                            shape = CircleShape,
+                            shape = MaterialTheme.shapes.small,
                             color =
                                 if (isSelected) Color.White else Color.Black.copy(alpha = 0.40f),
                             border =
@@ -344,7 +348,7 @@ internal fun FoldableFullBleedHero(
                     ) {
                         Surface(
                             onClick = { onPlay(currentItem) },
-                            shape = CircleShape,
+                            shape = MaterialTheme.shapes.small,
                             color = Color.White,
                             shadowElevation = 6.dp,
                             modifier = Modifier.height(42.dp),
@@ -375,7 +379,7 @@ internal fun FoldableFullBleedHero(
                         // Secondary Details Button
                         Surface(
                             onClick = { onClick(currentItem) },
-                            shape = CircleShape,
+                            shape = MaterialTheme.shapes.small,
                             color = Color.Black.copy(alpha = 0.40f),
                             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
                             modifier = Modifier.height(42.dp),

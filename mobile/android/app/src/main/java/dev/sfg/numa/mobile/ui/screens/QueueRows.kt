@@ -32,13 +32,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.ClearAll
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,8 +55,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.sfg.numa.mobile.model.BestMixJob
-import dev.sfg.numa.mobile.model.LocalBestMixJob
 import dev.sfg.numa.mobile.model.Track
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import dev.sfg.numa.mobile.ui.motion.pressScale
@@ -86,48 +81,8 @@ internal fun QueueSectionHeader(title: String, trailing: (@Composable () -> Unit
 }
 
 @Composable
-internal fun QueueShuffleButton(onShuffleUpcoming: () -> Unit, active: Boolean = false) {
-    val rose = currentRosePine()
-    IconButton(onClick = onShuffleUpcoming, modifier = Modifier.size(36.dp)) {
-        Icon(
-            Icons.Rounded.Shuffle,
-            if (active) uiText("Restore queue order", "Restaurar el orden de la cola")
-                else uiText("Shuffle upcoming queue", "Mezclar las canciones pendientes"),
-            tint = if (active) rose?.AccentInk ?: dev.sfg.numa.mobile.ui.theme.LocalAccent.current
-                else rose?.SecondaryText ?: Color.White.copy(alpha = 0.75f),
-            modifier = Modifier.size(20.dp),
-        )
-    }
-}
-
-/** Reorders what is up next for the smoothest mixes; spins while the planner works. */
-@Composable
-internal fun QueueBestMixButton(
-    onBestMixUpcoming: (onProgress: (String) -> Unit, onComplete: () -> Unit) -> Unit,
-) {
-    val job = LocalBestMixJob.current
-    val sorting = job?.key == BestMixJob.QUEUE_KEY
-    IconButton(
-        onClick = { if (sorting) job?.cancel?.invoke() else onBestMixUpcoming({}, {}) },
-        enabled = job == null || sorting,
-        modifier = Modifier.size(36.dp),
-    ) {
-        if (sorting) {
-            Icon(Icons.Rounded.Close, "Cancelar Mejor mezcla", modifier = Modifier.size(20.dp))
-        } else {
-            Icon(
-                Icons.Rounded.AutoAwesome,
-                uiText("Order upcoming for the best mix", "Ordenar las próximas canciones para una mejor mezcla"),
-                tint = currentRosePine()?.SecondaryText ?: Color.White.copy(alpha = 0.75f),
-                modifier = Modifier.size(20.dp),
-            )
-        }
-    }
-}
-
-@Composable
 internal fun QueueClearButton(onClearUpcoming: () -> Unit) {
-    IconButton(onClick = onClearUpcoming, modifier = Modifier.size(36.dp)) {
+    IconButton(onClick = onClearUpcoming, modifier = Modifier.size(36.dp), shape = MaterialTheme.shapes.small) {
         Icon(
             Icons.Rounded.ClearAll,
             uiText("Clear upcoming queue", "Vaciar las canciones pendientes"),
@@ -241,7 +196,7 @@ private fun QueueRowButton(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(34.dp)) {
+    IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(34.dp), shape = MaterialTheme.shapes.small) {
         Icon(
             icon,
             description,

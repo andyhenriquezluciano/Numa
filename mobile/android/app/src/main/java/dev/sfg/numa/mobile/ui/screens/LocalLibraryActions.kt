@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -31,7 +32,7 @@ internal fun LocalLibraryActions(
         if (pendingPlaylist.isNotBlank()) repository.importUris(uris, pendingPlaylist)
     }
     IconButton(onClick = { creating = true }, enabled = !busy,
-        modifier = Modifier.padding(end = 12.dp).size(48.dp)) {
+        modifier = Modifier.padding(end = 12.dp).size(48.dp), shape = MaterialTheme.shapes.small) {
         Icon(Icons.Rounded.Add, uiText("New playlist", "Nueva lista"), tint = SettingsStyle.Title,
             modifier = Modifier.size(23.dp))
     }

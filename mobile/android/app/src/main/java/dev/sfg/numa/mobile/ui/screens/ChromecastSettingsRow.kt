@@ -241,7 +241,7 @@ internal fun ChromecastConnectRow(modifier: Modifier = Modifier) {
                             Modifier.size(7.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (isConnected) CanopyColors.Accent else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
+                                    if (isConnected) LocalAccent.current else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                     )
                     Spacer(Modifier.width(6.dp))

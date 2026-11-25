@@ -23,7 +23,9 @@ import dev.sfg.numa.mobile.ui.text.uiText
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Album
@@ -45,6 +47,8 @@ import dev.sfg.numa.mobile.local.toPlaylist
 import dev.sfg.numa.mobile.local.toTrack
 import dev.sfg.numa.mobile.model.Track
 import dev.sfg.numa.mobile.ui.components.NumaChromeHeight
+import dev.sfg.numa.mobile.ui.components.LoadingSkeleton
+import dev.sfg.numa.mobile.ui.components.SkeletonLayout
 import dev.sfg.numa.mobile.ui.components.filterCatalogItems
 import dev.sfg.numa.mobile.ui.components.filterTracks
 import dev.sfg.numa.mobile.ui.components.normalizeSearchText
@@ -73,6 +77,7 @@ fun LibraryScreen(
     localBusy: Boolean = false,
     youtubeAvailable: Boolean = false,
     onCreateYouTubePlaylist: (String) -> Unit = {},
+    loading: Boolean = false,
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var metricsPeriod by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(dev.sfg.numa.mobile.model.MetricsPeriod.ALL) }
@@ -80,6 +85,13 @@ fun LibraryScreen(
         mutableStateOf(emptyList<String>())
     }
     val searching = searchQuery.isNotBlank()
+    val waitingForContent = loading && when (filter) {
+        LibraryFilter.PLAYLISTS -> localSnapshot.playlists.isEmpty() && library.savedPlaylists.isEmpty()
+        LibraryFilter.ARTISTS -> library.savedArtists.isEmpty()
+        LibraryFilter.ALBUMS -> library.savedAlbums.isEmpty()
+        LibraryFilter.SONGS -> library.likedTracks.isEmpty()
+        else -> false
+    }
     val browse = { onOpenDetail(NEW_RELEASES_ID) }
     androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
     val columns = ((maxWidth.value - 16) / 180).toInt().coerceIn(2, 6)
@@ -104,7 +116,15 @@ fun LibraryScreen(
                 androidx.compose.foundation.layout.Spacer(Modifier.height(18.dp))
             }
         }
-        when (filter) {
+        if (waitingForContent) {
+            item {
+                if (filter == LibraryFilter.SONGS) {
+                    LoadingSkeleton(Modifier.fillMaxWidth(), layout = SkeletonLayout.Tracks)
+                } else {
+                    LoadingSkeleton(Modifier.fillMaxWidth().padding(horizontal = 16.dp))
+                }
+            }
+        } else when (filter) {
             LibraryFilter.METRICS -> listeningMetrics(library, searchQuery, onPlay, metricsPeriod, { metricsPeriod = it }, onOpenDetail,
                 expandedMetrics, { section ->
                     expandedMetrics = if (section in expandedMetrics) expandedMetrics - section else expandedMetrics + section

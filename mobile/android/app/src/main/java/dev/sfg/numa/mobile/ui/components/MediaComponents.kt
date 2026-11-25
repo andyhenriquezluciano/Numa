@@ -73,6 +73,9 @@ import androidx.compose.ui.draw.scale
 import dev.sfg.numa.mobile.ui.glass.glassPane
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
+import dev.sfg.numa.mobile.ui.theme.trackControlInk
 
 @Composable
 fun SectionHeader(title: String, action: String? = null, onAction: (() -> Unit)? = null) {
@@ -107,9 +110,9 @@ fun NumaSectionHeader(
             Surface(
                 onClick = onAction,
                 color = Color.Transparent,
-                shape = CircleShape,
+                shape = MaterialTheme.shapes.small,
                 interactionSource = source,
-                modifier = Modifier.height(32.dp).pressScale(source, 0.9f).glassPane(CircleShape, GlassTone.CONTROL),
+                modifier = Modifier.height(32.dp).pressScale(source, 0.9f).glassPane(MaterialTheme.shapes.small, GlassTone.CONTROL),
             ) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 12.dp)) {
                     Text(
@@ -170,15 +173,18 @@ fun CatalogCard(item: CatalogItem, onClick: () -> Unit, modifier: Modifier = Mod
                 ExplicitBadge()
             }
         }
-        Text(
-            catalogSubtitle(item),
-            style = MaterialTheme.typography.bodyMedium,
-            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = if (isArtist) TextAlign.Center else TextAlign.Start,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        val subtitle = catalogSubtitle(item)
+        if (subtitle.isNotBlank()) {
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = if (isArtist) TextAlign.Center else TextAlign.Start,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }
 
@@ -290,6 +296,9 @@ fun <T> NumaFilterChips(
     onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val selectedFill = playbackAccent()
+    val selectedText = currentRosePine()?.OnRose ?: selectedFill.trackControlInk()
+    val shape = MaterialTheme.shapes.small
     LazyRow(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
@@ -299,11 +308,11 @@ fun <T> NumaFilterChips(
             val option = options[index]
             val isSelected = option == selected
             val containerColor by animateColorAsState(
-                if (isSelected) LocalAccent.current else Color.Transparent,
+                if (isSelected) selectedFill else Color.Transparent,
                 label = "ChipBg"
             )
             val textColor by animateColorAsState(
-                if (isSelected) Color.Black else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                if (isSelected) selectedText else MaterialTheme.colorScheme.onSurface,
                 label = "ChipText"
             )
             // Selected chip swells a touch so the choice lands with some weight.
@@ -316,7 +325,7 @@ fun <T> NumaFilterChips(
 
             Surface(
                 onClick = { onSelect(option) },
-                shape = CircleShape,
+                shape = shape,
                 color = containerColor,
                 interactionSource = source,
                 // The selected chip is a solid accent fill, which is what makes it selected.
@@ -327,7 +336,7 @@ fun <T> NumaFilterChips(
                     .height(34.dp)
                     .then(
                         if (isSelected) Modifier
-                        else Modifier.glassPane(CircleShape, GlassTone.CONTROL),
+                        else Modifier.glassPane(shape, GlassTone.CONTROL),
                     ),
             ) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 16.dp)) {

@@ -60,6 +60,7 @@ import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.Fullscreen
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -87,7 +88,7 @@ import coil3.compose.AsyncImage
 import dev.sfg.numa.mobile.app.MusicVideoState
 import dev.sfg.numa.mobile.model.PlaybackSnapshot
 import dev.sfg.numa.mobile.model.Track
-import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 import kotlinx.coroutines.delay
 
@@ -182,14 +183,14 @@ private fun MusicVideoPortrait(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                IconButton(onClick = actions.onMinimize) {
+                IconButton(onClick = actions.onMinimize, shape = MaterialTheme.shapes.small) {
                     Icon(Icons.Rounded.ExpandMore, uiText("Minimize player", "Minimizar reproductor"), tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
                 }
             }
             Box(Modifier.fillMaxWidth().height(pictureHeight).background(Color.Black)) {
                 MusicVideoSurface(player, Modifier.fillMaxSize(), onAspectRatio = { pictureAspect = it })
                 VideoQualityButton(musicVideo, actions.onQuality, Modifier.align(Alignment.BottomStart).padding(12.dp))
-                IconButton(onClick = onFullscreen, modifier = Modifier.align(Alignment.BottomEnd)) {
+                IconButton(onClick = onFullscreen, modifier = Modifier.align(Alignment.BottomEnd), shape = MaterialTheme.shapes.small) {
                     Box(
                         Modifier.size(32.dp).background(Color.Black.copy(alpha = 0.5f), CircleShape),
                         contentAlignment = Alignment.Center,
@@ -222,11 +223,11 @@ private fun MusicVideoPortrait(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                IconButton(onClick = actions.onLiked) {
+                IconButton(onClick = actions.onLiked, shape = MaterialTheme.shapes.small) {
                     Icon(
                         if (liked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                         if (liked) uiText("Unlike", "Quitar Me gusta") else uiText("Like", "Me gusta"),
-                        tint = if (liked) rose?.FavoriteInk ?: CanopyColors.Favorite else rose?.SecondaryText ?: androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                        tint = if (liked) rose?.FavoriteInk ?: playbackAccent() else rose?.SecondaryText ?: androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }

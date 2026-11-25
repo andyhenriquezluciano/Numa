@@ -26,12 +26,14 @@ import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.ColorUtils
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -161,9 +163,18 @@ private val NumaTypography = Typography(
 )
 
 /**
- * NÜMA's fixed purple accent, shared by controls and surfaces.
+ * Accent shared by controls and surfaces. The app provides the current song's accent in Cristal.
  */
-val LocalAccent = staticCompositionLocalOf { CanopyColors.Accent }
+val LocalAccent = compositionLocalOf { CanopyColors.Accent }
+internal val LocalTrackAccent = compositionLocalOf { CanopyColors.Accent }
+
+@Composable
+internal fun playbackAccent(): Color = currentRosePine()?.Rose ?: LocalTrackAccent.current
+
+internal fun Color.asTrackAccent(): Color = legibleOnDarkChrome(neutral = Color(0xFFE0DEE4))
+
+internal fun Color.trackControlInk(): Color = if (luminance() >= 0.179f) Color.Black else Color.White
+
 val LocalGlassTheme = staticCompositionLocalOf { dev.sfg.numa.mobile.model.GlassTheme.CRISTAL }
 val LocalGlassBorders = staticCompositionLocalOf { dev.sfg.numa.mobile.model.GlassBorders.PREDETERMINADO }
 
@@ -216,10 +227,10 @@ fun NumaTheme(
  * washed out against Numa's near-black chrome, so saturation and lightness are held to a range
  * that stays readable.
  */
-fun Color.legibleOnDarkChrome(): Color {
+fun Color.legibleOnDarkChrome(neutral: Color = CanopyColors.Accent): Color {
     val hsl = FloatArray(3)
     ColorUtils.colorToHSL(toArgb(), hsl)
-    if (hsl[1] < 0.10f) return CanopyColors.Accent
+    if (hsl[1] < 0.10f) return neutral
     hsl[1] = hsl[1].coerceIn(0.45f, 0.95f)
     hsl[2] = hsl[2].coerceIn(0.58f, 0.78f)
     return Color(ColorUtils.HSLToColor(hsl))

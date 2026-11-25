@@ -23,13 +23,19 @@ private val widthHeight = Regex("=w\\d+-h\\d+([^?]*)$")
 private val squareSize = Regex("=s\\d+([^?]*)$")
 private val templateWidthHeight = Regex("\\{w\\}x\\{h\\}")
 private val dimensionSuffix = Regex("\\d+x\\d+([a-z]{2}\\.)")
+private val youtubeThumbnail = Regex("^https://(?:i\\.ytimg\\.com|img\\.youtube\\.com)/(?:vi|vi_webp)/([A-Za-z0-9_-]{11})/")
+private val smallYoutubeFrame = Regex("/(?:default|mqdefault|hqdefault)\\.(?:jpg|webp)$")
 
-internal fun artworkCandidates(url: String, pixels: Int = 540): List<String> = buildList {
+internal fun artworkCandidates(url: String, pixels: Int = 540, preferLargeVideoFrame: Boolean = false): List<String> = buildList {
     if (url.isBlank()) return@buildList
+    val videoId = youtubeThumbnail.find(url)?.groupValues?.get(1)
+    if (preferLargeVideoFrame && videoId != null && smallYoutubeFrame.containsMatchIn(url)) {
+        add("https://i.ytimg.com/vi/$videoId/maxresdefault.jpg")
+        add("https://i.ytimg.com/vi/$videoId/sddefault.jpg")
+    }
     add(highResolutionArtworkUrl(url, pixels))
     add(url)
-    val youtube = Regex("^https://(?:i\\.ytimg\\.com|img\\.youtube\\.com)/(?:vi|vi_webp)/([A-Za-z0-9_-]{11})/").find(url)
-    youtube?.groupValues?.get(1)?.let { id ->
+    videoId?.let { id ->
         add("https://i.ytimg.com/vi/$id/hqdefault.jpg")
         add("https://i.ytimg.com/vi/$id/mqdefault.jpg")
     }

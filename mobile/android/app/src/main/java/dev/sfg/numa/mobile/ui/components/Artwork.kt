@@ -104,10 +104,13 @@ fun RemoteArtwork(
     alignment: Alignment = Alignment.Center,
     fallbackUrl: String = "",
     recoverySources: List<suspend () -> List<String>> = emptyList(),
+    decodePixels: Int? = null,
+    preferLargeVideoFrame: Boolean = false,
 ) {
     val context = LocalContext.current
-    val initialCandidates = remember(url, fallbackUrl) {
-        (artworkCandidates(url) + artworkCandidates(fallbackUrl)).distinct()
+    val initialCandidates = remember(url, fallbackUrl, preferLargeVideoFrame) {
+        (artworkCandidates(url, preferLargeVideoFrame = preferLargeVideoFrame) +
+            artworkCandidates(fallbackUrl, preferLargeVideoFrame = preferLargeVideoFrame)).distinct()
     }
     var candidates by remember(initialCandidates, recoverySources) { mutableStateOf(initialCandidates) }
     var attempt by remember(initialCandidates, recoverySources) { mutableStateOf(0) }
@@ -130,7 +133,7 @@ fun RemoteArtwork(
     Box(modifier.background(NumaColors.Bark), contentAlignment = Alignment.Center) {
         if (source != null) {
             AsyncImage(
-                model = artworkRequest(context, source),
+                model = remember(context, source, decodePixels) { artworkRequest(context, source, decodePixels) },
                 contentDescription = description,
                 contentScale = contentScale,
                 alignment = alignment,
@@ -143,8 +146,9 @@ fun RemoteArtwork(
     }
 }
 
-private fun artworkRequest(context: android.content.Context, url: String): ImageRequest = ImageRequest.Builder(context)
+private fun artworkRequest(context: android.content.Context, url: String, decodePixels: Int? = null): ImageRequest = ImageRequest.Builder(context)
     .data(url)
+    .apply { if (decodePixels != null) size(decodePixels, decodePixels) }
     .crossfade(150)
     .build()
 

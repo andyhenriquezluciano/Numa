@@ -24,7 +24,9 @@ import dev.sfg.numa.mobile.ui.text.uiText
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import dev.sfg.numa.mobile.ui.scroll.NumaLazyColumn as LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -49,7 +51,7 @@ import dev.sfg.numa.mobile.model.LoadState
 import dev.sfg.numa.mobile.model.NumaSettings
 import dev.sfg.numa.mobile.model.Track
 import dev.sfg.numa.mobile.ui.components.CatalogSectionBottomSheet
-import dev.sfg.numa.mobile.ui.components.HomeSectionShimmer
+import dev.sfg.numa.mobile.ui.components.LoadingSkeleton
 import dev.sfg.numa.mobile.ui.screens.homeItemKey
 
 data class FoldableSheetState(
@@ -181,7 +183,7 @@ fun FoldableHomeScreen(
         contentPadding = PaddingValues(bottom = FoldableChromeHeight),
     ) {
         // Full Bleed Hero Banner
-        if (featuredHeroItems.isNotEmpty()) {
+        if (!effectiveOffline && featuredHeroItems.isNotEmpty()) {
             item {
                 FoldableFullBleedHero(
                     items = featuredHeroItems,
@@ -225,8 +227,8 @@ fun FoldableHomeScreen(
             item { dev.sfg.numa.mobile.ui.screens.HomeLoadFailure(auth, state.message, onSignIn, onRefresh) }
         }
         // Loading shimmer state
-        if (state is LoadState.Loading) {
-            item { HomeSectionShimmer(title = "Loading...") }
+        if (!effectiveOffline && state is LoadState.Loading) {
+            item { LoadingSkeleton(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) }
         }
 
         // Content Sections filtered dynamically by selected category
@@ -347,10 +349,13 @@ fun FoldableHomeScreen(
                 }
 
                 BuiltInHomeSection.DOWNLOADED_SONGS -> {
+                    if (!effectiveOffline) return@forEach
                     if (selectedCategory !in listOf(uiText("All", "Todo"), uiText("Songs", "Canciones"))) return@forEach
                     if (downloadedTracks.isNotEmpty()) {
                         val downloadedSongItems = downloadedTracks.map { CatalogItem.Song(it) }
                         foldableRail(uiText("Downloaded Songs", "Canciones descargadas"), downloadedSongItems, seeAll(uiText("Downloaded Songs", "Canciones descargadas"), downloadedSongItems), openCatalogItem)
+                    } else {
+                        item { dev.sfg.numa.mobile.ui.screens.OfflineHomeEmpty(onRefresh) }
                     }
                 }
             }

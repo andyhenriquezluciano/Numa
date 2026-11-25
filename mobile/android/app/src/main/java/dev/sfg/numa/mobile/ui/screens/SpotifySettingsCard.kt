@@ -111,12 +111,12 @@ fun SpotifySettingsCard(
                     val extracted = SpotifyCanvasRepository.extractSpdc(input)
                     onSettings(settings.copy(spotifySpdc = extracted))
                     showSpdcDialog = false
-                }) {
+                }, shape = MaterialTheme.shapes.small) {
                     Text(uiText("Save", "Guardar"), color = LocalAccent.current)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showSpdcDialog = false }) {
+                TextButton(onClick = { showSpdcDialog = false }, shape = MaterialTheme.shapes.small) {
                     Text(uiText("Cancel", "Cancelar"), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },

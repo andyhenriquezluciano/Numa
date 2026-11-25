@@ -161,6 +161,19 @@ class QueueEditorTest {
     }
 
     @Test
+    fun alphabeticalQueueContinuesAtCurrentTitleAndWrapsWithoutDroppingPendingSongs() {
+        val pending = listOf("Zafiro", "Álbum", "Noche", "Olas", "banana")
+        assertEquals(
+            listOf("Noche", "Olas", "Zafiro", "Álbum", "banana"),
+            QueueEditor.alphabeticalAfter(pending, "Música") { it },
+        )
+        assertEquals(
+            listOf("Álbum", "banana", "Noche", "Olas", "Zafiro"),
+            QueueEditor.alphabeticalAfter(pending, "ZZZ") { it },
+        )
+    }
+
+    @Test
     fun restoreOrderKeepsItemsAddedWhileShuffledAtTheEnd() {
         val e = Track("e", "E", "Artist")
         val f = Track("f", "F", "Artist")

@@ -29,6 +29,7 @@ import dev.sfg.numa.mobile.model.PlaybackSnapshot
 import dev.sfg.numa.mobile.model.PlaybackTarget
 import dev.sfg.numa.mobile.model.PlaybackTargetState
 import dev.sfg.numa.mobile.model.Track
+import dev.sfg.numa.mobile.model.isBestMixTitle
 import dev.sfg.numa.mobile.playback.LocalPlaybackController
 import dev.sfg.numa.mobile.playback.QueueEditor
 import dev.sfg.numa.mobile.playback.smart.BestMixSorter
@@ -64,6 +65,17 @@ internal class QueueLauncher(
     val bestMixJob: StateFlow<BestMixJob?> = bestMixJobState
 
     private var queueRevision = 0L
+
+    fun cancelBestMix() {
+        bestMixJobState.value?.cancel?.invoke()
+    }
+
+    fun restoreAlphabeticalOrder() {
+        if (blockPlayback()) return
+        queueRevision++
+        cancelBestMix()
+        local.restoreAlphabeticalOrder()
+    }
     private suspend fun beginBestMix(key: String): Boolean {
         val task = kotlinx.coroutines.currentCoroutineContext()[kotlinx.coroutines.Job]
         return bestMixJobState.compareAndSet(null,
@@ -90,7 +102,7 @@ internal class QueueLauncher(
         Log.d(TAG, "playAll: ${tracks.size} tracks, startIndex=$startIndex, contextTitle='$contextTitle'")
         if (tracks.isEmpty() || blockPlayback()) return
         val revision = ++queueRevision
-        bestMixJobState.value?.cancel?.invoke()
+        cancelBestMix()
         val safeIndex = startIndex.coerceIn(tracks.indices)
         val order = dev.sfg.numa.mobile.model.effectivePlaybackOrder(graph.settings.settings.value.playbackOrder, shuffle)
         val source = contextTitle.takeIf { it.isMeaningfulPlaybackSource() }
@@ -113,8 +125,9 @@ internal class QueueLauncher(
             val queue = edited.tracks
 
             graph.automaticPlaylistCovers.rememberSource(playlistId, tracks)
+            local.setShuffle(false)
             local.replaceQueue(queue, edited.currentIndex, contextTitle = source, playlistId = playlistId)
-            local.setShuffle(order == dev.sfg.numa.mobile.model.PlaybackOrder.SHUFFLE)
+            if (order == dev.sfg.numa.mobile.model.PlaybackOrder.SHUFFLE) local.setShuffle(true)
         }
     }
 
@@ -180,8 +193,8 @@ internal class QueueLauncher(
             val first = playable.first()
             val rest = playable.drop(1)
             graph.automaticPlaylistCovers.rememberSource(playlistId, playable)
-            local.replaceQueue(playable, contextTitle = bestMixTitle, playlistId = playlistId)
             local.setShuffle(false)
+            local.replaceQueue(playable, contextTitle = title, playlistId = playlistId)
             val started = kotlinx.coroutines.withTimeoutOrNull(10_000) {
                 playback.first { snapshot -> snapshot.currentTrack?.id == first.id &&
                     snapshot.queue.map(Track::id) == playable.map(Track::id) }
@@ -213,9 +226,10 @@ internal class QueueLauncher(
     fun bestMixUpcoming(
         onProgress: (String) -> Unit = {},
         onComplete: () -> Unit = {},
+        jobKey: String = BestMixJob.QUEUE_KEY,
     ) = pendingScope.launch {
         if (blockPlayback()) { onComplete(); return@launch }
-        if (!beginBestMix(BestMixJob.QUEUE_KEY)) return@launch
+        if (!beginBestMix(jobKey)) return@launch
         val revision = queueRevision
         try {
             val currentSnapshot = playback.value
@@ -237,10 +251,10 @@ internal class QueueLauncher(
             val baseTitle = currentSnapshot.contextTitle.ifBlank { currentTrack?.album.orEmpty() }
             val newTitle = when {
                 baseTitle.isBlank() -> "Best Mix"
-                baseTitle.endsWith("• Best Mix", ignoreCase = true) -> baseTitle
+                baseTitle.isBestMixTitle() -> baseTitle
                 else -> "$baseTitle • Best Mix"
             }
-            local.setShuffle(false)
+            if (currentSnapshot.shuffle) local.setShuffle(false)
             local.replaceUpcoming(reconciled, contextTitle = newTitle)
         } catch (cancelled: CancellationException) {
             throw cancelled

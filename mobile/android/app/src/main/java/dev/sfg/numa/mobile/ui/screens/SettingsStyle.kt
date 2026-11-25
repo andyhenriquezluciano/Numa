@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
+import dev.sfg.numa.mobile.ui.theme.trackControlInk
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
@@ -28,7 +30,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SliderColors
@@ -56,7 +57,7 @@ internal object SettingsStyle {
     val TileBorder: Color
         @Composable get() = if (LocalGlass.current.borders == GlassBorders.LIMPIO || currentRosePine() != null) Color.Transparent else Color(0x10FFFFFF)
     val TileIcon: Color
-        @Composable get() = currentRosePine()?.AccentInk ?: dev.sfg.numa.mobile.ui.theme.CanopyColors.Accent
+        @Composable get() = currentRosePine()?.AccentInk ?: playbackAccent()
     val Title: Color
         @Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
     val Description: Color
@@ -66,13 +67,13 @@ internal object SettingsStyle {
     val Chevron: Color
         @Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
 
-    /** Text and control accent; lighter than the switch fill so it holds up on the warped cover. */
+    /** Accent shared by text, icons and controls. */
     val Sage: Color
-        @Composable get() = currentRosePine()?.AccentInk ?: Color(0xFFBEA5E8)
+        @Composable get() = TileIcon
     val SageSoft: Color
-        @Composable get() = currentRosePine()?.AccentInk ?: Color(0xFFE8DFFF)
+        @Composable get() = TileIcon
     val SwitchOn: Color
-        @Composable get() = currentRosePine()?.Rose ?: dev.sfg.numa.mobile.ui.theme.CanopyColors.Accent
+        @Composable get() = playbackAccent()
     val SwitchOff: Color
         @Composable get() = currentRosePine()?.Highlight ?: Color(0x2CFFFFFF)
     val ThumbOff = Color(0xFFE4E9E6)
@@ -86,7 +87,7 @@ internal object SettingsStyle {
 }
 
 /**
- * 40x24 pill switch. With a null [onCheckedChange] it is display-only, for rows that toggle on
+ * 40x24 rounded switch. With a null [onCheckedChange] it is display-only, for rows that toggle on
  * tap of the whole row.
  */
 @Composable
@@ -107,21 +108,22 @@ internal fun SettingsSwitch(
         label = "SwitchTrack",
     )
     val rose = currentRosePine()
-    val thumb = if (checked) rose?.OnRose ?: Color.White else rose?.Text ?: SettingsStyle.ThumbOff
+    val thumb = if (checked) rose?.OnRose ?: track.trackControlInk() else rose?.Text ?: SettingsStyle.ThumbOff
     val hit = if (onCheckedChange != null) {
         // Touch slop around the 24dp visual, since 24dp alone is a tap lottery.
         Modifier.minimumInteractiveComponentSize()
+            .clip(SettingsStyle.PanelShape)
             .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange)
     } else {
         Modifier
     }
     Box(modifier.then(hit).alpha(if (enabled) 1f else 0.45f), contentAlignment = androidx.compose.ui.Alignment.Center) {
-        Box(Modifier.size(40.dp, 24.dp).clip(CircleShape).background(track)) {
+        Box(Modifier.size(40.dp, 24.dp).clip(RoundedCornerShape(8.dp)).background(track)) {
             Box(
                 Modifier
                     .offset(x = thumbX, y = 3.dp)
                     .size(18.dp)
-                    .clip(CircleShape)
+                    .clip(RoundedCornerShape(5.dp))
                     .background(thumb),
             )
         }

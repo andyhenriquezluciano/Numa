@@ -30,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,14 +53,14 @@ internal fun ArtworkSourceOrder(settings: NumaSettings, onSettings: (NumaSetting
                         val reordered = settings.artworkSourceOrder.toMutableList()
                         java.util.Collections.swap(reordered, index, index - 1)
                         onSettings(settings.copy(artworkSourceOrder = reordered))
-                    }, enabled = index > 0) {
+                    }, enabled = index > 0, shape = MaterialTheme.shapes.small) {
                         Icon(Icons.Rounded.ArrowUpward, contentDescription = "Move ${source.label} up")
                     }
                     IconButton(onClick = {
                         val reordered = settings.artworkSourceOrder.toMutableList()
                         java.util.Collections.swap(reordered, index, index + 1)
                         onSettings(settings.copy(artworkSourceOrder = reordered))
-                    }, enabled = index < settings.artworkSourceOrder.lastIndex) {
+                    }, enabled = index < settings.artworkSourceOrder.lastIndex, shape = MaterialTheme.shapes.small) {
                         Icon(Icons.Rounded.ArrowDownward, contentDescription = "Move ${source.label} down")
                     }
                 }

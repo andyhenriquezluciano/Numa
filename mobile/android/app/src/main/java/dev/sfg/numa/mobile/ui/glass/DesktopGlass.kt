@@ -15,6 +15,11 @@ object DesktopGlass {
     val ModalScrim = Color(0x66000000)
     val ButtonBorder = Color(0x30FFFFFF)
     val ButtonFill = Color(0x0FFFFFFF)
+    val TransportButtonFill = Color.White.copy(alpha = 0.14f)
+    val PickerFieldFill = Color(0x10FFFFFF)
+    val PickerSelectedFill = Color(0x20FFFFFF)
+    val PickerPopupBase = Color(0xFF25292D)
+    const val PickerPopupOpacity = 0.48f
     val PressedFill = Color(0x2CFFFFFF)
     val Text = Color(0xFFF0EEE7)
 }

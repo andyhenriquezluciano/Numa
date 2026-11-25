@@ -129,6 +129,7 @@ class NumaViewModel(application: Application) : AndroidViewModel(application) {
     val detailArtwork: StateFlow<TrackArtwork?> = details.artwork
     val artistImages: StateFlow<ArtistImages?> = details.artistImages
     val library: StateFlow<LibrarySnapshot> = graph.library.library
+    val libraryLoading = graph.library.loading
     /** Songs and playlists kept on this phone, and the one place that edits them. */
     val localLibrary = graph.localLibrary
     val localSnapshot: StateFlow<dev.sfg.numa.mobile.local.LocalSnapshot> = graph.localLibrary.library
@@ -326,8 +327,9 @@ class NumaViewModel(application: Application) : AndroidViewModel(application) {
     val bestMixJob: StateFlow<dev.sfg.numa.mobile.model.BestMixJob?> get() = launcher.bestMixJob
     fun playBestMix(tracks: List<Track>, title: String, onProgress: (String) -> Unit = {}, onComplete: () -> Unit = {}, playlistId: String = "") =
         launcher.playBestMix(tracks, title, onProgress, onComplete, playlistId)
-    fun bestMixUpcoming(onProgress: (String) -> Unit = {}, onComplete: () -> Unit = {}) =
-        launcher.bestMixUpcoming(onProgress, onComplete)
+    fun bestMixUpcomingForCollection(title: String, onProgress: (String) -> Unit = {}, onComplete: () -> Unit = {}) =
+        launcher.bestMixUpcoming(onProgress, onComplete, jobKey = BestMixJob.collectionKey(title))
+    fun restoreAlphabeticalQueue() = launcher.restoreAlphabeticalOrder()
     fun playCollection(id: String, contextTitle: String = "", shuffle: Boolean = false) =
         launcher.playCollection(id, contextTitle, shuffle)
     fun playItem(item: CatalogItem, shuffle: Boolean = false) = launcher.playItem(item, shuffle)
@@ -337,6 +339,12 @@ class NumaViewModel(application: Application) : AndroidViewModel(application) {
     fun playNext(track: Track) = transport.playNext(track)
     fun addToQueue(track: Track) = transport.addToQueue(track)
     fun togglePlayback() = transport.togglePlayback()
+    fun toggleCollectionPlayback(title: String) {
+        if (playback.value.needsBestMixOnResume(graph.settings.settings.value.playbackOrder)) {
+            bestMixUpcomingForCollection(title)
+        }
+        transport.togglePlayback()
+    }
     fun toggleMusicVideo() = transport.toggleMusicVideo()
     fun setVideoMaxHeight(height: Int) = transport.setVideoMaxHeight(height)
     fun playMusicVideo(track: Track, contextTitle: String = "") {
@@ -346,7 +354,10 @@ class NumaViewModel(application: Application) : AndroidViewModel(application) {
     fun next() = transport.next()
     fun previous() = transport.previous()
     fun seek(positionMs: Long) = transport.seek(positionMs)
-    fun toggleShuffle() = transport.toggleShuffle()
+    fun toggleShuffle() {
+        launcher.cancelBestMix()
+        transport.toggleShuffle()
+    }
     fun cycleRepeat() = transport.cycleRepeat()
     fun playQueueIndex(index: Int) = transport.playQueueIndex(index)
     fun removeQueueIndex(index: Int) = transport.removeQueueIndex(index)

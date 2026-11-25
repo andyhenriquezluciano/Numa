@@ -21,7 +21,6 @@ package dev.sfg.numa.mobile.ui.components
 
 import dev.sfg.numa.mobile.ui.text.uiText
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -32,8 +31,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -62,8 +59,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.sfg.numa.mobile.model.CatalogItem
 import dev.sfg.numa.mobile.model.Track
-import dev.sfg.numa.mobile.ui.theme.CanopyColors
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
+import dev.sfg.numa.mobile.ui.glass.crystalSearchSurface
 import java.text.Normalizer
 
 /**
@@ -143,6 +141,9 @@ fun CollectionTopSearchBar(
 ) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    val rose = currentRosePine()
+    val textColor = rose?.Text ?: Color.White
+    val mutedColor = rose?.SecondaryText ?: Color.White.copy(alpha = 0.65f)
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -159,15 +160,15 @@ fun CollectionTopSearchBar(
         // Back / Dismiss button
         Surface(
             onClick = onClose,
-            shape = CircleShape,
-            color = Color.White.copy(alpha = 0.16f),
+            shape = MaterialTheme.shapes.small,
+            color = rose?.Overlay ?: Color.White.copy(alpha = 0.16f),
             modifier = Modifier.size(38.dp),
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = uiText("Exit search", "Salir de la búsqueda"),
-                    tint = Color.White,
+                    tint = textColor,
                     modifier = Modifier.size(20.dp),
                 )
             }
@@ -175,11 +176,12 @@ fun CollectionTopSearchBar(
 
         // Frosted Search input container
         Surface(
-            shape = RoundedCornerShape(22.dp),
-            color = Color.White.copy(alpha = 0.14f),
+            shape = if (rose == null) MaterialTheme.shapes.small else MaterialTheme.shapes.medium,
+            color = rose?.Surface ?: Color.Transparent,
             modifier = Modifier
                 .weight(1f)
-                .height(42.dp),
+                .height(42.dp)
+                .crystalSearchSurface { this },
         ) {
             Row(
                 modifier = Modifier
@@ -190,7 +192,7 @@ fun CollectionTopSearchBar(
                 Icon(
                     Icons.Rounded.Search,
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.65f),
+                    tint = mutedColor,
                     modifier = Modifier.size(18.dp),
                 )
                 Spacer(Modifier.width(8.dp))
@@ -205,7 +207,7 @@ fun CollectionTopSearchBar(
                             style = TextStyle(
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Normal,
-                                color = Color.White.copy(alpha = 0.50f),
+                                color = mutedColor,
                             ),
                             maxLines = 1,
                         )
@@ -220,7 +222,7 @@ fun CollectionTopSearchBar(
                         textStyle = TextStyle(
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color.White,
+                            color = textColor,
                         ),
                         cursorBrush = SolidColor(LocalAccent.current),
                         singleLine = true,
@@ -232,15 +234,15 @@ fun CollectionTopSearchBar(
                 if (query.isNotEmpty()) {
                     Surface(
                         onClick = { onQueryChange("") },
-                        shape = CircleShape,
-                        color = Color.White.copy(alpha = 0.20f),
+                        shape = MaterialTheme.shapes.extraSmall,
+                        color = rose?.Overlay ?: Color.White.copy(alpha = 0.20f),
                         modifier = Modifier.size(24.dp),
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 Icons.Rounded.Close,
                                 contentDescription = uiText("Clear search", "Borrar búsqueda"),
-                                tint = Color.White,
+                                tint = textColor,
                                 modifier = Modifier.size(14.dp),
                             )
                         }

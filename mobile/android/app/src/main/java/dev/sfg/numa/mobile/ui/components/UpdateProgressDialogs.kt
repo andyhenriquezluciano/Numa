@@ -157,7 +157,7 @@ internal fun UpdateProgressDialog(version: String, installing: Boolean, onHide: 
 
                 TextButton(
                     onClick = onHide,
-                    shape = CircleShape,
+                    shape = MaterialTheme.shapes.small,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(44.dp),
@@ -233,7 +233,7 @@ internal fun UpdateFailedDialog(state: UpdateState.Failed, onDismiss: () -> Unit
 
                 Button(
                     onClick = onDismiss,
-                    shape = CircleShape,
+                    shape = MaterialTheme.shapes.small,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = LocalAccent.current,
                         contentColor = Color.Black,
@@ -312,7 +312,7 @@ internal fun UpdateConfirmationDialog(state: UpdateState.ConfirmInstall, onDismi
                                 android.widget.Toast.LENGTH_SHORT).show()
                         }
                     },
-                    shape = CircleShape,
+                    shape = MaterialTheme.shapes.small,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = LocalAccent.current,
                         contentColor = Color.Black,

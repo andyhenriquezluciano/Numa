@@ -1,5 +1,6 @@
 package dev.sfg.numa.mobile.ui.components
 
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -28,11 +29,12 @@ internal fun ThinGlassSlider(
     compact: Boolean = false,
     onValueChangeFinished: (() -> Unit)? = null,
     followTheme: Boolean = false,
+    accent: Color = playbackAccent(),
 ) {
     val rose = if (followTheme) currentRosePine() else null
     val rail = 4.dp
     val railColor = rose?.HighlightMed ?: Color.White.copy(alpha = if (enabled) 0.24f else 0.12f)
-    val progressColor = (rose?.Rose ?: Color.White).copy(alpha = if (enabled) 1f else 0.4f)
+    val progressColor = accent.copy(alpha = if (enabled) 1f else 0.4f)
     val layout = if (compact) modifier.height(24.dp) else modifier
     Slider(
         value = value, onValueChange = onValueChange, valueRange = valueRange, steps = steps, enabled = enabled,

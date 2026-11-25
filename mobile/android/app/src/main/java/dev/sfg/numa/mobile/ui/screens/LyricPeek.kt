@@ -71,10 +71,15 @@ internal fun LyricPeek(
     val synced = remember(lines) { lines.any { it.startMs != null } }
     if (!synced) return
     val clock = LocalPlayerClock.current
-    val text by remember(lines) {
+    val playing by remember(clock) { derivedStateOf { clock.playing } }
+    val tick = dev.sfg.numa.mobile.ui.components.rememberPlayheadTick(playing, 32L)
+    val lineStarts = remember(lines) { lines.map(::lyricHighlightStartMs) }
+    val text by remember(lines, clock, tick) {
         derivedStateOf {
-            val position = clock.reported().positionMs
-            val line = lines.lastOrNull { it.startMs != null && it.startMs <= position }
+            tick.value
+            val position = lyricVisualPositionMs(clock.projected().positionMs, clock.playing)
+            val index = lineStarts.indexOfLast { start -> start != null && start <= position }
+            val line = lines.getOrNull(index)
             val lapsed = line?.endMs?.let { position > it + INSTRUMENTAL_GRACE_MS } ?: false
             line?.text?.takeIf { it.isNotBlank() && !lapsed } ?: INSTRUMENTAL
         }
@@ -93,8 +98,8 @@ internal fun LyricPeek(
         AnimatedContent(
             targetState = text,
             transitionSpec = {
-                (fadeIn(tween(260)) + slideInVertically(tween(260)) { it / 2 })
-                    .togetherWith(fadeOut(tween(180)) + slideOutVertically(tween(180)) { -it / 2 })
+                (fadeIn(tween(100), initialAlpha = 0.75f) + slideInVertically(tween(130)) { it / 4 })
+                    .togetherWith(fadeOut(tween(100)) + slideOutVertically(tween(130)) { -it / 4 })
             },
             label = "LyricPeekLine",
         ) { line ->

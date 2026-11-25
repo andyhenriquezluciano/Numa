@@ -231,6 +231,7 @@ internal fun TopResultRow(item: CatalogItem, onOpen: () -> Unit, onPlay: () -> U
             IconButton(
                 onClick = onPlay,
                 modifier = Modifier.size(44.dp).clip(shape).background(SettingsStyle.SwitchOn),
+                shape = MaterialTheme.shapes.small,
             ) {
                 Icon(
                     Icons.Rounded.PlayArrow,
@@ -306,7 +307,7 @@ internal fun HistoryRow(value: String, onPick: () -> Unit, onRemove: () -> Unit)
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        IconButton(onClick = onRemove, modifier = Modifier.size(48.dp)) {
+        IconButton(onClick = onRemove, modifier = Modifier.size(48.dp), shape = MaterialTheme.shapes.small) {
             Icon(Icons.Rounded.Close, uiText("Remove search", "Eliminar búsqueda"), tint = SettingsStyle.Chevron, modifier = Modifier.size(16.dp))
         }
     }

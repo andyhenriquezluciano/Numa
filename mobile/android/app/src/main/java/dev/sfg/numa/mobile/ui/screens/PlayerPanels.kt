@@ -38,7 +38,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -51,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -61,6 +61,8 @@ import dev.sfg.numa.mobile.model.PlaybackTargetState
 import dev.sfg.numa.mobile.model.Track
 import dev.sfg.numa.mobile.model.TransitionMarker
 import dev.sfg.numa.mobile.ui.components.ArtworkTile
+import dev.sfg.numa.mobile.ui.components.LoadingSkeleton
+import dev.sfg.numa.mobile.ui.components.SkeletonLayout
 import dev.sfg.numa.mobile.ui.components.NonMusicSkipPill
 import dev.sfg.numa.mobile.ui.components.TrackActionsPopup
 
@@ -157,20 +159,25 @@ fun LyricsNotice(
     message: String,
     isLoading: Boolean = false,
     icon: ImageVector? = null,
+    loadingHorizontalPadding: Dp = 24.dp,
 ) {
+    if (isLoading) {
+        val lineHeight = lyricTextStyle().lineHeight
+        LoadingSkeleton(
+            modifier = Modifier.fillMaxSize().padding(horizontal = loadingHorizontalPadding),
+            layout = SkeletonLayout.Lyrics,
+            message = lyricNoticeMessage(message),
+            lyricLineHeight = with(LocalDensity.current) { lineHeight.toDp() },
+        )
+        return
+    }
     val rose = currentRosePine()
     Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(28.dp),
-                    color = rose?.AccentInk ?: Color.White.copy(alpha = 0.70f),
-                    strokeWidth = 2.5.dp,
-                )
-            } else if (icon != null) {
+            if (icon != null) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,

@@ -86,9 +86,10 @@ import dev.sfg.numa.mobile.model.SearchResults
 import dev.sfg.numa.mobile.model.Track
 import dev.sfg.numa.mobile.ui.components.HomeBackdrop
 import dev.sfg.numa.mobile.ui.components.TrackRow
-import dev.sfg.numa.mobile.ui.components.TrackRowShimmer
+import dev.sfg.numa.mobile.ui.components.LoadingSkeleton
 import dev.sfg.numa.mobile.ui.glass.GlassTone
 import dev.sfg.numa.mobile.ui.glass.glassPane
+import dev.sfg.numa.mobile.ui.glass.crystalSearchSurface
 import dev.sfg.numa.mobile.ui.scroll.NumaLazyColumn as LazyColumn
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
@@ -190,8 +191,7 @@ private fun SearchBar(query: String, actions: SearchActions, focus: FocusRequest
             Modifier
                 .weight(1f)
                 .height(52.dp)
-                .clip(shape)
-                .glassPane(shape, GlassTone.CONTROL, borderless = true)
+                .crystalSearchSurface { clip(shape).glassPane(shape, GlassTone.CONTROL, borderless = true) }
                 .padding(start = 16.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -213,7 +213,7 @@ private fun SearchBar(query: String, actions: SearchActions, focus: FocusRequest
                 )
             }
             if (query.isNotEmpty()) {
-                IconButton(onClick = { actions.onQueryChange("") }, modifier = Modifier.size(44.dp)) {
+                IconButton(onClick = { actions.onQueryChange("") }, modifier = Modifier.size(44.dp), shape = MaterialTheme.shapes.small) {
                     Icon(Icons.Rounded.Close, uiText("Clear search", "Borrar búsqueda"), tint = SettingsStyle.Chevron, modifier = Modifier.size(16.dp))
                 }
             }
@@ -248,7 +248,7 @@ private fun SearchPanel(
         LazyColumn(contentPadding = PaddingValues(bottom = 6.dp)) {
             when (state) {
                 LoadState.Idle -> idle(history, actions)
-                LoadState.Loading -> items(4) { TrackRowShimmer() }
+                LoadState.Loading -> item { LoadingSkeleton(Modifier.fillMaxWidth().padding(12.dp)) }
                 is LoadState.Content -> results(state.value, query, scope, { scope = it }, downloadedTrackIds, downloadingTrackIds, actions)
                 is LoadState.Empty -> item {
                     PanelMessage(Icons.Rounded.SearchOff, state.message, uiText("Check the spelling, or try an artist or album name.", "Revisa la escritura o prueba con el nombre de un artista o álbum."))

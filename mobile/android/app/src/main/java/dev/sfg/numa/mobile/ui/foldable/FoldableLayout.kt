@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 
 /** Breakpoint in dp where phones transition to foldable (unfolded) or tablet UI. */
 const val FOLDABLE_MIN_WIDTH_DP = 600
+private const val WIDE_HOME_MIN_HEIGHT_DP = 480
 
 /** Width reserved for the vertical navigation rail on foldable and tablet screens. */
 val FoldableNavRailWidth: Dp = 80.dp
@@ -39,6 +40,16 @@ val FoldableChromeHeight: Dp = 84.dp
 fun isFoldableOrWideLayout(): Boolean {
     val width = LocalWindowInfo.current.containerSize.width
     return with(LocalDensity.current) { width.toDp() >= FOLDABLE_MIN_WIDTH_DP.dp }
+}
+
+/** A wide but short phone still needs the compact Home feed, even with the navigation rail. */
+@Composable
+internal fun usesWideHomeLayout(): Boolean {
+    val container = LocalWindowInfo.current.containerSize
+    return with(LocalDensity.current) {
+        container.width.toDp() >= FOLDABLE_MIN_WIDTH_DP.dp &&
+            container.height.toDp() >= WIDE_HOME_MIN_HEIGHT_DP.dp
+    }
 }
 
 /** Returns whether the underlying physical hardware is a book-style foldable device (excludes clamshell/flip phones). */

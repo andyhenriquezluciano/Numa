@@ -169,7 +169,7 @@ fun NativeLoginScreen(
         TopAppBar(
             title = { Text(if (switchingAccount) uiText("Choose a YouTube account", "Elige una cuenta de YouTube") else uiText("Sign in to YouTube Music", "Iniciar sesión en YouTube Music")) },
             navigationIcon = {
-                IconButton(onClick = ::close) {
+                IconButton(onClick = ::close, shape = MaterialTheme.shapes.small) {
                     Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = uiText("Back", "Volver"))
                 }
             },
@@ -273,6 +273,7 @@ fun NativeLoginScreen(
                                 onBegin()
                                 webView?.reload()
                             },
+                            shape = MaterialTheme.shapes.small,
                         ) { Text(if (switchingAccount) uiText("Retry account switch", "Reintentar cambio de cuenta") else uiText("Reload sign-in", "Recargar inicio de sesión")) }
                     }
                 }

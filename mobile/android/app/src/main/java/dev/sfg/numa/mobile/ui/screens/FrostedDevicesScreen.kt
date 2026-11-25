@@ -209,7 +209,7 @@ private fun FrostedActiveDeviceHeroCard(
                         )
                         if (onRename != null) {
                             Spacer(Modifier.width(6.dp))
-                            IconButton(onClick = onRename, modifier = Modifier.size(28.dp)) {
+                            IconButton(onClick = onRename, modifier = Modifier.size(28.dp), shape = MaterialTheme.shapes.small) {
                                 Icon(
                                     Icons.Rounded.Edit,
                                     contentDescription = "Rename ${device.displayName}",

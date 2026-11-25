@@ -26,4 +26,15 @@ class LyricHighlightTimingTest {
         assertEquals(0.5f, lyricWordProgress(word, 1_250f), 0.001f)
         assertEquals(1f, lyricWordProgress(word, 1_500f), 0f)
     }
+
+    @Test fun visualLookaheadCompensatesDuringPlaybackOnly() {
+        assertEquals(1_000L, lyricVisualPositionMs(910L, playing = true))
+        assertEquals(910L, lyricVisualPositionMs(910L, playing = false))
+    }
+
+    @Test fun instrumentalPauseEndsAtFirstSungWord() {
+        val line = LyricLine("Previous", startMs = 1_000, endMs = 1_500)
+        val next = LyricLine("Next", startMs = 9_250, words = listOf(LyricWord("Next", 9_000, 9_500)))
+        assertEquals(1_900L to 9_000L, lyricPauseWindow(line, next))
+    }
 }

@@ -120,7 +120,6 @@ fun FoldableNowPlayingBody(
     autoplayError: String = "",
     onAutoplayEnabled: ((Boolean) -> Unit)? = null,
     smartCrossfade: Boolean = false,
-    onBestMixUpcoming: ((onProgress: (String) -> Unit, onComplete: () -> Unit) -> Unit)? = null,
 ) {
     Column(Modifier.fillMaxSize().systemBarsPadding()) {
         PlayerTopHandle(onDismiss = onBack, modifier = modifier)
@@ -225,7 +224,6 @@ fun FoldableNowPlayingBody(
                     autoplayError = autoplayError,
                     onAutoplayEnabled = onAutoplayEnabled,
                     smartCrossfade = smartCrossfade,
-                    onBestMixUpcoming = onBestMixUpcoming,
                 )
             }
         }

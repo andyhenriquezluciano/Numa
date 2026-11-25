@@ -149,7 +149,7 @@ private fun HeaderAction(
         modifier = Modifier
             .size(48.dp)
 
-            .bounceClickable(CircleShape, 0.85f, onClickLabel = description, onClick = onClick),
+            .bounceClickable(androidx.compose.material3.MaterialTheme.shapes.small, 0.85f, onClickLabel = description, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) { content() }
 }

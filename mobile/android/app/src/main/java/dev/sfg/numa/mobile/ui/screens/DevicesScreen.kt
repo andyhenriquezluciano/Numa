@@ -204,7 +204,7 @@ fun RenameDeviceDialog(device: PlaybackDevice, onDismiss: () -> Unit, onConfirm:
                         ),
                     trailingIcon = {
                         if (nameInput.isNotBlank()) {
-                            IconButton(onClick = { nameInput = "" }) {
+                            IconButton(onClick = { nameInput = "" }, shape = MaterialTheme.shapes.small) {
                                 Icon(
                                     Icons.Rounded.Close,
                                     contentDescription = uiText("Clear", "Borrar"),
@@ -223,7 +223,7 @@ fun RenameDeviceDialog(device: PlaybackDevice, onDismiss: () -> Unit, onConfirm:
                             onConfirm("")
                             onDismiss()
                         },
-                        shape = CircleShape,
+                        shape = MaterialTheme.shapes.small,
                         modifier = Modifier.fillMaxWidth().height(36.dp),
                     ) {
                         Icon(
@@ -249,11 +249,11 @@ fun RenameDeviceDialog(device: PlaybackDevice, onDismiss: () -> Unit, onConfirm:
                 ) {
                     OutlinedButton(
                         onClick = onDismiss,
-                        shape = CircleShape,
+                        shape = MaterialTheme.shapes.small,
                         modifier =
                             Modifier.weight(1f)
                                 .height(44.dp)
-                                .glassPane(CircleShape, GlassTone.CONTROL)
+                                .glassPane(MaterialTheme.shapes.small, GlassTone.CONTROL)
                                 .border(1.dp, CanopyColors.Rule, CircleShape),
                     ) {
                         Text(uiText("Cancel", "Cancelar"), fontWeight = FontWeight.SemiBold, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
@@ -264,7 +264,7 @@ fun RenameDeviceDialog(device: PlaybackDevice, onDismiss: () -> Unit, onConfirm:
                             onConfirm(nameInput.trim())
                             onDismiss()
                         },
-                        shape = CircleShape,
+                        shape = MaterialTheme.shapes.small,
                         colors =
                             ButtonDefaults.buttonColors(
                                 containerColor = accent,

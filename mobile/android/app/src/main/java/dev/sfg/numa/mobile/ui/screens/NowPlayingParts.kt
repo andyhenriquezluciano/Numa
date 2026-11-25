@@ -39,6 +39,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -76,7 +77,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import dev.sfg.numa.mobile.ui.components.RoundedControlButton
 import dev.sfg.numa.mobile.ui.components.MessagePanel
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
@@ -185,20 +186,20 @@ internal fun SleepTimerDialog(
                 }
                 Text(status)
                 listOf(15, 30, 45, 60, 90).forEach { minutes ->
-                    TextButton(onClick = { onStart(minutes); onDismiss() }) {
+                    TextButton(onClick = { onStart(minutes); onDismiss() }, shape = MaterialTheme.shapes.small) {
                         Text(uiText("$minutes minutes", "$minutes minutos"))
                     }
                 }
-                TextButton(onClick = { onStartAtEndOfTrack(); onDismiss() }) {
+                TextButton(onClick = { onStartAtEndOfTrack(); onDismiss() }, shape = MaterialTheme.shapes.small) {
                     Text(uiText("End of current track", "Al terminar la canción actual"))
                 }
             }
         },
         confirmButton = {
             if (remainingSeconds > 0 || endOfTrack) {
-                TextButton(onClick = { onCancel(); onDismiss() }) { Text(uiText("Cancel timer", "Cancelar temporizador")) }
+                TextButton(onClick = { onCancel(); onDismiss() }, shape = MaterialTheme.shapes.small) { Text(uiText("Cancel timer", "Cancelar temporizador")) }
             } else {
-                TextButton(onClick = onDismiss) { Text(uiText("Close", "Cerrar")) }
+                TextButton(onClick = onDismiss, shape = MaterialTheme.shapes.small) { Text(uiText("Close", "Cerrar")) }
             }
         },
     )
@@ -402,7 +403,7 @@ internal fun NothingPlaying(onBack: () -> Unit) {
             .background(rose?.Base ?: CanopyColors.Chrome)
             .padding(16.dp),
     ) {
-        IconButton(onClick = onBack) {
+        RoundedControlButton(onClick = onBack) {
             Icon(Icons.Rounded.ExpandMore, uiText("Close player", "Cerrar reproductor"), tint = rose?.Text ?: Color.White)
         }
         MessagePanel(uiText("Nothing playing", "No hay música en reproducción"), uiText("Choose a song from Home, Search, or Library.", "Elige una canción en Inicio, Buscar o Biblioteca."))

@@ -207,6 +207,7 @@ class LocalPlaybackController(
     }
     fun setVolume(volume: Float) = withController { it.volume = volume.coerceIn(0.0f, 1.0f) }
     fun setShuffle(enabled: Boolean) = withController { it.shuffleModeEnabled = enabled }
+    fun restoreAlphabeticalOrder() = withController { it.restoreAlphabeticalUpcoming() }
     fun setRepeatMode(mode: RepeatMode) = withController {
         it.repeatMode = when (mode) {
             RepeatMode.OFF -> Player.REPEAT_MODE_OFF
@@ -216,7 +217,7 @@ class LocalPlaybackController(
     }
     fun replaceUpcoming(tracks: List<Track>, contextTitle: String? = null) = withController { player ->
         if (contextTitle != null) {
-            player.setPlaylistMetadata(player.playlistMetadata.buildUpon().setTitle(contextTitle).build())
+            player.updateQueueOrderMetadata(alphabetical = false, overrideTitle = contextTitle)
         }
         val current = player.currentMediaItemIndex
         val total = player.mediaItemCount
@@ -397,6 +398,7 @@ class LocalPlaybackController(
             },
             contextTitle = player.playlistMetadata.title?.toString().orEmpty(),
             sourcePlaylistId = player.playlistMetadata.sourcePlaylistId,
+            alphabeticalQueue = player.playlistMetadata.isAlphabeticalQueue,
             errorMessage = error,
             playingVideo = MediaItemMapper.isVideoUri(player.currentMediaItem?.localConfiguration?.uri),
         )

@@ -19,12 +19,15 @@
 
 package dev.sfg.numa.mobile.playback
 
+import android.os.Bundle
+
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import dev.sfg.numa.mobile.model.RepeatMode
+import dev.sfg.numa.mobile.model.isBestMixTitle
 
 /** The saved queue as media items; only the current one keeps its music-video source. */
 internal fun RestoredPlayback.mediaItems(): List<MediaItem> = queue.mapIndexed { index, track ->
@@ -37,7 +40,7 @@ internal fun RestoredPlayback.restoreInto(player: ExoPlayer) {
     if (queue.isEmpty()) return
     player.setMediaItems(mediaItems(), currentIndex.coerceIn(0, queue.lastIndex), positionMs)
     player.setPlaylistMetadata(MediaMetadata.Builder().setTitle(contextTitle)
-        .setExtras(playlistSourceExtras(sourcePlaylistId)).build())
+        .setExtras(playlistSourceExtras(sourcePlaylistId, alphabeticalQueue)).build())
     // By hand: this runs before the listener that would catch the timeline change, and a
     // restored queue with shuffle on is exactly the case that needs it.
     player.keepQueueOrderUnshuffled()
@@ -48,7 +51,7 @@ internal fun RestoredPlayback.restoreInto(player: ExoPlayer) {
 
 /** What [source] would restore to, read on the main thread. */
 @UnstableApi
-internal fun savedPlayback(source: Player, unshuffledOrder: List<String>) = RestoredPlayback(
+internal fun savedPlayback(source: Player) = RestoredPlayback(
     queue = (0 until source.mediaItemCount).map { MediaItemMapper.toTrack(source.getMediaItemAt(it)) },
     currentIndex = source.currentMediaItemIndex,
     positionMs = source.sourcePositionMs(),
@@ -56,8 +59,8 @@ internal fun savedPlayback(source: Player, unshuffledOrder: List<String>) = Rest
     repeatMode = source.repeatMode.toRepeatMode(),
     contextTitle = source.playlistMetadata.title?.toString().orEmpty(),
     sourcePlaylistId = source.playlistMetadata.sourcePlaylistId,
+    alphabeticalQueue = source.playlistMetadata.isAlphabeticalQueue,
     playWhenReady = source.playWhenReady,
-    unshuffledOrder = unshuffledOrder,
     currentVideoId = source.currentMediaItem
         ?.localConfiguration?.uri
         ?.takeIf(MediaItemMapper::isVideoUri)
@@ -85,15 +88,26 @@ internal fun Player.shuffleUpcoming() {
     reorderUpcoming(FisherYates.changedOrder(upcoming))
 }
 
-/** Undoes [shuffleUpcoming] from the order saved when shuffle went on, so the toggle is two-way. */
-internal fun Player.restoreUpcoming(unshuffledOrder: List<String>) {
-    if (unshuffledOrder.isEmpty()) return
+internal fun Player.restoreAlphabeticalUpcoming() {
+    updateQueueOrderMetadata(alphabetical = true)
     val from = (currentMediaItemIndex + 1).coerceAtLeast(0)
     if (from >= mediaItemCount - 1) return
     val upcoming = (from until mediaItemCount).map(::getMediaItemAt)
-    val restored = QueueEditor.restoreOrder(upcoming, unshuffledOrder, MediaItem::mediaId)
+    val restored = QueueEditor.alphabeticalAfter(upcoming, currentMediaItem?.mediaMetadata?.title?.toString().orEmpty()) {
+        it.mediaMetadata.title?.toString().orEmpty()
+    }
     if (restored.map(MediaItem::mediaId) == upcoming.map(MediaItem::mediaId)) return
     reorderUpcoming(restored)
+}
+
+internal fun Player.updateQueueOrderMetadata(alphabetical: Boolean, overrideTitle: String? = null) {
+    val title = playlistMetadata.title?.toString().orEmpty()
+    val newTitle = overrideTitle ?: if (title.isBestMixTitle()) title.substringBeforeLast(" • ", missingDelimiterValue = "") else title
+    if (title == newTitle && alphabetical == playlistMetadata.isAlphabeticalQueue) return
+    val extras = Bundle(playlistMetadata.extras ?: Bundle()).apply {
+        putBoolean(ALPHABETICAL_QUEUE_KEY, alphabetical)
+    }
+    setPlaylistMetadata(playlistMetadata.buildUpon().setTitle(newTitle).setExtras(extras).build())
 }
 
 /** Moves preserve the current decoder and never expose an empty tail to Autoplay. */

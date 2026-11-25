@@ -107,12 +107,13 @@ internal fun DeleteDownloadsRow(downloadedBytes: Long, onDelete: () -> Unit) {
                         showConfirmDialog = false
                         onDelete()
                     },
+                    shape = MaterialTheme.shapes.small,
                 ) {
                     Text(uiText("Delete", "Eliminar"), color = CanopyColors.Danger, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showConfirmDialog = false }) {
+                TextButton(onClick = { showConfirmDialog = false }, shape = MaterialTheme.shapes.small) {
                     Text(uiText("Cancel", "Cancelar"), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },

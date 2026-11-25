@@ -42,7 +42,7 @@ fun GlassDropdownMenu(
                             .background(dev.sfg.numa.mobile.ui.theme.rosePinePalette(style.theme).Surface, shape)
                     } else {
                         Modifier
-                            .glassPane(shape, tone, borderless = true)
+                            .glassPane(shape, tone, borderless = tone != GlassTone.SETTINGS_PICKER)
                     }
                 ),
             shape = shape,

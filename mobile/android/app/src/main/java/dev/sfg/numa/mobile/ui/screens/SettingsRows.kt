@@ -20,6 +20,9 @@
 package dev.sfg.numa.mobile.ui.screens
 
 import dev.sfg.numa.mobile.ui.glass.desktopButtonSurface
+import dev.sfg.numa.mobile.ui.glass.DesktopGlass
+import dev.sfg.numa.mobile.ui.glass.LocalGlass
+import dev.sfg.numa.mobile.model.GlassBorders
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 import dev.sfg.numa.mobile.ui.text.uiText
@@ -32,6 +35,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,6 +64,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -199,7 +204,8 @@ internal fun ToggleRow(
         icon = icon,
         enabled = enabled,
         // Tapping anywhere on the row toggles, not just the switch.
-        modifier = Modifier.toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onChecked),
+        modifier = Modifier.clip(MaterialTheme.shapes.small)
+            .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onChecked),
     ) {
         SettingsSwitch(
             checked = checked,
@@ -255,12 +261,28 @@ internal fun SettingsPill(
     modifier: Modifier = Modifier,
     destructive: Boolean = false,
 ) {
-    val shape = MaterialTheme.shapes.medium
+    val rose = currentRosePine()
+    val shape = if (rose == null) MaterialTheme.shapes.small else MaterialTheme.shapes.medium
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val hovered by interaction.collectIsHoveredAsState()
+    val fill = when {
+        rose != null -> Color.Transparent
+        pressed -> DesktopGlass.PressedFill
+        hovered -> Color(0x1CFFFFFF)
+        else -> DesktopGlass.ButtonFill
+    }
+    val border = if (rose == null && LocalGlass.current.borders != GlassBorders.LIMPIO) {
+        BorderStroke(1.dp, DesktopGlass.ButtonBorder)
+    } else null
     Surface(
         onClick = onClick,
         shape = shape,
-        color = Color.Transparent,
-        modifier = modifier.defaultMinSize(minHeight = 44.dp).desktopButtonSurface(shape),
+        color = fill,
+        border = border,
+        interactionSource = interaction,
+        modifier = modifier.defaultMinSize(minHeight = 44.dp)
+            .then(if (rose != null) Modifier.desktopButtonSurface(shape) else Modifier),
     ) {
         Box(Modifier.padding(horizontal = 13.dp, vertical = 9.dp), contentAlignment = Alignment.Center) {
             Text(

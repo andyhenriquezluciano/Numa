@@ -73,18 +73,19 @@ internal fun LyricLines(
     accent: Color = CanopyColors.LyricActive,
 ) {
     val rose = currentRosePine()
-    // Playback snapshots arrive twice a second. Keep one frame-clock coroutine alive between
-    // them and fold small clock corrections in gently; restarting the animation at every
-    // snapshot makes the highlight visibly hop backwards on some devices.
-    // Read through the clock inside the coroutine so ticks never recompose the list.
+    // Project the sampled playhead on each frame and compensate for visual latency.
     val clock = dev.sfg.numa.mobile.ui.components.LocalPlayerClock.current
     val synced = remember(lines) { lines.any { it.startMs != null } }
     val initialPosition = remember(lines, clock) {
-        androidx.compose.runtime.snapshots.Snapshot.withoutReadObservation { clock.projected().positionMs.toFloat() }
+        androidx.compose.runtime.snapshots.Snapshot.withoutReadObservation {
+            lyricVisualPositionMs(clock.projected().positionMs, clock.playing).toFloat()
+        }
     }
     val smoothPosition = produceState(initialPosition, lines, clock) {
         while (true) {
-            withFrameNanos { value = clock.projected().positionMs.toFloat() }
+            withFrameNanos {
+                value = lyricVisualPositionMs(clock.projected().positionMs, clock.playing).toFloat()
+            }
             if (!clock.playing || !synced) kotlinx.coroutines.delay(50)
         }
     }
@@ -295,6 +296,7 @@ internal fun LyricLines(
                 onClick = { browsing = false },
                 modifier = Modifier.align(Alignment.TopStart).padding(top = 8.dp, start = 16.dp)
                     .size(40.dp),
+                shape = MaterialTheme.shapes.small,
             ) {
                 Box(Modifier.size(26.dp).glassPane(androidx.compose.foundation.shape.CircleShape,
                     dev.sfg.numa.mobile.ui.glass.GlassTone.CONTROL), contentAlignment = Alignment.Center) {

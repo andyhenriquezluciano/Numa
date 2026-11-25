@@ -38,7 +38,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -75,7 +74,7 @@ import dev.sfg.numa.mobile.model.CatalogItem
 import dev.sfg.numa.mobile.model.Track
 import dev.sfg.numa.mobile.ui.components.ArtworkTile
 import dev.sfg.numa.mobile.ui.components.ExplicitBadge
-import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 /**
@@ -187,11 +186,12 @@ internal fun RankedSongRow(
             IconButton(
                 onClick = onToggleLike,
                 modifier = Modifier.size(36.dp),
+                shape = MaterialTheme.shapes.small,
             ) {
                 Icon(
                     if (liked) Icons.Filled.Favorite else Icons.Rounded.FavoriteBorder,
                     contentDescription = if (liked) uiText("Unlike", "Quitar Me gusta") else uiText("Like", "Me gusta"),
-                    tint = if (liked) rose?.FavoriteInk ?: CanopyColors.Favorite else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (liked) rose?.FavoriteInk ?: playbackAccent() else androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     // A like deserves a little heartbeat; an unlike leaves quietly.
                     modifier = Modifier.size(18.dp).popOnChange(liked, peak = 1.5f, onlyOn = true),
                 )
@@ -199,6 +199,7 @@ internal fun RankedSongRow(
             IconButton(
                 onClick = { popupOpen = true },
                 modifier = Modifier.size(36.dp),
+                shape = MaterialTheme.shapes.small,
             ) {
                 Icon(
                     Icons.Rounded.MoreHoriz,

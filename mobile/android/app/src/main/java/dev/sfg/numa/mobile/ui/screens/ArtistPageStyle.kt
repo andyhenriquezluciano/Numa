@@ -14,23 +14,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.sfg.numa.mobile.NumaGraph
-import dev.sfg.numa.mobile.model.GlassTheme
 import dev.sfg.numa.mobile.ui.components.ArtworkPalette
 import dev.sfg.numa.mobile.ui.components.KawarpArtworkBackdrop
 import dev.sfg.numa.mobile.ui.glass.LocalGlass
 import dev.sfg.numa.mobile.ui.glass.rememberGlassStyle
-import dev.sfg.numa.mobile.ui.theme.LocalAccent
-import dev.sfg.numa.mobile.ui.theme.legibleOnDarkChrome
 
 @Composable
 internal fun ArtistPageStyle(palette: ArtworkPalette, content: @Composable () -> Unit) {
     val inherited = LocalGlass.current
     val tint = animateColorAsState(palette.accent, tween(500), label = "ArtistGlassTint")
-    val accent = if ((inherited.theme == GlassTheme.ROSE_PINE || inherited.theme == GlassTheme.ROSE_PINE_DAWN)) dev.sfg.numa.mobile.ui.theme.rosePinePalette(inherited.theme).Rose
-        else palette.accent.legibleOnDarkChrome()
     CompositionLocalProvider(
         LocalGlass provides rememberGlassStyle(tint, inherited.theme, inherited.borders),
-        LocalAccent provides accent,
         content = content,
     )
 }

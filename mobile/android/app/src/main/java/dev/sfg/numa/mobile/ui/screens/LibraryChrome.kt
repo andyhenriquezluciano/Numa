@@ -75,6 +75,8 @@ import dev.sfg.numa.mobile.ui.glass.LocalGlass
 import dev.sfg.numa.mobile.ui.glass.desktopButtonSurface
 import dev.sfg.numa.mobile.ui.theme.RosePineBorderWidth
 import dev.sfg.numa.mobile.ui.glass.glassPane
+import dev.sfg.numa.mobile.ui.glass.crystalSearchSurface
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 import dev.sfg.numa.mobile.ui.motion.riseIn
 
 private val SegmentFill = Color(0xA01E2521)
@@ -101,7 +103,7 @@ internal fun LibraryHeader(summary: String, modifier: Modifier = Modifier) {
 internal fun LibraryChips(selected: LibraryFilter, onSelect: (LibraryFilter) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box(Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
-        TextButton(onClick = { expanded = true }) {
+        TextButton(onClick = { expanded = true }, shape = MaterialTheme.shapes.small) {
             Text(if (selected == LibraryFilter.PLAYLISTS) uiText("Playlists", "Listas") else selected.label,
                 color = SettingsStyle.Title, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.width(6.dp))
@@ -117,6 +119,7 @@ internal fun LibraryChips(selected: LibraryFilter, onSelect: (LibraryFilter) -> 
 @Composable
 internal fun LibraryFilterField(query: String, placeholder: String, onChange: (String) -> Unit) {
     val shape = RoundedCornerShape(16.dp)
+    val searchInk = currentRosePine()?.SecondaryText ?: SettingsStyle.Title.copy(alpha = 0.90f)
     val style = LocalGlass.current
     val showBorder = style.borders != GlassBorders.LIMPIO
     val borderModifier = if (showBorder) {
@@ -128,17 +131,15 @@ internal fun LibraryFilterField(query: String, placeholder: String, onChange: (S
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
             .height(44.dp)
-            .clip(shape)
-            .glassPane(shape, GlassTone.CONTROL)
-            .then(borderModifier)
+            .crystalSearchSurface { clip(shape).glassPane(shape, GlassTone.CONTROL).then(borderModifier) }
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(Icons.Rounded.Search, null, tint = SettingsStyle.Description, modifier = Modifier.size(18.dp))
+        Icon(Icons.Rounded.Search, null, tint = searchInk, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(10.dp))
         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
             if (query.isEmpty()) {
-                Text(placeholder, style = TextStyle(fontSize = 14.sp, color = SettingsStyle.Description), maxLines = 1)
+                Text(placeholder, style = TextStyle(fontSize = 14.sp, color = searchInk), maxLines = 1)
             }
             BasicTextField(
                 value = query,
@@ -150,7 +151,7 @@ internal fun LibraryFilterField(query: String, placeholder: String, onChange: (S
             )
         }
         if (query.isNotEmpty()) {
-            Box(Modifier.size(28.dp).clip(CircleShape).clickable { onChange("") }, contentAlignment = Alignment.Center) {
+            Box(Modifier.size(28.dp).clip(MaterialTheme.shapes.extraSmall).clickable { onChange("") }, contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.Close, uiText("Clear", "Borrar"), tint = SettingsStyle.Title, modifier = Modifier.size(14.dp))
             }
         }

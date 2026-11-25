@@ -1,5 +1,6 @@
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,7 +15,7 @@ import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import dev.sfg.numa.mobile.ui.components.RoundedControlButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -29,8 +30,6 @@ import dev.sfg.numa.mobile.model.PlaybackTarget
 import dev.sfg.numa.mobile.model.PlaybackTargetState
 import dev.sfg.numa.mobile.playback.playerModeAvailability
 import dev.sfg.numa.mobile.ui.text.uiText
-import dev.sfg.numa.mobile.ui.theme.CanopyColors
-import dev.sfg.numa.mobile.ui.theme.LocalAccent
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 internal data class PlayerVideoOptions(
@@ -98,10 +97,10 @@ private fun PlayerModeButton(
     onClick: () -> Unit,
 ) {
     val rose = currentRosePine()
-    val accent = (if (video) rose?.InfoInk else rose?.AccentInk) ?: LocalAccent.current
+    val accent = (if (video) rose?.InfoInk else rose?.AccentInk) ?: playbackAccent()
     val iconTint = if (!enabled) androidx.compose.material3.MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f) else if (selected) accent else androidx.compose.material3.MaterialTheme.colorScheme.onSurface
     val status = if (!enabled) unavailable else if (selected) uiText("Selected", "Seleccionado") else uiText("Available", "Disponible")
-    IconButton(
+    RoundedControlButton(
         onClick = onClick,
         enabled = enabled,
         modifier = Modifier.size(48.dp)

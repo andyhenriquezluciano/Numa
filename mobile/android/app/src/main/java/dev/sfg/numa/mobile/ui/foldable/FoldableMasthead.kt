@@ -20,6 +20,7 @@
 package dev.sfg.numa.mobile.ui.foldable
 
 import dev.sfg.numa.mobile.ui.glass.glassPane
+import dev.sfg.numa.mobile.ui.glass.crystalSearchSurface
 
 import dev.sfg.numa.mobile.ui.text.uiText
 
@@ -39,7 +40,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import dev.sfg.numa.mobile.ui.scroll.NumaLazyRow as LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.Person
@@ -125,8 +125,9 @@ internal fun FoldableMasthead(
                 Surface(
                     onClick = onSearch,
                     color = Color.Transparent,
-                    shape = CircleShape,
-                    modifier = Modifier.width(260.dp).height(44.dp).glassPane(CircleShape),
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier.width(260.dp).height(44.dp)
+                        .crystalSearchSurface { glassPane(MaterialTheme.shapes.small) },
                 ) {
                     Row(
                         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
@@ -150,9 +151,9 @@ internal fun FoldableMasthead(
 
                 Surface(
                     onClick = onProfile,
-                    shape = CircleShape,
+                    shape = MaterialTheme.shapes.small,
                     color = Color.Transparent,
-                    modifier = Modifier.size(44.dp).glassPane(CircleShape),
+                    modifier = Modifier.size(44.dp).glassPane(MaterialTheme.shapes.small),
                 ) {
                     if (avatarUrl.isNotBlank()) {
                         ArtworkTile(
@@ -182,10 +183,10 @@ internal fun FoldableMasthead(
                     val isSelected = selectedCategory == category
                     Surface(
                         onClick = { onSelectCategory(category) },
-                        shape = CircleShape,
+                        shape = MaterialTheme.shapes.small,
                         color = if (isSelected) Color.White else Color.Transparent,
                         border = if (isSelected) null else BorderStroke(1.dp, CanopyColors.Rule),
-                        modifier = Modifier.height(34.dp).glassPane(CircleShape),
+                        modifier = Modifier.height(34.dp).glassPane(MaterialTheme.shapes.small),
                     ) {
                         Box(
                             modifier = Modifier.padding(horizontal = 16.dp),

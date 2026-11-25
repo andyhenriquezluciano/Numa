@@ -28,7 +28,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
-import dev.sfg.numa.mobile.ui.motion.riseIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -43,7 +42,6 @@ import dev.sfg.numa.mobile.ui.scroll.NumaLazyColumn as LazyColumn
 import dev.sfg.numa.mobile.ui.scroll.NumaLazyRow as LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -52,7 +50,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -66,10 +63,12 @@ import dev.sfg.numa.mobile.ui.components.ArtistSectionBottomSheet
 import dev.sfg.numa.mobile.ui.components.CatalogCard
 import dev.sfg.numa.mobile.ui.components.CategoryCard
 import dev.sfg.numa.mobile.ui.components.DetailBackButton
+import dev.sfg.numa.mobile.ui.components.DetailFloatingChrome
+import dev.sfg.numa.mobile.ui.components.LoadingSkeleton
+import dev.sfg.numa.mobile.ui.components.SkeletonLayout
 import dev.sfg.numa.mobile.ui.components.MessagePanel
 import dev.sfg.numa.mobile.ui.components.NumaSectionHeader
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
-import dev.sfg.numa.mobile.ui.theme.LocalAccent
 
 @Composable
 fun DetailScreen(
@@ -109,6 +108,8 @@ fun DetailScreen(
     onRefresh: () -> Unit = {},
     playback: dev.sfg.numa.mobile.model.PlaybackSnapshot = dev.sfg.numa.mobile.model.PlaybackSnapshot(),
     onTogglePlayback: (() -> Unit)? = null,
+    loadingKind: CatalogKind = CatalogKind.PLAYLIST,
+    loadingTitle: String = "",
 ) {
     // Keyed on the state's kind so a refresh does not crossfade the page into itself.
     AnimatedContent(
@@ -121,8 +122,24 @@ fun DetailScreen(
         label = "DetailState",
     ) { state ->
     when (state) {
-        LoadState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = LocalAccent.current, modifier = Modifier.riseIn(fromScale = 0.6f))
+        LoadState.Loading -> Box(Modifier.fillMaxSize()) {
+            val collection = loadingKind == CatalogKind.PLAYLIST || loadingKind == CatalogKind.ALBUM
+            LoadingSkeleton(
+                modifier = Modifier.fillMaxWidth().padding(top = if (collection) 0.dp else 64.dp),
+                layout = when (loadingKind) {
+                    CatalogKind.ALBUM -> SkeletonLayout.Album
+                    CatalogKind.PLAYLIST -> SkeletonLayout.Playlist
+                    else -> SkeletonLayout.Text
+                },
+                collectionTitle = loadingTitle,
+            )
+            if (collection) {
+                DetailFloatingChrome(onBack, scrimProgress = remember { mutableStateOf(0f) }) {
+                    repeat(if (loadingKind == CatalogKind.ALBUM) 3 else 2) { Spacer(Modifier.size(40.dp)) }
+                }
+            } else {
+                DetailBackButton(onBack)
+            }
         }
         is LoadState.Error -> Column {
             DetailBackButton(onBack)
@@ -148,6 +165,7 @@ fun DetailScreen(
                     onPlayTrack = onPlayTrack,
                     onPlayNext = onPlayNext,
                     shuffleAvailable = shuffleAvailable,
+                    shuffleActive = playback.shuffle && (playback.currentTrack != null || playback.queue.isNotEmpty()),
                     onAdd = onAddToQueue,
                     onSave = onSave,
                     isSaved = isSaved,

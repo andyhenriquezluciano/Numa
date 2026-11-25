@@ -39,10 +39,10 @@ internal fun CollectionSelectionBar(
     Row(Modifier.fillMaxWidth().statusBarsPadding().padding(top = 76.dp, start = 16.dp, end = 16.dp)
         .glassPane(MaterialTheme.shapes.medium).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onClear) { Icon(Icons.Rounded.Close, uiText("Cancel selection", "Cancelar selección")) }
+        IconButton(onClick = onClear, shape = MaterialTheme.shapes.small) { Icon(Icons.Rounded.Close, uiText("Cancel selection", "Cancelar selección")) }
         Text(uiText("${selected.size} selected", "${selected.size} seleccionadas"), Modifier.weight(1f))
-        IconButton(onClick = onSelectAll) { Icon(Icons.Rounded.DoneAll, uiText("Select all", "Seleccionar todas")) }
-        IconButton(onClick = onShowActions) { Icon(Icons.Rounded.MoreVert, uiText("Selection options", "Opciones de la selección")) }
+        IconButton(onClick = onSelectAll, shape = MaterialTheme.shapes.small) { Icon(Icons.Rounded.DoneAll, uiText("Select all", "Seleccionar todas")) }
+        IconButton(onClick = onShowActions, shape = MaterialTheme.shapes.small) { Icon(Icons.Rounded.MoreVert, uiText("Selection options", "Opciones de la selección")) }
     }
     if (showActions && selected.isNotEmpty()) TrackActionsPopup(
         track = selected.first().copy(title = uiText("${selected.size} songs selected", "${selected.size} canciones seleccionadas")),
@@ -73,8 +73,8 @@ internal fun CollectionSelectionBar(
             uiText("Remove ${selected.size} songs? The original files will be kept.", "¿Quitar ${selected.size} canciones? No se borrarán los archivos originales."))) },
         confirmButton = { TextButton(onClick = {
             onRemove?.invoke(selected); confirmingRemoval = false; onClear()
-        }) { Text(uiText("Remove", "Quitar")) } },
-        dismissButton = { TextButton(onClick = { confirmingRemoval = false }) { Text(uiText("Cancel", "Cancelar")) } },
+        }, shape = MaterialTheme.shapes.small) { Text(uiText("Remove", "Quitar")) } },
+        dismissButton = { TextButton(onClick = { confirmingRemoval = false }, shape = MaterialTheme.shapes.small) { Text(uiText("Cancel", "Cancelar")) } },
     )
     if (choosingPlaylist) BulkPlaylistPicker(selected, onDismiss = { choosingPlaylist = false }, onDone = onClear)
 }

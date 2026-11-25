@@ -242,11 +242,10 @@ internal fun GlassSquircleCard(
                 modifier = Modifier.weight(1f).padding(end = 6.dp),
             )
 
-            // Mini circular play button
             val playSource = remember { MutableInteractionSource() }
             Surface(
                 onClick = onPlay,
-                shape = MaterialTheme.shapes.medium,
+                shape = MaterialTheme.shapes.small,
                 color = Color.White.copy(alpha = 0.92f),
                 shadowElevation = 3.dp,
                 interactionSource = playSource,

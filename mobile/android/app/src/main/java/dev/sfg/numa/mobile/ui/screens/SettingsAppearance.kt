@@ -31,7 +31,6 @@ import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.BorderStyle
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.BorderClear
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -71,23 +70,17 @@ internal fun ThemeStyleSection(
 
     PanelDivider()
 
-    Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-        AppearanceOptionTitle(uiText("Border style", "Estilo de bordes"), Icons.Rounded.BorderStyle)
-        val bordersSubtitle = when (settings.glassBorders) {
-            GlassBorders.PREDETERMINADO -> uiText("Subtle borders on glass and buttons.", "Bordes sutiles en cristales y botones.")
-            GlassBorders.LIMPIO -> uiText("Borderless glass and buttons.", "Cristales y botones sin bordes.")
-        }
-        RowSubtitle(bordersSubtitle)
-        SettingsDropdownField(
-            options = listOf(
-                GlassBorders.PREDETERMINADO to uiText("On", "Activo"),
-                GlassBorders.LIMPIO to uiText("Off", "Inactivo"),
-            ),
-            selected = settings.glassBorders,
-            iconFor = { if (it == GlassBorders.LIMPIO) Icons.Rounded.BorderClear else Icons.Rounded.BorderStyle },
-            onSelect = { onSettings(settings.copy(glassBorders = it)) },
-        )
-    }
+    val bordersOn = settings.glassBorders == GlassBorders.PREDETERMINADO
+    ToggleRow(
+        title = uiText("Borders", "Bordes"),
+        subtitle = if (bordersOn) uiText("Subtle borders on glass and buttons.", "Bordes sutiles en cristales y botones.")
+            else uiText("Borderless glass and buttons.", "Cristales y botones sin bordes."),
+        icon = Icons.Rounded.BorderStyle,
+        checked = bordersOn,
+        onChecked = { enabled ->
+            onSettings(settings.copy(glassBorders = if (enabled) GlassBorders.PREDETERMINADO else GlassBorders.LIMPIO))
+        },
+    )
 }
 
 @Composable

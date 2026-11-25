@@ -125,7 +125,6 @@ fun NowPlayingScreen(
     onStartSleepTimerAtEndOfTrack: () -> Unit = {},
     onCancelSleepTimer: () -> Unit = {},
     smartCrossfade: Boolean = false,
-    onBestMixUpcoming: ((onProgress: (String) -> Unit, onComplete: () -> Unit) -> Unit)? = null,
     musicVideo: MusicVideoState = MusicVideoState(),
     videoPlayer: Player? = null,
     onToggleMusicVideo: () -> Unit = {},
@@ -338,7 +337,6 @@ fun NowPlayingScreen(
                     autoplayError = autoplayError,
                     onAutoplayEnabled = onAutoplayEnabled,
                     smartCrossfade = smartCrossfade,
-                    onBestMixUpcoming = onBestMixUpcoming,
                 )
                 return@Box
             }
@@ -394,7 +392,6 @@ fun NowPlayingScreen(
                     autoplayError = autoplayError,
                     onAutoplayEnabled = onAutoplayEnabled,
                     smartCrossfade = smartCrossfade,
-                    onBestMixUpcoming = onBestMixUpcoming,
                 )
                 return@Box
             }
@@ -453,7 +450,6 @@ fun NowPlayingScreen(
                 autoplayError = autoplayError,
                 onAutoplayEnabled = onAutoplayEnabled,
                 smartCrossfade = smartCrossfade,
-                onBestMixUpcoming = onBestMixUpcoming,
                 artworkSeam = artworkSeam,
                 onArtworkRoom = { artworkRoom = it },
                 onArtworkTop = { artworkTop = it },

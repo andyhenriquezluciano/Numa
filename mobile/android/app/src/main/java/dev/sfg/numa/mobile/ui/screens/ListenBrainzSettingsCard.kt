@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -113,12 +112,13 @@ fun ListenBrainzSettingsCard(
                         onConnect(token)
                         showTokenDialog = false
                     },
+                    shape = MaterialTheme.shapes.small,
                 ) {
                     Text(uiText("Connect", "Conectar"), color = LocalAccent.current)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showTokenDialog = false }) {
+                TextButton(onClick = { showTokenDialog = false }, shape = MaterialTheme.shapes.small) {
                     Text(uiText("Cancel", "Cancelar"), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },

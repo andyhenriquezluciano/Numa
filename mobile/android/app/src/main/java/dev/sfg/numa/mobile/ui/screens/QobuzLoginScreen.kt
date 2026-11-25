@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import dev.sfg.numa.mobile.qobuz.QobuzResolver
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.LocalAccent
 import kotlinx.coroutines.launch
 
 private const val QOBUZ_CALLBACK_URL = "https://localhost/qobuz-callback"
@@ -106,7 +107,7 @@ fun QobuzLoginScreen(
         TopAppBar(
             title = { Text(uiText("Connect Qobuz", "Conectar Qobuz")) },
             navigationIcon = {
-                IconButton(onClick = onCancel) {
+                IconButton(onClick = onCancel, shape = MaterialTheme.shapes.small) {
                     Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = uiText("Back", "Volver"))
                 }
             },
@@ -121,7 +122,7 @@ fun QobuzLoginScreen(
             loading || exchanging -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = CanopyColors.Accent)
+                        CircularProgressIndicator(color = LocalAccent.current)
                         Spacer(Modifier.height(16.dp))
                         Text(
                             text = if (exchanging) uiText("Connecting account…", "Conectando la cuenta…") else uiText("Preparing Qobuz login…", "Preparando el acceso a Qobuz…"),
@@ -144,9 +145,10 @@ fun QobuzLoginScreen(
                         androidx.compose.material3.Button(
                             onClick = { reloadTrigger++ },
                             colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                containerColor = CanopyColors.Accent,
+                                containerColor = LocalAccent.current,
                                 contentColor = androidx.compose.ui.graphics.Color.Black,
                             ),
+                            shape = MaterialTheme.shapes.small,
                         ) {
                             Text(uiText("Retry", "Reintentar"))
                         }

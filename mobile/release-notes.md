@@ -1,2 +1,5 @@
-- La pantalla de bloqueo respeta el tema activo y usa los mismos botones que el reproductor principal.
-- Los tiempos quedan más cerca de la barra y el espaciado es más uniforme.
+- Cristal adapta los controles y los iconos al color de la canción.
+- Mejor mezcla se activa desde la lista. Al salir de ese modo o de Aleatorio, la cola vuelve al orden alfabético.
+- Las letras siguen más de cerca la voz.
+- Los esqueletos de carga coinciden con el diseño de las listas y las letras.
+- Recortar carátulas es más fácil con una vista más grande y una cuadrícula.

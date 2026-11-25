@@ -52,7 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import dev.sfg.numa.connect.R
-import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.LocalAccent
 
 /**
  * Names a new playlist, on YouTube Music or on this phone. [youtubeAvailable] is false when no
@@ -98,7 +98,7 @@ internal fun NewPlaylistSheet(
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface, unfocusedTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-                    focusedBorderColor = CanopyColors.Accent,
+                    focusedBorderColor = LocalAccent.current,
                     unfocusedBorderColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)),
                 modifier = Modifier.fillMaxWidth(),
             )

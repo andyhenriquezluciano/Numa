@@ -22,3 +22,10 @@ fun NumaSettings.withTransition(preference: TransitionPreference): NumaSettings 
 
 internal fun effectivePlaybackOrder(preferred: PlaybackOrder, explicitShuffle: Boolean): PlaybackOrder =
     if (explicitShuffle) PlaybackOrder.SHUFFLE else preferred
+
+internal fun PlaybackSnapshot.needsBestMixOnResume(preferred: PlaybackOrder): Boolean =
+    preferred == PlaybackOrder.BEST_MIX && !alphabeticalQueue && !isPlaying && currentTrack != null && upcoming.size > 1 &&
+        (shuffle || !contextTitle.isBestMixTitle())
+
+internal fun String.isBestMixTitle(): Boolean =
+    equals("Best Mix", ignoreCase = true) || endsWith(" • Best Mix", ignoreCase = true)

@@ -21,7 +21,6 @@ package dev.sfg.numa.mobile.ui.screens
 
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
-import androidx.compose.foundation.shape.CircleShape
 
 
 import dev.sfg.numa.mobile.ui.text.uiText
@@ -35,7 +34,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import dev.sfg.numa.mobile.ui.components.RoundedControlButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -95,7 +94,7 @@ internal fun PlayerHeader(
             .padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onCollapse) {
+        RoundedControlButton(onClick = onCollapse) {
             Icon(
                 Icons.Rounded.ExpandMore,
                 contentDescription = uiText("Close player", "Cerrar reproductor"),
@@ -124,7 +123,7 @@ internal fun PlayerHeader(
                 textAlign = TextAlign.Center,
             )
         }
-        IconButton(onClick = { menuOpen = true }) {
+        RoundedControlButton(onClick = { menuOpen = true }) {
             Icon(
                 Icons.Filled.MoreHoriz,
                 contentDescription = uiText("More options", "Más opciones"),

@@ -28,6 +28,22 @@ class PlaybackPreferencesTest {
         assertEquals(PlaybackOrder.ORIGINAL, effectivePlaybackOrder(PlaybackOrder.ORIGINAL, false))
     }
 
+    @Test fun resumingAnOrderedPlaylistPreparesBestMixWithoutRestartingIt() {
+        val tracks = List(3) { Track(id = "track-$it", title = "Song $it", artist = "Artist") }
+        val paused = PlaybackSnapshot(
+            currentTrack = tracks.first(), queue = tracks, currentIndex = 0, contextTitle = "Música que me gusta",
+        )
+        assertTrue(paused.needsBestMixOnResume(PlaybackOrder.BEST_MIX))
+        assertFalse(paused.needsBestMixOnResume(PlaybackOrder.ORIGINAL))
+        assertFalse(paused.copy(isPlaying = true).needsBestMixOnResume(PlaybackOrder.BEST_MIX))
+        assertFalse(paused.copy(alphabeticalQueue = true).needsBestMixOnResume(PlaybackOrder.BEST_MIX))
+        assertFalse(paused.copy(queue = tracks.take(2)).needsBestMixOnResume(PlaybackOrder.BEST_MIX))
+
+        val mixed = paused.copy(contextTitle = "Música que me gusta • Best Mix")
+        assertFalse(mixed.needsBestMixOnResume(PlaybackOrder.BEST_MIX))
+        assertTrue(mixed.copy(shuffle = true).needsBestMixOnResume(PlaybackOrder.BEST_MIX))
+    }
+
     @Test fun newProfilesStartWithoutFadesOrExponentialVolume() {
         val defaults = NumaSettings()
         assertFalse(defaults.crossfadeEnabled)

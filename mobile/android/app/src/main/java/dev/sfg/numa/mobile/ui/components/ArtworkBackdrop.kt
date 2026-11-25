@@ -62,10 +62,13 @@ fun ArtworkBackdrop(
     palette: ArtworkPalette,
     animated: Boolean,
     modifier: Modifier = Modifier,
+    idleClock: State<Long>? = null,
 ) {
-    val ambience = if (palette == ArtworkPalette()) {
-        ArtworkPalette(top = Color(0xFF7046A8), bottom = Color(0xFF244D70), accent = Color(0xFFCB617E))
-    } else palette
+    val ambience = when {
+        idleClock != null -> IdlePalette
+        palette == ArtworkPalette() -> ArtworkPalette(top = Color(0xFF7046A8), bottom = Color(0xFF244D70), accent = Color(0xFFCB617E))
+        else -> palette
+    }
     val tint = animateColorAsState(
         ambience.accent.wash(0.30f, 0.65f, 0.30f),
         tween(900),
@@ -89,7 +92,7 @@ fun ArtworkBackdrop(
 
     // Held still rather than animated to a fixed target: an infinite transition keeps asking for
     // frames for as long as it exists, so the app would never go idle with the drift switched off.
-    val drift: State<Float> = if (animated) {
+    val drift: State<Float> = if (animated && idleClock == null) {
         rememberInfiniteTransition(label = "BackdropDrift").animateFloat(
             initialValue = 0f,
             targetValue = 1f,
@@ -105,7 +108,10 @@ fun ArtworkBackdrop(
             .fillMaxSize()
 
             .drawBehind {
-                val phase = drift.value
+                val phase = if (animated && idleClock != null) {
+                    val loop = (idleClock.value % 24_000_000_000L) / 24_000_000_000.0
+                    (0.5 - 0.5 * kotlin.math.cos(loop * 2.0 * kotlin.math.PI)).toFloat()
+                } else drift.value
                 val accent = tint.value
                 val glow = GLOW_ALPHA
 
@@ -153,3 +159,9 @@ private fun Color.wash(minSaturation: Float, maxSaturation: Float, lightness: Fl
 
 /** Low enough that body text keeps its contrast over the wash. */
 private const val GLOW_ALPHA = 0.72f
+
+private val IdlePalette = ArtworkPalette(
+    top = CanopyColors.AccentDeep,
+    bottom = Color(0xFF4052B3),
+    accent = CanopyColors.Accent,
+)

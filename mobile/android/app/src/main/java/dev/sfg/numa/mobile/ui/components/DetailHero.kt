@@ -29,6 +29,11 @@
 
 package dev.sfg.numa.mobile.ui.components
 
+import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
+
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 import dev.sfg.numa.mobile.ui.glass.glassArtworkSource
@@ -36,6 +41,7 @@ import dev.sfg.numa.mobile.ui.glass.glassArtworkSource
 
 
 import dev.sfg.numa.mobile.ui.glass.desktopButtonSurface
+import dev.sfg.numa.mobile.ui.glass.crystalControlSurface
 
 import dev.sfg.numa.mobile.ui.text.uiText
 
@@ -73,7 +79,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -113,6 +118,14 @@ import dev.sfg.numa.mobile.ui.theme.CanopyColors
 /** Side margin for hero titles and controls. */
 internal val HeroGutter = 32.dp
 
+@Composable
+internal fun collectionTitleStyle() = MaterialTheme.typography.headlineMedium.copy(
+    fontWeight = FontWeight.Bold,
+    fontSize = 30.sp,
+    lineHeight = 34.sp,
+    letterSpacing = (-0.5).sp,
+)
+
 /** Caps the square on tablets so the title still lands above the fold. */
 private val HeroArtMaxHeight = 560.dp
 
@@ -130,6 +143,7 @@ fun DetailHeroFrame(
     modifier: Modifier = Modifier,
     animatedArtworkUrl: String = "",
     playlistId: String = "",
+    artworkPlaceholder: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     // Art settles from a slight zoom as the page opens, like a camera finding focus.
@@ -138,7 +152,8 @@ fun DetailHeroFrame(
     val titleOverlap = if (solidTheme) 32.dp else HeroTitleOverlap
     var settled by rememberSaveable { mutableStateOf(false) }
     val settle = remember { Animatable(if (settled) 1f else 1.12f) }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(artworkPlaceholder == null) {
+        if (artworkPlaceholder != null) return@LaunchedEffect
         if (settled) return@LaunchedEffect
         settle.animateTo(1f, tween(1400, easing = FastOutSlowInEasing))
         settled = true
@@ -154,8 +169,8 @@ fun DetailHeroFrame(
                 // Offscreen so DstIn masks the art alone, not the page tint behind it.
                 .graphicsLayer {
                     compositingStrategy = CompositingStrategy.Offscreen
-                    scaleX = settle.value
-                    scaleY = settle.value
+                    scaleX = if (artworkPlaceholder == null) settle.value else 1f
+                    scaleY = if (artworkPlaceholder == null) settle.value else 1f
                 }
                 .drawWithContent {
                     drawContent()
@@ -169,7 +184,8 @@ fun DetailHeroFrame(
                     )
                 },
         ) {
-            if (playlistId.isNotBlank()) PlaylistArtwork(playlistId, description, artworkUrl, Modifier.fillMaxSize(), fullView = true)
+            if (artworkPlaceholder != null) artworkPlaceholder()
+            else if (playlistId.isNotBlank()) PlaylistArtwork(playlistId, description, artworkUrl, Modifier.fillMaxSize(), fullView = true)
             else ArtworkTile(url = artworkUrl, description = description, modifier = Modifier.fillMaxSize(), radius = 0)
             if (animatedArtworkUrl.isNotBlank()) {
                 AnimatedArtworkVideo(url = animatedArtworkUrl, active = true, modifier = Modifier.fillMaxSize())
@@ -182,7 +198,7 @@ fun DetailHeroFrame(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = artHeight - titleOverlap, bottom = 16.dp)
-                .riseIn(index = 2, distance = 36f),
+                .then(if (artworkPlaceholder == null) Modifier.riseIn(index = 2, distance = 36f) else Modifier),
             horizontalAlignment = Alignment.CenterHorizontally,
             content = content,
         )
@@ -206,8 +222,7 @@ fun HeroActionButton(
         modifier = modifier
             .pressScale(source, 0.94f)
             .size(size)
-            .clip(shape)
-            .desktopButtonSurface(shape)
+            .crystalControlSurface { desktopButtonSurface(shape) }
             .clickable(
                 interactionSource = source,
                 indication = ripple(bounded = true),
@@ -224,6 +239,18 @@ fun HeroActionButton(
             modifier = Modifier.size(20.dp).popOnChange(icon, peak = 1.45f),
         )
     }
+}
+
+@Composable
+internal fun HeroShuffleButton(active: Boolean, enabled: Boolean, onClick: () -> Unit) {
+    HeroActionButton(
+        onClick = onClick,
+        icon = Icons.Rounded.Shuffle,
+        contentDescription = uiText("Shuffle", "Aleatorio"),
+        modifier = Modifier.semantics { selected = active },
+        enabled = enabled,
+        tint = if (active) playbackAccent() else MaterialTheme.colorScheme.onSurface,
+    )
 }
 
 /**
@@ -317,12 +344,13 @@ fun HeroChip(
     icon: ImageVector? = null,
     onClick: (() -> Unit)? = null,
 ) {
+    val shape = MaterialTheme.shapes.small
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .clip(CircleShape)
-            .desktopButtonSurface(CircleShape)
-            .then(if (onClick != null) Modifier.bounceClickable(CircleShape, 0.92f, onClick = onClick) else Modifier)
+            .clip(shape)
+            .desktopButtonSurface(shape)
+            .then(if (onClick != null) Modifier.bounceClickable(shape, 0.92f, onClick = onClick) else Modifier)
             .padding(horizontal = 12.dp, vertical = 6.dp),
     ) {
         if (icon != null) {

@@ -18,7 +18,7 @@ internal fun AccountSettingsPage(
     onSignOut: () -> Unit,
 ) {
     SectionLabel(uiText("NÜMA account", "Cuenta de NÜMA"))
-    NumaAccountSettingsCard()
+    SettingsPanel { NumaAccountSettingsCard() }
     SectionLabel("YouTube Music")
     AccountCard(auth, onSignIn, onSwitchAccount, onSignOut)
     SectionLabel(uiText("History", "Historial"), 2)

@@ -21,6 +21,9 @@ package dev.sfg.numa.mobile.ui.screens
 
 
 
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
+import dev.sfg.numa.mobile.ui.theme.trackControlInk
+import dev.sfg.numa.mobile.ui.components.RoundedControlButton
 import dev.sfg.numa.mobile.ui.text.uiText
 
 import androidx.compose.animation.AnimatedContent
@@ -56,7 +59,6 @@ import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -70,9 +72,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.model.PlaybackStatus
 import dev.sfg.numa.mobile.model.RepeatMode
-import dev.sfg.numa.mobile.ui.theme.LocalAccent
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
-import dev.sfg.numa.mobile.ui.theme.legibleOnDarkChrome
 
 /**
  * Shuffle, previous, play, next, repeat. The three transport pills share the middle by weight,
@@ -94,6 +94,7 @@ fun PlayerTransportControls(
     /** The player keeps shuffle and repeat in the queue; screens without one show them here. */
     showModes: Boolean = true,
     compact: Boolean = false,
+    accent: Color = playbackAccent(),
 ) {
     val previousSource = remember { MutableInteractionSource() }
     val playSource = remember { MutableInteractionSource() }
@@ -134,6 +135,7 @@ fun PlayerTransportControls(
                 modifier = Modifier.weight(previousWeight).height(if (compact) 48.dp else PILL_HEIGHT),
             )
             PlayPill(
+                accent = accent,
                 isPlaying = isPlaying,
                 isBuffering = status == PlaybackStatus.BUFFERING || status == PlaybackStatus.LOADING,
                 enabled = localControls,
@@ -208,6 +210,7 @@ private fun TransportPill(
 
 @Composable
 private fun PlayPill(
+    accent: Color,
     isPlaying: Boolean,
     isBuffering: Boolean,
     enabled: Boolean,
@@ -216,12 +219,12 @@ private fun PlayPill(
     modifier: Modifier = Modifier,
 ) {
     val rose = currentRosePine()
-    val glyph = rose?.OnRose ?: PlayGlyph
+    val glyph = rose?.OnRose ?: accent.trackControlInk()
     Surface(
         onClick = onClick,
         enabled = enabled,
         shape = MaterialTheme.shapes.medium,
-        color = (rose?.Rose ?: Color.White).copy(alpha = if (enabled) 1f else 0.4f),
+        color = accent.copy(alpha = if (enabled) 1f else 0.4f),
         contentColor = glyph,
         interactionSource = interactionSource,
         modifier = modifier.height(PILL_HEIGHT),
@@ -254,7 +257,6 @@ private fun PlayPill(
 }
 
 private val PILL_HEIGHT = 50.dp
-private val PlayGlyph = Color(0xFF111214)
 private const val SIDE_WEIGHT = 1f
 private const val PLAY_WEIGHT = 1f
 private const val PRESSED_GROWTH = 1.3f
@@ -272,7 +274,7 @@ private fun TransportToggleOption(
     val activeColor by animateColorAsState(
         targetValue = when {
             !enabled -> (rose?.Text ?: Color.White).copy(alpha = 0.25f)
-            active -> rose?.AccentInk ?: LocalAccent.current.legibleOnDarkChrome()
+            active -> rose?.AccentInk ?: playbackAccent()
             else -> rose?.SecondaryText ?: Color.White.copy(alpha = 0.60f)
         },
         label = "ToggleActiveColor",
@@ -280,7 +282,7 @@ private fun TransportToggleOption(
 
     // The dot hangs inside the button's own box, so the icon stays on the pills' centre line.
     Box(contentAlignment = Alignment.Center) {
-        IconButton(
+        RoundedControlButton(
             onClick = onClick,
             enabled = enabled,
             modifier = Modifier.size(44.dp),

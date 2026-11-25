@@ -22,15 +22,20 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.ui.text.uiText
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
+import dev.sfg.numa.mobile.ui.theme.trackControlInk
+import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -66,33 +71,35 @@ private fun PlaylistCoverCrop(uri: Uri, onDismiss: () -> Unit, onSave: (Uri) -> 
     var zoom by remember(uri) { mutableFloatStateOf(1f) }
     var pan by remember(uri) { mutableStateOf(Offset.Zero) }
     var viewport by remember { mutableStateOf(IntSize.Zero) }
+    val openError = uiText("Could not open this image.", "No se pudo abrir esta imagen.")
+    val saveError = uiText("Could not save the image.", "No se pudo guardar la imagen.")
     LaunchedEffect(uri) {
         runCatching { withContext(Dispatchers.IO) { decodeCover(context, uri) } }
             .onSuccess { bitmap = it }
-            .onFailure { failure = "No se pudo abrir esta imagen." }
+            .onFailure { failure = openError }
     }
-    val configuration = LocalConfiguration.current
-    val previewSide = minOf(configuration.screenWidthDp - 80, configuration.screenHeightDp - 260, 448).coerceAtLeast(64).dp
+    val image = bitmap
+    val accent = playbackAccent()
     CoverCropDialog(
         onDismissRequest = { if (!saving) onDismiss() },
         title = { Text(uiText("Adjust cover", "Ajustar carátula")) },
-        text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(uiText("Drag and pinch to frame your image.", "Arrastra y pellizca para encuadrar la imagen."))
-                Spacer(Modifier.height(12.dp))
-                val image = bitmap
+        preview = { modifier ->
+            BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
                 if (image != null) {
                     val preview = remember(image) { image.asImageBitmap() }
-                    Canvas(Modifier.size(previewSide).clipToBounds().onSizeChanged {
+                    Canvas(Modifier.size(minOf(maxWidth, maxHeight)).clipToBounds().onSizeChanged {
                         val ratio = if (viewport.width > 0) it.width.toFloat() / viewport.width else 1f
                         pan = clampCoverPan(image.width, image.height, it.width, zoom, pan * ratio)
                         viewport = it
                     }
                         .pointerInput(image, saving) {
                             if (saving) return@pointerInput
-                            detectTransformGestures { _, movement, magnification, _ ->
-                                zoom = (zoom * magnification).coerceIn(1f, 4f)
-                                pan = clampCoverPan(image.width, image.height, viewport.width, zoom, pan + movement)
+                            detectTransformGestures { centroid, movement, magnification, _ ->
+                                val nextZoom = (zoom * magnification).coerceIn(1f, 4f)
+                                val origin = centroid - Offset(size.width / 2f, size.height / 2f)
+                                val nextPan = origin + (pan - origin) * (nextZoom / zoom) + movement
+                                zoom = nextZoom
+                                pan = clampCoverPan(image.width, image.height, viewport.width, zoom, nextPan)
                             }
                         }) {
                         val scale = maxOf(size.width / image.width, size.height / image.height) * zoom
@@ -101,37 +108,72 @@ private fun PlaylistCoverCrop(uri: Uri, onDismiss: () -> Unit, onSave: (Uri) -> 
                         drawImage(preview,
                             dstOffset = IntOffset(((size.width - width) / 2 + pan.x).toInt(), ((size.height - height) / 2 + pan.y).toInt()),
                             dstSize = IntSize(width, height))
+                        val edge = 1.dp.toPx()
+                        drawRect(Color.Black.copy(alpha = 0.55f), style = Stroke(edge * 3))
+                        drawRect(Color.White.copy(alpha = 0.90f), topLeft = Offset(edge, edge),
+                            size = Size(size.width - edge * 2, size.height - edge * 2), style = Stroke(edge))
+                        for (third in 1..2) {
+                            val x = size.width * third / 3
+                            val y = size.height * third / 3
+                            val verticalEnd = Offset(x, size.height)
+                            val horizontalEnd = Offset(size.width, y)
+                            drawLine(Color.Black.copy(alpha = 0.45f), Offset(x, 0f), verticalEnd, edge * 2.5f)
+                            drawLine(Color.Black.copy(alpha = 0.45f), Offset(0f, y), horizontalEnd, edge * 2.5f)
+                            drawLine(Color.White.copy(alpha = 0.75f), Offset(x, 0f), verticalEnd, edge)
+                            drawLine(Color.White.copy(alpha = 0.75f), Offset(0f, y), horizontalEnd, edge)
+                        }
+                    }
+                } else if (failure == null) CircularProgressIndicator()
+            }
+        },
+        controls = {
+            Column {
+                if (image != null) {
+                    Text(
+                        uiText("Drag to move. Pinch or use the slider to zoom.", "Arrastra para mover la imagen. Pellizca o usa la barra para ampliar."),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(uiText("Zoom ${(zoom * 100).roundToInt()}%", "Zoom ${(zoom * 100).roundToInt()}%"),
+                            style = MaterialTheme.typography.labelLarge)
+                        TextButton(
+                            onClick = { zoom = 1f; pan = Offset.Zero },
+                            enabled = !saving && (zoom != 1f || pan != Offset.Zero),
+                            shape = MaterialTheme.shapes.small,
+                        ) { Text(uiText("Reset", "Restablecer")) }
                     }
                     val changeZoom: (Float) -> Unit = {
                         zoom = it.coerceIn(1f, 4f)
                         pan = clampCoverPan(image.width, image.height, viewport.width, zoom, pan)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { changeZoom(zoom - 0.25f) }, enabled = !saving && zoom > 1f) {
+                        IconButton(onClick = { changeZoom(zoom - 0.25f) }, enabled = !saving && zoom > 1f, shape = MaterialTheme.shapes.small) {
                             Icon(Icons.Rounded.Remove, uiText("Zoom out", "Alejar"))
                         }
                         ThinGlassSlider(value = zoom, onValueChange = changeZoom, valueRange = 1f..4f,
                             enabled = !saving, modifier = Modifier.weight(1f), description = uiText("Cover zoom", "Zoom de la carátula"))
-                        IconButton(onClick = { changeZoom(zoom + 0.25f) }, enabled = !saving && zoom < 4f) {
+                        IconButton(onClick = { changeZoom(zoom + 0.25f) }, enabled = !saving && zoom < 4f, shape = MaterialTheme.shapes.small) {
                             Icon(Icons.Rounded.Add, uiText("Zoom in", "Acercar"))
                         }
                     }
-                    Text("${(zoom * 100).toInt()}%", style = MaterialTheme.typography.labelSmall)
-                } else if (failure == null) CircularProgressIndicator()
+                }
                 failure?.let { Text(it) }
             }
         },
         confirmButton = {
-            TextButton(enabled = bitmap != null && viewport.width > 0 && !saving, onClick = {
-                val image = bitmap ?: return@TextButton
+            Button(enabled = image != null && viewport.width > 0 && !saving, onClick = {
+                val image = image ?: return@Button
+                val savedZoom = zoom
+                val savedPan = pan
+                val savedSide = viewport.width
                 saving = true
                 scope.launch {
                     runCatching { withContext(Dispatchers.IO) {
                         val output = Bitmap.createBitmap(1024, 1024, Bitmap.Config.ARGB_8888)
-                        val scale = maxOf(1024f / image.width, 1024f / image.height) * zoom
-                        val ratio = 1024f / viewport.width
-                        val x = (1024 - image.width * scale) / 2 + pan.x * ratio
-                        val y = (1024 - image.height * scale) / 2 + pan.y * ratio
+                        val scale = maxOf(1024f / image.width, 1024f / image.height) * savedZoom
+                        val ratio = 1024f / savedSide
+                        val x = (1024 - image.width * scale) / 2 + savedPan.x * ratio
+                        val y = (1024 - image.height * scale) / 2 + savedPan.y * ratio
                         AndroidCanvas(output).drawBitmap(image, null,
                             RectF(x, y, x + image.width * scale, y + image.height * scale), Paint(Paint.FILTER_BITMAP_FLAG))
                         val directory = File(context.cacheDir, "playlist-crops").apply { mkdirs() }
@@ -140,12 +182,14 @@ private fun PlaylistCoverCrop(uri: Uri, onDismiss: () -> Unit, onSave: (Uri) -> 
                         file.outputStream().use { check(output.compress(Bitmap.CompressFormat.JPEG, 95, it)) }
                         output.recycle()
                         Uri.fromFile(file)
-                    } }.onSuccess(onSave).onFailure { failure = "No se pudo guardar la imagen." }
+                    } }.onSuccess(onSave).onFailure { failure = saveError }
                     saving = false
                 }
-            }) { Text(uiText("Save", "Guardar")) }
+            }, shape = MaterialTheme.shapes.small,
+                colors = ButtonDefaults.buttonColors(containerColor = accent, contentColor = accent.trackControlInk()),
+            ) { Text(uiText("Save", "Guardar")) }
         },
-        dismissButton = { TextButton(enabled = !saving, onClick = onDismiss) { Text(uiText("Cancel", "Cancelar")) } },
+        dismissButton = { TextButton(enabled = !saving, onClick = onDismiss, shape = MaterialTheme.shapes.small) { Text(uiText("Cancel", "Cancelar")) } },
     )
 }
 

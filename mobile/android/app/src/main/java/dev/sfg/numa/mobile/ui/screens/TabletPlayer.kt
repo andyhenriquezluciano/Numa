@@ -126,7 +126,6 @@ fun TabletPlayerBody(
     autoplayError: String = "",
     onAutoplayEnabled: ((Boolean) -> Unit)? = null,
     smartCrossfade: Boolean = false,
-    onBestMixUpcoming: ((onProgress: (String) -> Unit, onComplete: () -> Unit) -> Unit)? = null,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize().systemBarsPadding()) {
     val compact = maxHeight < 480.dp
@@ -153,15 +152,12 @@ fun TabletPlayerBody(
                                 onRemove = onRemoveQueueIndex,
                                 onMove = onMoveQueueItem,
                                 onClearUpcoming = onClearUpcoming,
-                                onShuffleUpcoming = onShuffle,
-                                onShuffle = onShuffle,
                                 onRepeat = onRepeat,
                                 autoplayEnabled = autoplayEnabled,
                                 autoplayLoading = autoplayLoading,
                                 autoplayError = autoplayError,
                                 onAutoplayEnabled = onAutoplayEnabled,
                                 smartCrossfade = smartCrossfade,
-                                onBestMixUpcoming = onBestMixUpcoming,
                                 sleepTimerRemainingSeconds = sleepTimerRemainingSeconds,
                                 sleepTimerEndOfTrack = sleepTimerEndOfTrack,
                                 onSleepTimer = onSleepTimer,
@@ -177,7 +173,7 @@ fun TabletPlayerBody(
                                     accent = lyricAccent,
                                 )
 
-                                LoadState.Loading -> LyricsNotice(uiText("Finding lyrics…", "Buscando letras…"), isLoading = true)
+                                LoadState.Loading -> LyricsNotice(uiText("Finding lyrics…", "Buscando letras…"), isLoading = true, loadingHorizontalPadding = 0.dp)
                                 is LoadState.Empty -> LyricsNotice(lyrics.message, icon = Icons.Rounded.MusicNote)
                                 is LoadState.Error -> LyricsNotice(lyrics.message, icon = Icons.Rounded.Info)
                                 LoadState.Idle -> LyricsNotice(uiText("Start a song to see its lyrics.", "Reproduce una canción para ver su letra."), icon = Icons.Rounded.MusicNote)

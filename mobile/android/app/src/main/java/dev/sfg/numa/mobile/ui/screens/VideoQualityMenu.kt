@@ -41,7 +41,7 @@ import dev.sfg.numa.mobile.ui.glass.GlassDropdownMenu
 import dev.sfg.numa.mobile.ui.glass.DesktopGlass
 import dev.sfg.numa.mobile.ui.glass.desktopButtonSurface
 import dev.sfg.numa.mobile.ui.text.uiText
-import dev.sfg.numa.mobile.ui.theme.CanopyColors
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 @Composable
@@ -95,7 +95,7 @@ private fun QualityChoice(label: String, chosen: Boolean, modifier: Modifier, on
         Text(label, modifier = Modifier.weight(1f), color = rose?.Text ?: DesktopGlass.Text, fontSize = 14.sp,
             fontWeight = if (chosen) FontWeight.SemiBold else FontWeight.Normal, maxLines = 1)
         if (chosen) Icon(Icons.Rounded.Check, uiText("Selected", "Seleccionado"),
-            modifier = Modifier.size(18.dp), tint = rose?.InfoInk ?: CanopyColors.Accent)
+            modifier = Modifier.size(18.dp), tint = rose?.InfoInk ?: playbackAccent())
     }
 }
 

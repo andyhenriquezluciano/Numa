@@ -36,6 +36,7 @@ import dev.sfg.numa.mobile.model.LocalMaxActive
 import dev.sfg.numa.mobile.model.CatalogKind
 import dev.sfg.numa.mobile.model.LoadState
 import dev.sfg.numa.mobile.model.PlaybackTarget
+import dev.sfg.numa.mobile.model.isBestMixTitle
 import dev.sfg.numa.mobile.ui.components.PlaylistPickerSheet
 import dev.sfg.numa.mobile.ui.motion.NavMotion
 import dev.sfg.numa.mobile.ui.navigation.Routes
@@ -135,8 +136,10 @@ internal fun NumaNavigation(
             )
         }
         composable(Routes.LIBRARY) {
+            val libraryLoading by viewModel.libraryLoading.collectAsStateWithLifecycle(initialValue = false)
             LibraryScreen(
                 library = library,
+                loading = libraryLoading,
                 filter = libraryFilter,
                 onFilterChange = viewModel::selectLibraryFilter,
                 downloads = downloadsList,
@@ -309,6 +312,10 @@ internal fun NumaNavigation(
 
             // A playlist on this phone also edits its songs, cover and name from the detail page.
             val sourcePlaylistId = (detail as? LoadState.Content)?.value?.takeIf { it.kind == CatalogKind.PLAYLIST }?.id.orEmpty()
+            val currentSource = playback.sourcePlaylistId
+            val sameActivePlaylist = playback.currentTrack != null && currentSource.isNotBlank() &&
+                dev.sfg.numa.mobile.library.libraryPlaylistId(currentSource) ==
+                dev.sfg.numa.mobile.library.libraryPlaylistId(sourcePlaylistId)
             val localDetail = (detail as? LoadState.Content)?.value?.takeIf { dev.sfg.numa.mobile.local.isLocalPlaylistId(it.id) }
             val localEdit = localDetail?.let { current ->
                 dev.sfg.numa.mobile.ui.screens.rememberLocalPlaylistEdit(
@@ -323,8 +330,15 @@ internal fun NumaNavigation(
 
             DetailScreen(
                 state = shownDetail,
+                loadingKind = dev.sfg.numa.mobile.catalog.CatalogRepository.kindOf(id),
+                loadingTitle = library.savedPlaylists.firstOrNull {
+                    dev.sfg.numa.mobile.library.libraryPlaylistId(it.id) ==
+                        dev.sfg.numa.mobile.library.libraryPlaylistId(id)
+                }?.title ?: library.savedAlbums.firstOrNull { it.id == id }?.title.orEmpty(),
                 playback = playback,
-                onTogglePlayback = viewModel::togglePlayback,
+                onTogglePlayback = {
+                    viewModel.toggleCollectionPlayback((shownDetail as? LoadState.Content)?.value?.title.orEmpty())
+                },
                 localEdit = localEdit,
                 onDeletePlaylist = { id -> viewModel.deletePlaylist(id) { nav.popBackStack() } },
                 onBack = nav::popBackStack,
@@ -333,8 +347,11 @@ internal fun NumaNavigation(
                     else viewModel.playAll(tracks, contextTitle = source, playlistId = sourcePlaylistId)
                 },
                 onShuffle = { tracks, source ->
-                    if (localDetail != null) viewModel.playLocalPlaylist(localDetail.id, tracks, shuffle = true)
-                    else viewModel.shuffleAll(tracks, source, playlistId = sourcePlaylistId)
+                    when {
+                        sameActivePlaylist -> viewModel.toggleShuffle()
+                        localDetail != null -> viewModel.playLocalPlaylist(localDetail.id, tracks, shuffle = true)
+                        else -> viewModel.shuffleAll(tracks, source, playlistId = sourcePlaylistId)
+                    }
                 },
                 shuffleAvailable = canShuffle,
                 onPlay = { track, source -> viewModel.play(track, source) },
@@ -364,8 +381,13 @@ internal fun NumaNavigation(
                 onFetchSectionItems = viewModel::fetchSectionItems,
                 smartCrossfadeEnabled = settings.smartCrossfade && !LocalMaxActive.current,
                 onPlayBestMix = { tracks, title, progress, complete ->
-                    if (localDetail != null) viewModel.playLocalPlaylist(localDetail.id, tracks, bestMix = true)
-                    else viewModel.playBestMix(tracks, title, progress, complete, playlistId = sourcePlaylistId)
+                    when {
+                        sameActivePlaylist && !playback.shuffle && playback.contextTitle.isBestMixTitle() ->
+                            viewModel.restoreAlphabeticalQueue()
+                        sameActivePlaylist -> viewModel.bestMixUpcomingForCollection(title, progress, complete)
+                        localDetail != null -> viewModel.playLocalPlaylist(localDetail.id, tracks, bestMix = true)
+                        else -> viewModel.playBestMix(tracks, title, progress, complete, playlistId = sourcePlaylistId)
+                    }
                 },
                 isRefreshing = detailRefreshing,
                 onRefresh = viewModel::refreshDetail,

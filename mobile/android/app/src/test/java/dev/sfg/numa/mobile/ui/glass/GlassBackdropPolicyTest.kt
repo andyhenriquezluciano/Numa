@@ -46,4 +46,15 @@ class GlassBackdropPolicyTest {
             assertEquals(0f, GlassTone.CHROME.spec(theme, GlassBorders.LIMPIO).borderAlpha, 0f)
         }
     }
+
+    @Test fun `settings option menu uses a neutral desktop tint over its blur`() {
+        for (theme in listOf(GlassTheme.CRISTAL, GlassTheme.CRISTAL_OSCURO)) {
+            val menu = GlassTone.SETTINGS_PICKER.spec(theme, GlassBorders.LIMPIO)
+            assertEquals(DesktopGlass.PickerPopupBase, menu.base)
+            assertEquals(0f, menu.tintMix, 0f)
+            assertTrue(menu.film in DesktopGlass.PickerPopupOpacity..0.85f)
+            assertTrue(menu.solidFilm > menu.film)
+            assertEquals(0f, menu.borderAlpha, 0f)
+        }
+    }
 }

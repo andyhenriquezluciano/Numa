@@ -10,6 +10,7 @@ import dev.sfg.numa.mobile.ui.glass.desktopButtonSurface
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,6 +34,7 @@ internal fun GlassConfirmButton(text: String, enabled: Boolean = true, modifier:
         enabled = enabled,
         modifier = modifier.desktopButtonSurface(),
         colors = ButtonDefaults.textButtonColors(contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface, containerColor = Color.Transparent),
+        shape = MaterialTheme.shapes.small,
     ) { Text(text) }
 }
 

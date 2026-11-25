@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import dev.sfg.numa.mobile.ui.glass.glassPane
 
 import androidx.compose.foundation.background
@@ -36,8 +38,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -94,7 +94,8 @@ internal fun WelcomeToggleRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onChecked(!checked) }
+            .clip(MaterialTheme.shapes.small)
+            .toggleable(value = checked, role = Role.Switch, onValueChange = onChecked)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -115,16 +116,7 @@ internal fun WelcomeToggleRow(
                 color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Switch(
-            checked = checked,
-            onCheckedChange = onChecked,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.Black,
-                checkedTrackColor = LocalAccent.current,
-                uncheckedThumbColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
-                uncheckedTrackColor = CanopyColors.Canvas,
-            ),
-        )
+        SettingsSwitch(checked, onCheckedChange = null)
     }
 }
 

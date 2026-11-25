@@ -58,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -73,7 +74,7 @@ import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 /** Badge for explicit songs. */
 @Composable
-fun ExplicitBadge(modifier: Modifier = Modifier) {
+fun ExplicitBadge(modifier: Modifier = Modifier, fontSize: TextUnit = 9.sp) {
     val rose = currentRosePine()
     Surface(
         color = rose?.Overlay ?: Color.White.copy(alpha = 0.16f),
@@ -81,18 +82,17 @@ fun ExplicitBadge(modifier: Modifier = Modifier) {
         modifier = modifier.size(14.dp),
     ) {
         Box(contentAlignment = Alignment.Center) {
-        Text(
-            text = "E",
-            color = rose?.Text ?: Color.White.copy(alpha = 0.85f),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 9.sp,
-                lineHeight = 9.sp,
-                platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.sp,
-            ),
-            modifier = Modifier,
-        )
+            Text(
+                text = "E",
+                color = rose?.Text ?: Color.White.copy(alpha = 0.85f),
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = fontSize,
+                    lineHeight = fontSize,
+                    platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.sp,
+                ),
+            )
         }
     }
 }
@@ -310,7 +310,7 @@ fun TrackRow(
                         modifier = Modifier.padding(horizontal = 6.dp)
                     )
                 }
-                IconButton(onClick = { onMoreClick?.invoke() ?: run { popupOpen = true } }, modifier = Modifier.size(36.dp)) {
+                IconButton(onClick = { onMoreClick?.invoke() ?: run { popupOpen = true } }, modifier = Modifier.size(36.dp), shape = MaterialTheme.shapes.small) {
                     Icon(
                         Icons.Rounded.MoreHoriz,
                         contentDescription = uiText("Actions for ${track.title}", "Acciones para ${track.title}"),

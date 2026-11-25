@@ -48,7 +48,6 @@ import androidx.compose.material3.ripple
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -189,7 +188,7 @@ fun ChromeAction(
     onClick: () -> Unit,
     tint: Color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
 ) {
-    IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
+    RoundedControlButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
         Icon(icon, contentDescription = contentDescription, tint = tint, modifier = Modifier.size(20.dp))
     }
 }

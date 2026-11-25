@@ -223,6 +223,7 @@ fun ReleaseNotesDialog(
                     IconButton(
                         onClick = onDismiss,
                         modifier = Modifier.size(32.dp),
+                        shape = MaterialTheme.shapes.small,
                     ) {
                         Icon(
                             Icons.Rounded.Close,
@@ -351,7 +352,7 @@ fun ReleaseNotesDialog(
 
                 Button(
                     onClick = onDismiss,
-                    shape = CircleShape,
+                    shape = MaterialTheme.shapes.small,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = LocalAccent.current,
                         contentColor = Color.Black,

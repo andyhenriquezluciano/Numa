@@ -34,7 +34,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.remember
 import dev.sfg.numa.mobile.ui.motion.pressScale
@@ -132,7 +131,7 @@ fun WelcomeScreen(
             val finishSource = remember { MutableInteractionSource() }
             Button(
                 onClick = onFinish,
-                shape = CircleShape,
+                shape = MaterialTheme.shapes.small,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = LocalAccent.current,
                     contentColor = Color.Black,

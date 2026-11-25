@@ -67,6 +67,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import dev.sfg.numa.mobile.ui.glass.GlassTone
 import dev.sfg.numa.mobile.ui.glass.glassPane
+import dev.sfg.numa.mobile.ui.glass.crystalSearchSurface
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -205,9 +206,7 @@ private fun SettingsSearchField(query: String, onQuery: (String) -> Unit) {
                 Modifier
                     .fillMaxWidth()
                     .height(48.dp)
-                    .clip(shape)
-                    .glassPane(shape, GlassTone.CONTROL)
-                    .border(1.dp, SettingsStyle.PanelBorder, shape)
+                    .crystalSearchSurface { clip(shape).glassPane(shape, GlassTone.CONTROL) }
                     .padding(start = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -221,7 +220,7 @@ private fun SettingsSearchField(query: String, onQuery: (String) -> Unit) {
                 }
                 if (query.isNotEmpty()) {
                     Box(
-                        Modifier.size(48.dp).clickable(role = Role.Button) { onQuery("") },
+                        Modifier.size(48.dp).clip(MaterialTheme.shapes.small).clickable(role = Role.Button) { onQuery("") },
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(Icons.Rounded.Close, contentDescription = uiText("Clear search", "Borrar búsqueda"), tint = SettingsStyle.Description, modifier = Modifier.size(18.dp))

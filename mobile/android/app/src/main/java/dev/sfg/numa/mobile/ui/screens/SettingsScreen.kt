@@ -38,7 +38,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import dev.sfg.numa.mobile.ui.components.RoundedControlButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Icon
@@ -154,7 +154,7 @@ fun SettingsScreen(
         // No fill: the app-level cover backdrop shows through the panels.
         Column(Modifier.fillMaxSize()) {
             if (page != SettingsPage.Home) {
-                androidx.compose.material3.IconButton(onClick = goBack,
+                RoundedControlButton(onClick = goBack,
                     modifier = Modifier.padding(start = 16.dp, top = 8.dp).size(48.dp)) {
                     Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = uiText("Back", "Volver"), tint = SettingsStyle.Title)
                 }
@@ -283,7 +283,7 @@ internal fun SettingsHeader(
                 Modifier
                     .offset(x = (-8).dp)
                     .size(44.dp)
-                    .clip(CircleShape)
+                    .clip(MaterialTheme.shapes.small)
                     .clickable(role = Role.Button, onClickLabel = "Volver", onClick = onBack),
                 contentAlignment = Alignment.Center,
             ) {

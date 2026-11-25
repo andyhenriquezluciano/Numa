@@ -28,6 +28,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -55,7 +56,7 @@ internal fun ReorderControls(
 
 @Composable
 private fun ControlButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, action: (() -> Unit)?) {
-    IconButton(onClick = { action?.invoke() }, enabled = action != null, modifier = Modifier.size(40.dp)) {
+    IconButton(onClick = { action?.invoke() }, enabled = action != null, modifier = Modifier.size(40.dp), shape = MaterialTheme.shapes.small) {
         Icon(
             icon,
             contentDescription = description,

@@ -44,7 +44,6 @@ import dev.sfg.numa.mobile.ui.scroll.NumaLazyRow as LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -170,7 +169,6 @@ internal fun CollectionDetailContent(
                         detail = detail.copy(artworkUrl = coverUrl),
                         playback = playback,
                         onTogglePlayback = onTogglePlayback,
-                        palette = palette,
                         shuffleAvailable = shuffleAvailable,
                         onPlayAll = onPlayAll,
                         onShuffle = onShuffle,
@@ -189,6 +187,7 @@ internal fun CollectionDetailContent(
                             local = localEdit,
                             onShuffle = { onShuffle(detail.tracks, detail.title) },
                             shuffleEnabled = shuffleAvailable && detail.tracks.isNotEmpty(),
+                            shuffleActive = playback.shuffle && (playback.currentTrack != null || playback.queue.isNotEmpty()),
                         )
                     }
                 }
@@ -208,7 +207,7 @@ internal fun CollectionDetailContent(
                             )
                             Surface(
                                 onClick = { searchQuery = "" },
-                                shape = RoundedCornerShape(12.dp),
+                                shape = MaterialTheme.shapes.extraSmall,
                                 color = rose?.Overlay ?: Color.White.copy(alpha = 0.12f),
                             ) {
                                 Text(

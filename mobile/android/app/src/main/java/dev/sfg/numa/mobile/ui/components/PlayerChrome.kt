@@ -19,6 +19,7 @@
 
 package dev.sfg.numa.mobile.ui.components
 
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -76,7 +77,6 @@ import dev.sfg.numa.mobile.ui.glass.glassPane
 import dev.sfg.numa.mobile.ui.motion.popOnChange
 import dev.sfg.numa.mobile.ui.navigation.Routes
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
-import dev.sfg.numa.mobile.ui.theme.LocalAccent
 import dev.sfg.numa.mobile.ui.theme.RosePinePalette
 import dev.sfg.numa.mobile.ui.theme.rosePinePalette
 
@@ -108,7 +108,6 @@ private val BottomBarShape = RoundedCornerShape(24.dp)
 @Composable
 fun NumaBottomBar(currentRoute: String?, onSelect: (String) -> Unit, showSettings: Boolean = false) {
     val glassStyle = LocalGlass.current
-    val glassTint = glassStyle.tint
     val theme = glassStyle.theme
     val showBorders = glassStyle.borders != GlassBorders.LIMPIO
     val isRosePine = (theme == GlassTheme.ROSE_PINE || theme == GlassTheme.ROSE_PINE_DAWN)
@@ -134,7 +133,7 @@ fun NumaBottomBar(currentRoute: String?, onSelect: (String) -> Unit, showSetting
     }
     val activeIndex = selectedIndex ?: lastKnownIndex
 
-    val tintColor = if (glassTint != Color.Unspecified && glassTint.alpha > 0f) glassTint else LocalAccent.current
+    val tintColor = playbackAccent()
 
     Box(
         modifier = Modifier
@@ -244,7 +243,7 @@ fun NumaBottomBar(currentRoute: String?, onSelect: (String) -> Unit, showSetting
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = rose?.navigationInk(destination.route) ?: tintColor,
-                                selectedTextColor = rose?.Text ?: Color.White,
+                                selectedTextColor = rose?.Text ?: tintColor,
                                 indicatorColor = Color.Transparent,
                                 unselectedIconColor = rose?.SecondaryText ?: Color.White.copy(alpha = 0.72f),
                                 unselectedTextColor = rose?.SecondaryText ?: Color.White.copy(alpha = 0.72f),

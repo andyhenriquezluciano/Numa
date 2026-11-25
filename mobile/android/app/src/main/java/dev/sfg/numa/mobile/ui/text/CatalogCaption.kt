@@ -33,9 +33,14 @@ fun playlistDisplayTitle(id: String, original: String, author: String = ""): Str
     } else original
 }
 
-fun playlistDisplayAuthor(playlist: dev.sfg.numa.mobile.model.Playlist): String =
-    if (playlist.id.removePrefix("VL") in setOf("LM", "FEmusic_liked_videos", "SE")) catalogCaption(playlist.author)
-    else playlist.author
+fun playlistDisplayAuthor(playlist: dev.sfg.numa.mobile.model.Playlist): String {
+    if (playlist.id.removePrefix("VL") !in setOf("LM", "FEmusic_liked_videos", "SE")) return playlist.author
+    val author = playlist.author.trim()
+    if (author.startsWith("Lista creada automáticamente", ignoreCase = true) ||
+        author.startsWith("Automatically created playlist", ignoreCase = true)
+    ) return ""
+    return catalogCaption(author)
+}
 
 fun navigationTitle(route: String): String = when (route) {
     dev.sfg.numa.mobile.ui.navigation.Routes.HOME -> uiText("Home", "Inicio")

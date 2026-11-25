@@ -22,10 +22,13 @@ package dev.sfg.numa.mobile.ui.components
 
 
 import dev.sfg.numa.mobile.ui.glass.desktopButtonSurface
+import dev.sfg.numa.mobile.ui.glass.DesktopGlass
+import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +49,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -138,12 +143,17 @@ fun CanopyButton(
     )
 
     val source = androidx.compose.runtime.remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val pressed by source.collectIsPressedAsState()
+    val shape = MaterialTheme.shapes.small
+    val buttonSurface = if (currentRosePine() == null) {
+        Modifier.clip(shape).background(if (pressed) DesktopGlass.PressedFill else DesktopGlass.ButtonFill)
+    } else Modifier.desktopButtonSurface(shape)
     Box(
         modifier = modifier
             .pressScale(source, 0.92f)
             .heightIn(min = 44.dp)
-            .desktopButtonSurface(MaterialTheme.shapes.medium)
-            .clickable(interactionSource = source, indication = null, onClick = onClick)
+            .then(buttonSurface)
+            .clickable(interactionSource = source, indication = null, role = Role.Button, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {

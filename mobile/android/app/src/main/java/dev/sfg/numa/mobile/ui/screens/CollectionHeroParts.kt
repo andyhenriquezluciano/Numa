@@ -45,6 +45,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -66,6 +67,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,8 +77,10 @@ import dev.sfg.numa.mobile.model.BrowseDetail
 import dev.sfg.numa.mobile.model.LocalBestMixJob
 import dev.sfg.numa.mobile.model.CatalogKind
 import dev.sfg.numa.mobile.model.Track
+import dev.sfg.numa.mobile.ui.components.HeroActionButton
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
 import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
@@ -116,11 +121,13 @@ internal class BestMixLauncher(
 ) {
     // Derived from the launcher-owned run, so leaving and re-entering the screen keeps the state.
     val isSorting: Boolean get() = job.value?.key == key
+    val isAvailable: Boolean get() = isSorting || job.value == null
     val statusText: String get() = if (isSorting) job.value?.status.orEmpty() else ""
     var showPrompt by mutableStateOf(false)
 
-    fun trigger() {
+    fun trigger(restoreOrder: Boolean = false) {
         if (isSorting) { job.value?.cancel?.invoke(); return }
+        if (restoreOrder) { start(this); return }
         if (job.value != null) return
         if (needsPrompt) showPrompt = true else run()
     }
@@ -180,6 +187,24 @@ internal fun shareCollection(context: Context, detail: BrowseDetail, onShare: ((
         type = "text/plain"
     }
     context.startActivity(Intent.createChooser(intent, "Share ${detail.title}"))
+}
+
+@Composable
+internal fun PlaylistBestMixButton(bestMix: BestMixLauncher, active: Boolean, hasTracks: Boolean) {
+    val sorting = bestMix.isSorting
+    val label = when {
+        sorting -> uiText("Cancel Best Mix", "Cancelar Mejor mezcla")
+        active -> uiText("Turn off Best Mix", "Desactivar Mejor mezcla")
+        else -> uiText("Best Mix", "Mejor mezcla")
+    }
+    HeroActionButton(
+        onClick = { bestMix.trigger(restoreOrder = active) },
+        icon = if (sorting) Icons.Rounded.Close else Icons.Rounded.AutoAwesome,
+        contentDescription = label,
+        modifier = Modifier.semantics { selected = active && !sorting },
+        enabled = active || sorting || (hasTracks && bestMix.isAvailable),
+        tint = if (active || sorting) playbackAccent() else MaterialTheme.colorScheme.onSurface,
+    )
 }
 
 @Composable
@@ -244,12 +269,13 @@ internal fun BestMixDownloadPrompt(
             Button(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(containerColor = LocalAccent.current),
+                shape = MaterialTheme.shapes.small,
             ) {
                 Text(uiText("Download & sort", "Descargar y ordenar"), color = Color.Black, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss, shape = MaterialTheme.shapes.small) {
                 Text(uiText("Cancel", "Cancelar"), color = Color.White.copy(alpha = 0.7f))
             }
         },

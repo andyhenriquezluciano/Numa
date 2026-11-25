@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.components
 
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
+import dev.sfg.numa.mobile.ui.theme.trackControlInk
 import dev.sfg.numa.mobile.ui.text.uiText
 
 import androidx.compose.animation.AnimatedContent
@@ -63,7 +65,6 @@ import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -84,15 +85,18 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -105,9 +109,8 @@ import dev.sfg.numa.mobile.model.GlassTheme
 import dev.sfg.numa.mobile.ui.theme.LocalGlassBorders
 import dev.sfg.numa.mobile.ui.theme.LocalGlassTheme
 import dev.sfg.numa.mobile.ui.theme.RosePineBorderWidth
+import dev.sfg.numa.mobile.ui.glass.DesktopGlass
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
-import dev.sfg.numa.mobile.ui.theme.CanopyColors
-import dev.sfg.numa.mobile.ui.theme.LocalAccent
 import dev.sfg.numa.mobile.ui.motion.pressScale
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -116,6 +119,8 @@ import kotlin.math.sign
 import androidx.compose.ui.graphics.graphicsLayer
 
 private val MiniPlayerShape = RoundedCornerShape(16.dp)
+private val MiniControlSize = 40.dp
+private val MiniControlTarget = 48.dp
 
 /** Expressive floating mini-player component matching SimpMusic design. */
 @Composable
@@ -181,7 +186,10 @@ fun MiniPlayer(
             .then(if (showBorder) Modifier.border(RosePineBorderWidth, rose.Rose, MiniPlayerShape) else Modifier)
     }
     val controlsTint = rose?.Text ?: Color.White
-    val skipFill = rose?.let { if (isDawn) it.Surface else it.Overlay } ?: Color.White.copy(alpha = 0.14f)
+    val accent = playbackAccent()
+    val progressHeight = if (rose == null) 4.dp else 2.dp
+    val progressRail = rose?.HighlightMed ?: Color.White.copy(alpha = 0.24f)
+    val skipFill = rose?.let { if (isDawn) it.Surface else it.Overlay } ?: DesktopGlass.TransportButtonFill
 
     val dragModifier = Modifier.draggable(
         enabled = dismissEnabled,
@@ -255,24 +263,31 @@ fun MiniPlayer(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(bottom = progressHeight)
                     .padding(horizontal = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AnimatedContent(
-                    targetState = track,
-                    transitionSpec = {
-                        fadeIn(animationSpec = tween(350)) togetherWith fadeOut(animationSpec = tween(250))
-                    },
-                    label = "MiniPlayerArtworkCrossfade",
-                ) { artworkTrack ->
-                    MiniPlayerArtwork(
-                        track = artworkTrack,
-                        animatedArtworkEnabled = animatedArtworkEnabled && artworkTrack.id == track.id,
-                        isPlaying = playback.isPlaying,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .onGloballyPositioned { onArtworkBounds?.invoke(it.boundsInRoot()) },
-                    )
+                Box(
+                    modifier = Modifier.size(width = MiniControlSize, height = MiniControlTarget),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    AnimatedContent(
+                        targetState = track,
+                        transitionSpec = {
+                            fadeIn(animationSpec = tween(350)) togetherWith fadeOut(animationSpec = tween(250))
+                        },
+                        label = "MiniPlayerArtworkCrossfade",
+                    ) { artworkTrack ->
+                        MiniPlayerArtwork(
+                            track = artworkTrack,
+                            animatedArtworkEnabled = animatedArtworkEnabled && artworkTrack.id == track.id,
+                            isPlaying = playback.isPlaying,
+                            size = MiniControlSize,
+                            modifier = Modifier
+                                .size(MiniControlSize)
+                                .onGloballyPositioned { onArtworkBounds?.invoke(it.boundsInRoot()) },
+                        )
+                    }
                 }
                 Spacer(Modifier.width(10.dp))
                 AnimatedContent(
@@ -302,11 +317,10 @@ fun MiniPlayer(
                 }
                 Spacer(Modifier.width(6.dp))
                 MiniSkipButton(Icons.Rounded.SkipPrevious, uiText("Previous", "Anterior"), controlsTint, skipFill, onPrevious)
-                val buttonColor = rose?.Rose ?: lerp(checkNotNull(palette).accent, Color.White, 0.62f)
                 val toggleSource = remember { MutableInteractionSource() }
                 MiniTransportButton(
                     onClick = onTogglePlay,
-                    fill = buttonColor,
+                    fill = accent,
                     interactionSource = toggleSource,
                     modifier = Modifier.pressScale(toggleSource, 0.82f),
                 ) {
@@ -323,7 +337,7 @@ fun MiniPlayer(
                             imageVector = if (playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                             contentDescription = if (playing) uiText("Pause", "Pausar") else uiText("Play", "Reproducir"),
                             // Keep the glyph readable whatever hue the cover produced.
-                            tint = rose?.OnRose ?: if (buttonColor.luminance() > 0.5f) Color.Black else Color.White,
+                            tint = rose?.OnRose ?: accent.trackControlInk(),
                             modifier = Modifier.size(20.dp),
                         )
                     }
@@ -334,22 +348,23 @@ fun MiniPlayer(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.BottomCenter),
-            ) {
-                LinearProgressIndicator(
-                    progress = progress,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(if (rose == null) 4.dp else 2.dp)
-                        .onSizeChanged { barWidthPx = it.width.toFloat() },
-                    color = rose?.Rose ?: Color.White,
-                    trackColor = rose?.HighlightMed ?: Color.White.copy(alpha = 0.24f),
-                    strokeCap = StrokeCap.Round,
-                    gapSize = 0.dp,
-                    drawStopIndicator = {},
-                )
-
-            }
+                    .align(Alignment.BottomCenter)
+                    .height(progressHeight)
+                    .onSizeChanged { barWidthPx = it.width.toFloat() }
+                    .semantics { progressBarRangeInfo = ProgressBarRangeInfo(progress(), 0f..1f) }
+                    .drawBehind {
+                        val radius = CornerRadius(size.height / 2f)
+                        drawRoundRect(progressRail, cornerRadius = radius)
+                        val played = size.width * progress()
+                        if (played > 0f) {
+                            drawRoundRect(
+                                accent,
+                                size = Size(played, size.height),
+                                cornerRadius = CornerRadius(minOf(radius.x, played / 2f)),
+                            )
+                        }
+                    },
+            )
         }
     }
 }
@@ -378,14 +393,14 @@ private fun MiniTransportButton(
     val shape = MaterialTheme.shapes.medium
     Surface(
         onClick = onClick,
-        modifier = modifier.size(48.dp).semantics { role = Role.Button },
+        modifier = modifier.size(MiniControlTarget).semantics { role = Role.Button },
         shape = shape,
         color = Color.Transparent,
         interactionSource = interactionSource,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Box(
-                modifier = Modifier.size(40.dp).background(fill, shape),
+                modifier = Modifier.size(MiniControlSize).background(fill, shape),
                 contentAlignment = Alignment.Center,
             ) {
                 content()
@@ -396,12 +411,13 @@ private fun MiniTransportButton(
 
 @Composable
 fun PlaybackTargetLabel(name: String, isLocal: Boolean, onClick: () -> Unit) {
+    val shape = androidx.compose.material3.MaterialTheme.shapes.small
+    val accent = playbackAccent()
     Surface(
         onClick = onClick,
         color = Color.Transparent,
-        modifier = Modifier.glassPane(CircleShape, GlassTone.CONTROL),
-        shape = CircleShape,
-        border = androidx.compose.foundation.BorderStroke(1.dp, CanopyColors.Rule),
+        modifier = Modifier.glassPane(shape, GlassTone.CONTROL),
+        shape = shape,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
@@ -411,7 +427,7 @@ fun PlaybackTargetLabel(name: String, isLocal: Boolean, onClick: () -> Unit) {
                 Modifier
                     .size(8.dp)
                     .background(
-                        if (isLocal) androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant else LocalAccent.current,
+                        if (isLocal) androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant else accent,
                         CircleShape,
                     ),
             )
@@ -419,7 +435,7 @@ fun PlaybackTargetLabel(name: String, isLocal: Boolean, onClick: () -> Unit) {
             Text(
                 name,
                 style = MaterialTheme.typography.labelSmall,
-                color = if (isLocal) androidx.compose.material3.MaterialTheme.colorScheme.onSurface else LocalAccent.current,
+                color = if (isLocal) androidx.compose.material3.MaterialTheme.colorScheme.onSurface else accent,
             )
         }
     }

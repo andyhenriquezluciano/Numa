@@ -1,6 +1,6 @@
 package dev.sfg.numa.mobile.ui.screens
 
-import dev.sfg.numa.mobile.ui.theme.LocalAccent
+import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 import androidx.compose.foundation.layout.Row
@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BarChart
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -43,10 +44,11 @@ internal fun LazyListScope.listeningMetrics(
     val songs = filterTracks(ranked, query)
     item {
         val rose = currentRosePine()
-        val accent = rose?.InfoInk ?: LocalAccent.current
+        val accent = rose?.InfoInk ?: playbackAccent()
         Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
             MetricsPeriod.entries.forEach { value ->
                 FilterChip(selected = period == value, onClick = { onPeriod(value) },
+                    shape = MaterialTheme.shapes.small,
                     border = if (dev.sfg.numa.mobile.ui.glass.LocalGlass.current.borders == dev.sfg.numa.mobile.model.GlassBorders.LIMPIO)
                         null else FilterChipDefaults.filterChipBorder(enabled = true, selected = period == value),
                     colors = FilterChipDefaults.filterChipColors(

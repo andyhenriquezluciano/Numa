@@ -79,6 +79,7 @@ internal fun ArtistDetailContent(
     onPlayTrack: (List<Track>, Int, String) -> Unit,
     onPlayNext: ((Track) -> Unit)?,
     shuffleAvailable: Boolean,
+    shuffleActive: Boolean,
     onAdd: ((Track) -> Unit)?,
     onSave: (BrowseDetail) -> Unit,
     isSaved: Boolean,
@@ -130,10 +131,10 @@ internal fun ArtistDetailContent(
             item {
                 ArtistHero(
                     detail = detail,
-                    palette = palette,
                     onPlayAll = onPlayAll,
                     onShuffle = onShuffle,
                     shuffleAvailable = shuffleAvailable,
+                    shuffleActive = shuffleActive,
                     onSave = onSave,
                     isSaved = isSaved,
                 )

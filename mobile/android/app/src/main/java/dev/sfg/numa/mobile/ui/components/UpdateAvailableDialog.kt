@@ -140,6 +140,7 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
                     IconButton(
                         onClick = onDismiss,
                         modifier = Modifier.size(32.dp),
+                        shape = MaterialTheme.shapes.small,
                     ) {
                         Icon(
                             Icons.Rounded.Close,
@@ -303,7 +304,7 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
                 ) {
                     TextButton(
                         onClick = onDismiss,
-                        shape = CircleShape,
+                        shape = MaterialTheme.shapes.small,
                         modifier = Modifier
                             .weight(0.85f)
                             .height(46.dp),
@@ -317,7 +318,7 @@ internal fun UpdateAvailableDialog(state: UpdateState.Available, onInstall: (Mob
 
                     Button(
                         onClick = { onInstall(metadata) },
-                        shape = CircleShape,
+                        shape = MaterialTheme.shapes.small,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = LocalAccent.current,
                             contentColor = Color.Black,

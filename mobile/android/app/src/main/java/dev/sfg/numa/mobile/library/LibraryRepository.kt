@@ -37,6 +37,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -56,10 +59,13 @@ class LibraryRepository(
     private val cacheUpdates = Channel<LibrarySnapshot>(Channel.CONFLATED)
     private val stateLock = Any()
     private val refreshLock = Mutex()
+    private val loadingOperations = MutableStateFlow(1)
+    val loading = loadingOperations.map { it > 0 }.distinctUntilChanged()
     private val initialized = scope.async(Dispatchers.IO) { mutableLibrary.value = cache.load() }
     private val edits = Channel<(LibrarySnapshot) -> LibrarySnapshot>(Channel.UNLIMITED)
 
     init {
+        initialized.invokeOnCompletion { loadingOperations.update { it - 1 } }
         scope.launch(Dispatchers.IO) {
             initialized.await()
             for (transform in edits) applyUpdate(transform)
@@ -195,6 +201,15 @@ class LibraryRepository(
     }
 
     suspend fun refreshSignedInLibrary(): Result<Unit> = refreshLock.withLock {
+        loadingOperations.update { it + 1 }
+        try {
+            fetchSignedInLibrary()
+        } finally {
+            loadingOperations.update { it - 1 }
+        }
+    }
+
+    private suspend fun fetchSignedInLibrary(): Result<Unit> =
         runCatching {
             coroutineScope {
                 val landing = async(Dispatchers.IO) { catalog.library() }
@@ -222,8 +237,6 @@ class LibraryRepository(
                 }
             }
         }
-    }
-
     private fun update(transform: (LibrarySnapshot) -> LibrarySnapshot) {
         edits.trySend(transform).getOrThrow()
     }

@@ -162,7 +162,7 @@ internal fun SupportSheet(ui: SupportUi, page: String) {
 @Composable
 private fun IconButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
     Box(
-        Modifier.size(48.dp).clip(CircleShape).clickable(role = Role.Button, onClickLabel = label, onClick = onClick),
+        Modifier.size(48.dp).clip(androidx.compose.material3.MaterialTheme.shapes.small).clickable(role = Role.Button, onClickLabel = label, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(icon, contentDescription = label, tint = SettingsStyle.Title, modifier = Modifier.size(22.dp))

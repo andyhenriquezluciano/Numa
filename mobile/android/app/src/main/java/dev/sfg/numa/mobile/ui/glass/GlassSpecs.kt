@@ -48,10 +48,11 @@ private fun buildSpec(
         (theme == GlassTheme.CRISTAL || theme == GlassTheme.CRISTAL_OSCURO)
     ) {
         val dark = theme == GlassTheme.CRISTAL_OSCURO
-        val base = if (dark) Color(0xFF34383D) else Color(0xFF44484D)
+        val base = DesktopGlass.PickerPopupBase
         return GlassSpec(
-            base = base, film = if (dark) 0.59f else 0.48f, tintMix = 0.32f, contrastUndercoat = 0.04f,
-            solidBase = base, solidFilm = 0.74f, solidTintMix = 0.32f, solidUndercoat = 0.08f,
+            base = base, film = if (dark) 0.65f else DesktopGlass.PickerPopupOpacity,
+            tintMix = 0f, contrastUndercoat = 0f,
+            solidBase = base, solidFilm = 0.78f, solidTintMix = 0f, solidUndercoat = 0f,
             borderAlpha = borderAlpha,
         )
     }

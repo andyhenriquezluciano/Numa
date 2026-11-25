@@ -26,6 +26,7 @@ import dev.sfg.numa.mobile.ui.components.*
 import dev.sfg.numa.mobile.ui.screens.PlayerTransportControls
 import dev.sfg.numa.mobile.ui.text.uiText
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
+import dev.sfg.numa.mobile.ui.theme.asTrackAccent
 
 @UnstableApi
 @Composable
@@ -68,6 +69,9 @@ internal fun LockScreenContent(
         else runCatching { graph.artwork.artwork(track) }.getOrNull()
     }
     val cover = motion?.staticUrl.orEmpty().ifBlank { track?.artworkUrl.orEmpty() }
+    val coverPalette = if (rose == null) rememberArtworkPalette(cover) else null
+    val sampledAccent = coverPalette?.accent
+    val accent = rose?.Rose ?: remember(sampledAccent) { sampledAccent?.asTrackAccent() ?: Color.White }
     val active = LockScreenPolicy.animate(interactive, state.isPlaying)
     val renderedTrack = track?.copy(
         artworkUrl = cover,
@@ -86,7 +90,7 @@ internal fun LockScreenContent(
         if (rose != null) {
             Box(Modifier.fillMaxSize().background(rose.Base))
         } else if (renderedTrack != null) {
-            val palette = if (framed || !hasMotion) rememberArtworkPalette(cover)
+            val palette = if (framed || !hasMotion) checkNotNull(coverPalette)
                 else rememberFullBleedPalette(renderedTrack, videoFrame)
             FullBleedPlayerBackdrop(
                 track = renderedTrack,
@@ -101,7 +105,7 @@ internal fun LockScreenContent(
                 fullBleedStaticArtwork = !framed,
             )
         } else {
-            ArtworkBackdrop(rememberArtworkPalette(cover), animated = false)
+            ArtworkBackdrop(checkNotNull(coverPalette), animated = false)
         }
         if (framed && renderedTrack != null) {
             val density = androidx.compose.ui.platform.LocalDensity.current
@@ -122,10 +126,10 @@ internal fun LockScreenContent(
         Row(Modifier.fillMaxWidth().onGloballyPositioned { headerBottom = it.positionInRoot().y + it.size.height }
             .statusBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween) {
-            IconButton(onClick = onOpenApp) {
+            RoundedControlButton(onClick = onOpenApp) {
                 NumaMark(Modifier.size(22.dp))
             }
-            IconButton(onClick = onClose, colors = IconButtonDefaults.iconButtonColors(contentColor = textColor)) {
+            RoundedControlButton(onClick = onClose, contentColor = textColor) {
                 Icon(Icons.Rounded.Close, uiText("Return to lock screen", "Volver al bloqueo"), Modifier.size(22.dp))
             }
         }
@@ -152,6 +156,7 @@ internal fun LockScreenContent(
                     enabled = duration > 0,
                     compact = true,
                     followTheme = true,
+                    accent = accent,
                     description = uiText("Playback position", "Posición de reproducción"),
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -172,6 +177,7 @@ internal fun LockScreenContent(
                 onShuffle = {},
                 onRepeat = {},
                 showModes = false,
+                accent = accent,
             )
             if (track != null) LockScreenLyrics(
                 state = state,

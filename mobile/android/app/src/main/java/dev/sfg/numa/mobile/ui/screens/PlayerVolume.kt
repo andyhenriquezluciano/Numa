@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeMute
@@ -84,7 +83,7 @@ fun DeviceVolumeSlider(
         Box(
             modifier = Modifier
                 .size(24.dp)
-                .clip(CircleShape)
+                .clip(androidx.compose.material3.MaterialTheme.shapes.extraSmall)
                 .clickable(enabled = enabled) {
                     if (isRemote) onRemoteVolumeChange(0f) else systemVolume.mute()
                 },
@@ -111,6 +110,7 @@ fun DeviceVolumeSlider(
                 draggingVolume = null
             },
             valueRange = minVal..maxVal,
+            followTheme = true,
             enabled = enabled,
             modifier = Modifier
                 .weight(1f)
@@ -120,7 +120,7 @@ fun DeviceVolumeSlider(
         Box(
             modifier = Modifier
                 .size(24.dp)
-                .clip(CircleShape)
+                .clip(androidx.compose.material3.MaterialTheme.shapes.extraSmall)
                 .clickable(enabled = enabled) {
                     if (isRemote) onRemoteVolumeChange((remoteVolume + 0.1f).coerceAtMost(1f))
                     else systemVolume.stepUp()

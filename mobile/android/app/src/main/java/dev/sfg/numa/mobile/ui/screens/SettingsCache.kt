@@ -175,6 +175,7 @@ internal fun ClearCacheRow(
                         showConfirmDialog = false
                         onClear()
                     },
+                    shape = MaterialTheme.shapes.small,
                 ) {
                     Text(
                         uiText("Clear", "Borrar"),
@@ -184,7 +185,7 @@ internal fun ClearCacheRow(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showConfirmDialog = false }) {
+                TextButton(onClick = { showConfirmDialog = false }, shape = MaterialTheme.shapes.small) {
                     Text(uiText("Cancel", "Cancelar"), color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },

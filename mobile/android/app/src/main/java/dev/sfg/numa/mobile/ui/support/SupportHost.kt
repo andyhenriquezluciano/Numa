@@ -252,7 +252,7 @@ private fun CaptureBubble(onCapture: () -> Unit, onCancel: () -> Unit) {
                 Text(uiText("Capture", "Capturar"), color = Color(0xFF0D120F), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
             }
             Box(
-                Modifier.size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onCancel),
+                Modifier.size(44.dp).clip(androidx.compose.material3.MaterialTheme.shapes.small).clickable(role = Role.Button, onClick = onCancel),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(Icons.Rounded.Close, contentDescription = uiText("Back to the report", "Volver al reporte"), tint = Color(0xFFD6D9D3), modifier = Modifier.size(20.dp))

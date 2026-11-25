@@ -208,10 +208,10 @@ internal fun DownloadedTrackRow(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            IconButton(onClick = onPlay) {
+            IconButton(onClick = onPlay, shape = MaterialTheme.shapes.small) {
                 Icon(Icons.Rounded.PlayArrow, contentDescription = uiText("Play offline", "Reproducir sin conexión"), tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface)
             }
-            IconButton(onClick = onDelete) {
+            IconButton(onClick = onDelete, shape = MaterialTheme.shapes.small) {
                 Icon(Icons.Rounded.Delete, contentDescription = uiText("Delete download", "Eliminar descarga"), tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -275,7 +275,7 @@ internal fun DownloadingRow(
             }
         }
         Spacer(Modifier.width(8.dp))
-        IconButton(onClick = onCancel) {
+        IconButton(onClick = onCancel, shape = MaterialTheme.shapes.small) {
             Icon(Icons.Rounded.Delete, contentDescription = uiText("Cancel download", "Cancelar descarga"), tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }

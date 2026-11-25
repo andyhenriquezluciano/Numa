@@ -216,7 +216,7 @@ internal fun WelcomeAuthSection(
             if (isSignedIn) {
                 OutlinedButton(
                     onClick = onSignOut,
-                    shape = CircleShape,
+                    shape = MaterialTheme.shapes.small,
                     modifier = Modifier.fillMaxWidth().height(44.dp),
                 ) {
                     Text(uiText("Sign out / Switch account", "Cerrar sesión o cambiar de cuenta"), color = CanopyColors.Danger)
@@ -224,7 +224,7 @@ internal fun WelcomeAuthSection(
             } else {
                 Button(
                     onClick = onSignIn,
-                    shape = CircleShape,
+                    shape = MaterialTheme.shapes.small,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = LocalAccent.current,
                         contentColor = Color.Black,

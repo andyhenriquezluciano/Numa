@@ -19,7 +19,10 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +33,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ExpandMore
@@ -49,14 +54,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.sfg.numa.mobile.model.GlassBorders
+import dev.sfg.numa.mobile.ui.glass.DesktopGlass
 import dev.sfg.numa.mobile.ui.glass.GlassDropdownMenu
 import dev.sfg.numa.mobile.ui.glass.GlassDropdownMenuItem
 import dev.sfg.numa.mobile.ui.glass.GlassTone
-import dev.sfg.numa.mobile.ui.glass.glassPane
+import dev.sfg.numa.mobile.ui.glass.LocalGlass
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 @Composable
@@ -73,8 +82,14 @@ internal fun <T> SettingsDropdownField(
     val density = LocalDensity.current
     val currentLabel = options.firstOrNull { it.first == selected }?.second ?: ""
     val rose = currentRosePine()
-    val shape = MaterialTheme.shapes.medium
+    val shape = if (rose == null) MaterialTheme.shapes.small else MaterialTheme.shapes.medium
     val accent = SettingsStyle.TileIcon
+    val fieldFill by animateColorAsState(
+        targetValue = rose?.Surface ?: if (expanded) DesktopGlass.PickerSelectedFill else DesktopGlass.PickerFieldFill,
+        animationSpec = tween(120),
+        label = "SettingsPickerFill",
+    )
+    val showBorder = rose == null && LocalGlass.current.borders == GlassBorders.PREDETERMINADO
 
     Box(
         modifier = modifier
@@ -89,7 +104,8 @@ internal fun <T> SettingsDropdownField(
                 .fillMaxWidth()
                 .heightIn(min = 48.dp)
                 .clip(shape)
-                .then(if (rose == null) Modifier.glassPane(shape, GlassTone.SETTINGS_PICKER) else Modifier.background(rose.Surface))
+                .background(fieldFill)
+                .then(if (showBorder) Modifier.border(1.dp, DesktopGlass.ButtonBorder, shape) else Modifier)
                 .clickable(role = androidx.compose.ui.semantics.Role.Button) { expanded = !expanded }
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -119,9 +135,9 @@ internal fun <T> SettingsDropdownField(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = menuModifier,
-            offset = DpOffset(0.dp, 4.dp),
+            offset = DpOffset(0.dp, 6.dp),
             tone = GlassTone.SETTINGS_PICKER,
-            shape = shape,
+            shape = if (rose == null) RoundedCornerShape(DesktopGlass.MenuRadius) else shape,
         ) {
             options.forEach { (value, optLabel) ->
                 val isSelected = value == selected
@@ -130,17 +146,22 @@ internal fun <T> SettingsDropdownField(
                         Text(
                             text = settingsText(optLabel),
                             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                            color = if (isSelected) accent else SettingsStyle.Title,
+                            color = if (isSelected && rose != null) accent else SettingsStyle.Title,
                         )
                     },
                     enabled = isEnabled(value),
+                    modifier = Modifier.semantics { this.selected = isSelected },
+                    selected = isSelected && rose == null,
                     onClick = {
                         expanded = false
                         onSelect(value)
                     },
                     leadingIcon = iconFor?.let { resolve -> { Icon(resolve(value), null, Modifier.size(20.dp), tint = accent) } },
                     trailingIcon = if (isSelected) {
-                        { Icon(Icons.Rounded.Check, null, tint = accent, modifier = Modifier.size(18.dp)) }
+                        {
+                            if (rose == null) Box(Modifier.size(8.dp).background(accent, CircleShape))
+                            else Icon(Icons.Rounded.Check, null, tint = accent, modifier = Modifier.size(18.dp))
+                        }
                     } else null,
                 )
             }
