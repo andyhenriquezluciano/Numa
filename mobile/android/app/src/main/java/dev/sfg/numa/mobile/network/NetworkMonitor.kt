@@ -50,8 +50,14 @@ class NetworkMonitor(context: Context) {
     /** True while the default network is cellular or otherwise metered. */
     val isMetered: StateFlow<Boolean> = _isMetered.asStateFlow()
 
+    private val _isWifi = MutableStateFlow(false)
+    val isWifi: StateFlow<Boolean> = _isWifi.asStateFlow()
+
     fun refresh(): Boolean {
-        val online = checkIsOnline()
+        val network = connectivityManager?.activeNetwork
+        val caps = network?.let { connectivityManager?.getNetworkCapabilities(it) }
+        val online = caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+        _isWifi.value = online && caps?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
         _isOnline.value = online
         _isMetered.value = connectivityManager?.isActiveNetworkMetered == true
         return online
@@ -66,6 +72,7 @@ class NetworkMonitor(context: Context) {
                     if (network == connectivityManager.activeNetwork) {
                         _isOnline.value = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                         _isMetered.value = !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+                        _isWifi.value = _isOnline.value && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
                     }
                 }
             })

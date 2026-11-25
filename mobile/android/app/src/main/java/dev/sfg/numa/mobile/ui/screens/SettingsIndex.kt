@@ -36,7 +36,7 @@ internal enum class SettingsPage(val title: String, val blurb: String, val icon:
     Home("Ajustes", "", null),
     Accounts("Cuentas", "Cuentas, historial y sincronización.", Icons.Rounded.Person),
     Lyrics("Letras y traducción", "Motor de traducción y modelos sin conexión.", Icons.Rounded.Translate),
-    Audio("Reproducción", "Calidad, volumen, transiciones y cola.", Icons.Rounded.GraphicEq),
+    Audio("Reproducción", "Calidad, volumen y transiciones.", Icons.Rounded.GraphicEq),
     Appearance("Apariencia", "Tema, bordes, carátulas y fondos.", Icons.Rounded.Palette),
     Connections("Integraciones", "Servicios externos y dispositivos de reproducción.", Icons.Rounded.Link),
     Storage("Descargas", "Calidad, carátulas y almacenamiento sin conexión.", Icons.Rounded.Storage),
@@ -69,7 +69,7 @@ internal fun SettingsPage.displayBlurb(): String = dev.sfg.numa.mobile.ui.text.u
     SettingsPage.Home -> ""
     SettingsPage.Accounts -> "Accounts, history and synchronization."
     SettingsPage.Lyrics -> "Translation service and offline language models."
-    SettingsPage.Audio -> "Quality, volume, transitions and queue."
+    SettingsPage.Audio -> "Quality, volume, and transitions."
     SettingsPage.Appearance -> "Theme, borders, artwork and backgrounds."
     SettingsPage.Connections -> "External services and playback devices."
     SettingsPage.Storage -> "Quality, artwork and offline storage."
@@ -82,17 +82,16 @@ internal data class SettingsEntry(
     val subtitle: String,
     val page: SettingsPage,
     val keywords: String = "",
+    val advanced: Boolean = false,
 )
 
 private val entries = listOf(
     SettingsEntry("Idioma de la interfaz", "Español o inglés", SettingsPage.Home, "language idioma"),
     SettingsEntry("Calidad de audio", "Desde menor consumo hasta mayor tasa de bits", SettingsPage.Audio, "bitrate stream datos ahorro"),
     SettingsEntry("Ecualizador", "Ajusta el sonido con preajustes o bandas", SettingsPage.Audio, "eq graves agudos"),
-    SettingsEntry("Mostrar tasa de bits", "Tasa de transmisión bajo la barra de progreso", SettingsPage.Appearance),
+    SettingsEntry("Mostrar tasa de bits", "Tasa de transmisión bajo la barra de progreso", SettingsPage.Appearance, advanced = true),
     SettingsEntry("Normalización de volumen", "Equilibra el volumen entre canciones", SettingsPage.Audio, "volumen replaygain"),
-    SettingsEntry("Volumen exponencial", "Control más preciso a volumen bajo", SettingsPage.Audio, "botones multimedia"),
-    SettingsEntry("Reproducción automática", "Continúa con música relacionada", SettingsPage.Audio, "cola radio"),
-    SettingsEntry("Orden de reproducción", "Original, aleatorio o Mejor mezcla", SettingsPage.Audio, "cola ritmo tonalidad ordenar"),
+    SettingsEntry("Volumen exponencial", "Control más preciso a volumen bajo", SettingsPage.Audio, "botones multimedia", advanced = true),
     SettingsEntry("Mezcla adaptativa", "Transición ajustada al audio", SettingsPage.Audio, "ritmo fundido"),
     SettingsEntry("Cuentas", "Google, historial y sincronización", SettingsPage.Accounts, "cuenta conectar biblioteca sincronizar"),
     SettingsEntry("Calidad de descarga", "Calidad para nuevos archivos sin conexión", SettingsPage.Storage, "datos wifi"),
@@ -102,10 +101,11 @@ private val entries = listOf(
     SettingsEntry("Gestos del reproductor", "Desliza para cambiar y toca para marcar Me gusta", SettingsPage.Audio),
     SettingsEntry("Reproductor de NÜMA al bloquear", "Carátula animada y controles sobre el bloqueo", SettingsPage.Audio, "bloqueo pantalla pin huella"),
     SettingsEntry("Carátula animada", "Anima la carátula durante la reproducción", SettingsPage.Appearance, "movimiento portada"),
-    SettingsEntry("Fuentes de carátulas", "Elige el orden de las fuentes animadas", SettingsPage.Appearance, "m8tec boidu spotify canvas"),
+    SettingsEntry("Fuentes de carátulas", "Elige el orden de las fuentes animadas", SettingsPage.Appearance, "m8tec boidu spotify canvas", advanced = true),
     SettingsEntry("Descargar carátula animada", "Guarda portadas en movimiento sin conexión", SettingsPage.Storage),
-    SettingsEntry("Fondo animado", "Los colores de la carátula se mueven por la aplicación", SettingsPage.Appearance, "fondo"),
-    SettingsEntry("Traducir letras", "Muestra las letras en el idioma de la app", SettingsPage.Lyrics, "traducción idioma español"),
+    SettingsEntry("Movimiento", "Automático, completo o reducido", SettingsPage.Appearance, "fondo animado animaciones batería"),
+    SettingsEntry("Solo por Wi-Fi", "Las descargas esperan a una red Wi-Fi", SettingsPage.Storage, "datos móviles red"),
+    SettingsEntry("Traducir letras automáticamente", "Muestra las letras en el idioma de la app", SettingsPage.Lyrics, "traducción idioma español"),
     SettingsEntry("Calidad de traducción", "Modelos de traducción", SettingsPage.Lyrics, "letras modelo tamaño"),
     SettingsEntry("Fuente de traducción", "Local o Google Translate", SettingsPage.Lyrics, "letras google proveedor"),
     SettingsEntry("Discord", "Comparte lo que estás escuchando", SettingsPage.Connections, "presencia"),

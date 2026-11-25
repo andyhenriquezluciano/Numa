@@ -203,11 +203,16 @@ private fun Modifier.recordInto(scene: GlassScene, wash: Boolean) = this
                 .asComposeRenderEffect()
             if (wash) scene.washBlurRadius = radius else scene.sceneBlurRadius = radius
         }
-        sample.record(IntSize(
+        val sampleSize = IntSize(
             ceil(size.width / scene.downscale).toInt().coerceAtLeast(1),
             ceil(size.height / scene.downscale).toInt().coerceAtLeast(1),
-        )) {
-            scale(1f / scene.downscale, pivot = Offset.Zero) { drawLayer(layer) }
+        )
+        // The sample references the source layer by identity. Its display list is reusable
+        // even when the child layer redraws because of scrolling or artwork animation.
+        if (sample.size != sampleSize) {
+            sample.record(sampleSize) {
+                scale(1f / scene.downscale, pivot = Offset.Zero) { drawLayer(layer) }
+            }
         }
         if (wash) scene.washRecorded = true else {
             scene.sceneRecorded = true

@@ -3,12 +3,14 @@
 <data-extraction-rules>
     <cloud-backup disableIfNoEncryptionCapabilities="true">
         <include domain="file" path="library-cache.json" />
+        <include domain="file" path="library-history.json" />
         <include domain="file" path="playlist-covers/" />
         <include domain="sharedpref" path="automatic-playlist-covers.xml" />
         <include domain="sharedpref" path="library-playlist-visibility.xml" />
     </cloud-backup>
     <device-transfer>
         <include domain="file" path="library-cache.json" />
+        <include domain="file" path="library-history.json" />
         <include domain="file" path="playlist-covers/" />
         <include domain="sharedpref" path="automatic-playlist-covers.xml" />
         <include domain="sharedpref" path="library-playlist-visibility.xml" />

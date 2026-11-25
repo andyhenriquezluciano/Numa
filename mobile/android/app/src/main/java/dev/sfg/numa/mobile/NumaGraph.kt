@@ -21,7 +21,6 @@ package dev.sfg.numa.mobile
 
 import android.content.Context
 import dev.sfg.numa.mobile.model.AudioQuality
-import kotlinx.coroutines.flow.stateIn
 import dev.sfg.numa.mobile.artwork.ArtistImageRepository
 import dev.sfg.numa.mobile.artwork.ArtworkRepository
 import dev.sfg.numa.mobile.auth.NativeYouTubeAuthRepository
@@ -48,6 +47,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 
@@ -113,6 +115,9 @@ class NumaGraph(context: Context) {
         downloadQualityProvider = { settings.settings.value.downloadQuality },
         useSdCardProvider = { settings.settings.value.downloadToSdCard },
         downloadStore = downloadStore,
+        downloadAllowed = combine(settings.settings, networkMonitor.isWifi) { prefs, wifi ->
+            !prefs.downloadWifiOnly || wifi
+        }.stateIn(applicationScope, SharingStarted.Eagerly, networkMonitor.isWifi.value),
         lyricsResolver = { track -> lyrics.lyrics(track) },
         lyricIdentity = lyrics::requestKey,
         lyricTranslationResolver = { track, lines -> lyricTranslation.translateForDownload(lines, track.id) },

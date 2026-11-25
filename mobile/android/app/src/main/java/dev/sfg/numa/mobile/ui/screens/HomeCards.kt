@@ -19,6 +19,7 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.glass.crystalSurfaceFill
 import dev.sfg.numa.mobile.ui.text.uiText
 import androidx.compose.foundation.clickable
 
@@ -133,7 +134,7 @@ private fun QuickGridCard(
     val shape = RoundedCornerShape(10.dp)
     val theme = LocalGlassTheme.current
     val cardColor = if (theme == GlassTheme.ROSE_PINE_DAWN) rosePinePalette(theme).Highlight
-        else Color.White.copy(alpha = 0.07f)
+        else crystalSurfaceFill(Color.White.copy(alpha = 0.07f))
     val source = remember { MutableInteractionSource() }
     Surface(
         onClick = item.onClick,

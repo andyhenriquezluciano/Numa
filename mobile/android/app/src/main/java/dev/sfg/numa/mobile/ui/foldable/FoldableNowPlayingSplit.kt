@@ -345,7 +345,6 @@ internal fun FoldableNowPlayingSplit(
                             is LoadState.Content -> LyricLines(
                                 lines = lyrics.value,
                                 songId = track.id,
-                                playing = playback.isPlaying,
                                 onSeek = onSeek,
                                 contentPadding = PaddingValues(vertical = 16.dp),
                                 accent = lyricAccent,

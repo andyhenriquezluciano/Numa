@@ -250,9 +250,7 @@ class NumaViewModel(application: Application) : AndroidViewModel(application) {
         refreshHome()
         viewModelScope.launch {
             dev.sfg.numa.mobile.settings.NumaLanguage.language.drop(1).collect {
-                homeRefreshJob?.cancel()
-                homeRefreshJob = null
-                refreshHome()
+                resetHome()
             }
         }
         refreshCacheSize()
@@ -275,11 +273,18 @@ class NumaViewModel(application: Application) : AndroidViewModel(application) {
     private fun observeNetworkState() {
         viewModelScope.launch {
             graph.networkMonitor.isOnline.collect { online ->
-                if (online && mutableHome.value is LoadState.Error) {
+                if (online) {
                     refreshHome()
                 }
             }
         }
+    }
+
+    private fun resetHome() {
+        homeRefreshJob?.cancel()
+        homeRefreshJob = null
+        mutableHome.value = LoadState.Loading
+        refreshHome()
     }
 
     private var homeRefreshJob: kotlinx.coroutines.Job? = null
@@ -339,12 +344,6 @@ class NumaViewModel(application: Application) : AndroidViewModel(application) {
     fun playNext(track: Track) = transport.playNext(track)
     fun addToQueue(track: Track) = transport.addToQueue(track)
     fun togglePlayback() = transport.togglePlayback()
-    fun toggleCollectionPlayback(title: String) {
-        if (playback.value.needsBestMixOnResume(graph.settings.settings.value.playbackOrder)) {
-            bestMixUpcomingForCollection(title)
-        }
-        transport.togglePlayback()
-    }
     fun toggleMusicVideo() = transport.toggleMusicVideo()
     fun setVideoMaxHeight(height: Int) = transport.setVideoMaxHeight(height)
     fun playMusicVideo(track: Track, contextTitle: String = "") {
@@ -467,9 +466,13 @@ class NumaViewModel(application: Application) : AndroidViewModel(application) {
     private fun observeAuthentication() {
         viewModelScope.launch {
             auth.collect { state ->
-                if (state is AuthState.SignedIn) {
-                    graph.library.refreshSignedInLibrary()
-                    refreshHome()
+                when (state) {
+                    is AuthState.SignedIn -> {
+                        resetHome()
+                        graph.library.refreshSignedInLibrary()
+                    }
+                    AuthState.SignedOut -> resetHome()
+                    else -> Unit
                 }
             }
         }

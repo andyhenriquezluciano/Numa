@@ -8,7 +8,7 @@ class SettingsOrganizationTest {
         for ((query, page) in listOf("traducir letras" to SettingsPage.Lyrics,
             "fuente traduccion" to SettingsPage.Lyrics, "cuenta numa" to SettingsPage.Accounts,
             "sincronizar biblioteca" to SettingsPage.Accounts, "chromecast" to SettingsPage.Connections,
-            "gestos" to SettingsPage.Audio, "mejor mezcla" to SettingsPage.Audio)) {
+            "gestos" to SettingsPage.Audio)) {
             val matches = searchSettings(query)
             assertTrue(query, matches.isNotEmpty())
             assertTrue(query, matches.all { it.page == page })
@@ -18,6 +18,13 @@ class SettingsOrganizationTest {
     @Test fun removedManualBackupOptionsAreNotSearchable() {
         for (query in listOf("copia", "exportar", "importar")) {
             assertTrue(query, searchSettings(query).isEmpty())
+        }
+    }
+
+    @Test fun queueControlsAreNoLongerSettings() {
+        for (query in listOf("orden de reproducción", "mejor mezcla", "reproducción automática", "playback order", "autoplay")) {
+            assertTrue(query, searchSettings(query).isEmpty())
+            assertNull(query, settingsHelp(query))
         }
     }
 
@@ -34,17 +41,15 @@ class SettingsOrganizationTest {
     }
 
     @Test fun playbackChoicesExplainTheirEffectAndPreparation() {
-        for (title in listOf("Orden de reproducción", "Mejor mezcla", "Tipo de transición",
+        for (title in listOf("Tipo de transición",
             "Duración de la transición", "Volumen exponencial", "Fuente de traducción")) {
             assertFalse(title, settingsHelp(title).isNullOrBlank())
         }
         val previous = java.util.Locale.getDefault()
         try {
             java.util.Locale.setDefault(java.util.Locale.forLanguageTag("es"))
-            assertTrue(settingsHelp("Mejor mezcla")!!.contains("datos"))
             assertTrue(settingsHelp("Tipo de transición")!!.contains("No cambia el orden"))
             java.util.Locale.setDefault(java.util.Locale.ENGLISH)
-            assertTrue(settingsHelp("Best Mix")!!.contains("data"))
             assertTrue(settingsHelp("Transition type")!!.contains("Does not change queue order"))
         } finally { java.util.Locale.setDefault(previous) }
     }

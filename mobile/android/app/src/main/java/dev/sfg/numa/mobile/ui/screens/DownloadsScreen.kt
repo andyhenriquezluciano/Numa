@@ -83,7 +83,7 @@ fun DownloadsScreen(
     onRemoveDownload: (String) -> Unit,
 ) {
     val completed = downloads.filter { it.status == DownloadStatus.COMPLETED }
-    val active = downloads.filter { it.status == DownloadStatus.DOWNLOADING || it.status == DownloadStatus.QUEUED }
+    val active = downloads.filter(DownloadItem::isDownloading)
     val failed = downloads.filter { it.status == DownloadStatus.FAILED }
     val batch by dev.sfg.numa.mobile.NumaGraph.from(LocalContext.current).downloads.batchProgress.collectAsState()
 
@@ -268,7 +268,7 @@ internal fun DownloadingRow(
                 )
             } else {
                 Text(
-                    "Queued...",
+                    if (item.status == DownloadStatus.WAITING_FOR_WIFI) uiText("Waiting for Wi-Fi", "En espera de Wi-Fi") else uiText("Queued…", "En cola…"),
                     style = MaterialTheme.typography.bodySmall,
                     color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -61,7 +61,7 @@ internal fun LazyListScope.downloadsList(
     onRemoveDownload: (String) -> Unit,
 ) {
     val completed = downloads.filter { it.status == DownloadStatus.COMPLETED }
-    val active = downloads.filter { it.status == DownloadStatus.DOWNLOADING || it.status == DownloadStatus.QUEUED }
+    val active = downloads.filter(DownloadItem::isDownloading)
     val failed = downloads.filter { it.status == DownloadStatus.FAILED }
 
     if (active.isEmpty() && completed.isEmpty() && failed.isEmpty()) {
@@ -75,7 +75,12 @@ internal fun LazyListScope.downloadsList(
     }
 
     if (active.isNotEmpty()) {
-        item { LibraryLabel("Downloading (${active.size})") }
+        item {
+            val label = if (active.all { it.status == DownloadStatus.WAITING_FOR_WIFI })
+                uiText("Waiting for Wi-Fi", "En espera de Wi-Fi")
+            else uiText("Downloading", "Descargando")
+            LibraryLabel("$label (${active.size})")
+        }
         itemsIndexed(active, key = { _, it -> "active_${it.track.id}" }) { index, item ->
             DownloadingRow(
                 item = item,

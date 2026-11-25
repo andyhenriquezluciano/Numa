@@ -16,20 +16,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.model.LibrarySnapshot
+import dev.sfg.numa.mobile.model.ListeningReport
 import dev.sfg.numa.mobile.model.Track
 import dev.sfg.numa.mobile.model.MetricsPeriod
-import dev.sfg.numa.mobile.model.listeningReport
 import dev.sfg.numa.mobile.model.collections
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import dev.sfg.numa.mobile.ui.components.TrackRow
-import dev.sfg.numa.mobile.ui.components.filterTracks
 import dev.sfg.numa.mobile.ui.text.uiText
 
 internal fun LazyListScope.listeningMetrics(
     library: LibrarySnapshot,
+    report: ListeningReport,
+    songs: List<Track>,
     query: String,
     onPlay: (Track) -> Unit,
     period: MetricsPeriod,
@@ -38,10 +39,8 @@ internal fun LazyListScope.listeningMetrics(
     expandedSections: List<String>,
     onToggleSection: (String) -> Unit,
 ) {
-    val report = library.listeningReport(period)
     val ranked = report.tracks
     val rankById = ranked.mapIndexed { index, track -> track.id to index + 1 }.toMap()
-    val songs = filterTracks(ranked, query)
     item {
         val rose = currentRosePine()
         val accent = rose?.InfoInk ?: playbackAccent()

@@ -19,11 +19,7 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.*
 import dev.sfg.numa.mobile.model.LyricLine
-import kotlinx.coroutines.flow.first
 
 internal sealed interface LyricDisplayItem {
     val key: String
@@ -50,8 +46,8 @@ private const val LYRIC_PAUSE_LINE_TAIL_FALLBACK_MS = 2_400L
 private const val LYRIC_VISUAL_LEAD_MS = 90L
 
 /** Small lookahead for the visual highlight. Seeking still uses the provider's timestamps. */
-internal fun lyricVisualPositionMs(positionMs: Long, playing: Boolean): Long =
-    if (playing) positionMs + LYRIC_VISUAL_LEAD_MS else positionMs
+internal fun lyricVisualPositionMs(positionMs: Long, playing: Boolean, offsetMs: Int = 0): Long =
+    positionMs + offsetMs + if (playing) LYRIC_VISUAL_LEAD_MS else 0L
 
 /** A provider's paragraph boundary can follow the first sung word. */
 internal fun lyricHighlightStartMs(line: LyricLine): Long? {
@@ -100,5 +96,36 @@ internal fun buildLyricDisplayItems(lines: List<LyricLine>): List<LyricDisplayIt
                 add(LyricDisplayItem.Pause(index, pause.first, pause.second))
             }
         }
+    }
+}
+
+/** Locates the active row without walking every lyric and pause on each frame. */
+internal class LyricTimeline(items: List<LyricDisplayItem>) {
+    private data class Cue(val start: Float, val index: Int, val end: Float = 0f)
+
+    private val lines = items.mapIndexedNotNull { index, item ->
+        (item as? LyricDisplayItem.Line)?.line?.let(::lyricHighlightStartMs)?.let { Cue(it.toFloat(), index) }
+    }
+    private val pauses = items.mapIndexedNotNull { index, item ->
+        (item as? LyricDisplayItem.Pause)?.let { Cue(it.startMs.toFloat(), index, it.endMs.toFloat()) }
+    }
+    private val orderedLines = lines.zipWithNext().all { (a, b) -> a.start <= b.start }
+    private val orderedPauses = pauses.zipWithNext().all { (a, b) -> a.end <= b.start }
+
+    fun activeIndex(position: Float): Int {
+        val pause = if (orderedPauses) pauses.atOrBefore(position)?.takeIf { position < it.end }
+            else pauses.firstOrNull { position >= it.start && position < it.end }
+        val line = if (orderedLines) lines.atOrBefore(position) else lines.lastOrNull { it.start <= position }
+        return pause?.index ?: line?.index ?: -1
+    }
+
+    private fun List<Cue>.atOrBefore(position: Float): Cue? {
+        var low = 0
+        var high = size
+        while (low < high) {
+            val mid = (low + high) ushr 1
+            if (this[mid].start <= position) low = mid + 1 else high = mid
+        }
+        return getOrNull(low - 1)
     }
 }

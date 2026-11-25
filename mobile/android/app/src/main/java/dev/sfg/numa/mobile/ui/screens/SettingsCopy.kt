@@ -3,6 +3,9 @@ package dev.sfg.numa.mobile.ui.screens
 import dev.sfg.numa.mobile.ui.text.uiText
 
 private val settingsCopy = mapOf(
+    "Traducir letras automáticamente" to "Translate lyrics automatically",
+    "Movimiento" to "Motion",
+    "Solo por Wi-Fi" to "Wi-Fi only",
     "Configuración" to "Settings",
     "Cuenta de NÜMA" to "NÜMA account",
     "Historial" to "History",
@@ -16,9 +19,6 @@ private val settingsCopy = mapOf(
     "Normalización de volumen" to "Volume normalization",
     "Equilibra el volumen entre canciones" to "Balance volume between songs",
     "Transiciones" to "Transitions",
-    "Cola" to "Queue",
-    "Reproducción automática" to "Autoplay",
-    "Añade canciones similares al terminar la cola" to "Add similar songs when the queue ends",
     "Partes sin música" to "Non-music parts",
     "Cristales y estilo" to "Glass and style",
     "Inicio" to "Home",
@@ -51,10 +51,7 @@ private val settingsCopy = mapOf(
     "Une el final de una canción con la siguiente" to "Blend the end of a song with the next",
     "Con audio Max se utiliza el fundido normal" to "Max audio uses regular crossfade",
     "Adapta la transición al ritmo y estructura de la música" to "Adapt transitions to the rhythm and structure of the music",
-    "Orden de reproducción" to "Playback order",
-    "Orden para las nuevas listas" to "Order for newly started playlists",
-    "Mejor mezcla" to "Best Mix",
-    "Calidad, volumen, transiciones y cola" to "Quality, volume, transitions and queue",
+    "Calidad, volumen y transiciones" to "Quality, volume, and transitions",
     "Carátulas y almacenamiento sin conexión" to "Artwork and offline storage",
     "Temas, bordes, carátulas y fondos" to "Themes, borders, artwork and backgrounds",
     "Discord, Last.fm, Spotify y Qobuz" to "Discord, Last.fm, Spotify and Qobuz",

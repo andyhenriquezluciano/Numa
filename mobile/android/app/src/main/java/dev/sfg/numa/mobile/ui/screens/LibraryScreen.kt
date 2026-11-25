@@ -49,9 +49,9 @@ import dev.sfg.numa.mobile.model.Track
 import dev.sfg.numa.mobile.ui.components.NumaChromeHeight
 import dev.sfg.numa.mobile.ui.components.LoadingSkeleton
 import dev.sfg.numa.mobile.ui.components.SkeletonLayout
-import dev.sfg.numa.mobile.ui.components.filterCatalogItems
-import dev.sfg.numa.mobile.ui.components.filterTracks
-import dev.sfg.numa.mobile.ui.components.normalizeSearchText
+import dev.sfg.numa.mobile.ui.components.rememberMatching
+import dev.sfg.numa.mobile.ui.components.searchFields
+import dev.sfg.numa.mobile.model.listeningReport
 import dev.sfg.numa.mobile.ui.scroll.NumaLazyColumn as LazyColumn
 
 private const val NEW_RELEASES_ID = "FEmusic_new_releases"
@@ -92,6 +92,42 @@ fun LibraryScreen(
         LibraryFilter.SONGS -> library.likedTracks.isEmpty()
         else -> false
     }
+    val catalogItems: List<CatalogItem> = when (filter) {
+        LibraryFilter.PLAYLISTS -> remember(localSnapshot, library.savedPlaylists) {
+            (localSnapshot.playlists.map { it.toPlaylist(localSnapshot) } + library.savedPlaylists)
+                .distinctBy { dev.sfg.numa.mobile.library.libraryPlaylistId(it.id) }
+                .sortedBy { dev.sfg.numa.mobile.model.playlistDisplayRank(it.id) }
+                .map { CatalogItem.Collection(it) }
+        }
+        LibraryFilter.ARTISTS -> remember(library.savedArtists) { library.savedArtists.map { CatalogItem.Performer(it) } }
+        LibraryFilter.ALBUMS -> remember(library.savedAlbums) { library.savedAlbums.map { CatalogItem.Record(it) } }
+        LibraryFilter.LOCAL -> remember(localSnapshot.playlists) {
+            localSnapshot.playlists.map { CatalogItem.Collection(it.toPlaylist()) }
+        }
+        else -> emptyList()
+    }
+    val report = if (filter == LibraryFilter.METRICS) remember(library, metricsPeriod) {
+        library.listeningReport(metricsPeriod)
+    } else null
+    val tracks = when (filter) {
+        LibraryFilter.SONGS -> library.likedTracks
+        LibraryFilter.RECENT -> library.recentlyPlayed
+        LibraryFilter.LOCAL -> remember(localSnapshot.songs) { localSnapshot.songs.map { it.toTrack() } }
+        LibraryFilter.METRICS -> report?.tracks.orEmpty()
+        else -> emptyList()
+    }
+    val visibleCollections = rememberMatching(catalogItems, searchQuery, CatalogItem::searchFields)
+    val visibleTracks = rememberMatching(tracks, searchQuery, Track::searchFields)
+    val visibleDownloads = if (filter == LibraryFilter.DOWNLOADS) {
+        val tracks = remember(downloads) { downloads.map(DownloadItem::track) }
+        val matches = rememberMatching(tracks, searchQuery, Track::searchFields)
+        remember(downloads, tracks, matches) {
+            if (matches === tracks) downloads else {
+                val matchingTracks = matches.toHashSet()
+                downloads.filter { it.track in matchingTracks }
+            }
+        }
+    } else emptyList()
     val browse = { onOpenDetail(NEW_RELEASES_ID) }
     androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
     val columns = ((maxWidth.value - 16) / 180).toInt().coerceIn(2, 6)
@@ -125,15 +161,13 @@ fun LibraryScreen(
                 }
             }
         } else when (filter) {
-            LibraryFilter.METRICS -> listeningMetrics(library, searchQuery, onPlay, metricsPeriod, { metricsPeriod = it }, onOpenDetail,
+            LibraryFilter.METRICS -> listeningMetrics(library, checkNotNull(report), visibleTracks, searchQuery, onPlay, metricsPeriod, { metricsPeriod = it }, onOpenDetail,
                 expandedMetrics, { section ->
                     expandedMetrics = if (section in expandedMetrics) expandedMetrics - section else expandedMetrics + section
                 })
             LibraryFilter.PLAYLISTS -> collections(
                 uiText("Your playlists", "Tus listas"),
-                filterCatalogItems((localSnapshot.playlists.map { it.toPlaylist(localSnapshot) } + library.savedPlaylists)
-                    .distinctBy { dev.sfg.numa.mobile.library.libraryPlaylistId(it.id) }.sortedBy { dev.sfg.numa.mobile.model.playlistDisplayRank(it.id) }
-                    .map { CatalogItem.Collection(it) }, searchQuery),
+                visibleCollections,
                 Icons.Rounded.LibraryMusic,
                 if (searching) uiText("No matching playlists", "No hay listas que coincidan") else uiText("No saved playlists", "No hay listas guardadas"),
                 if (searching) uiText("No playlists matching \"$searchQuery\"", "No hay listas que coincidan con «$searchQuery»") else uiText("Save a playlist and it will stay close at hand.", "Guarda una lista para tenerla siempre a mano."),
@@ -143,7 +177,7 @@ fun LibraryScreen(
             )
             LibraryFilter.ARTISTS -> collections(
                 uiText("Saved artists", "Artistas guardados"),
-                filterCatalogItems(library.savedArtists.map { CatalogItem.Performer(it) }, searchQuery),
+                visibleCollections,
                 Icons.Rounded.Person,
                 if (searching) uiText("No matching artists", "No hay artistas que coincidan") else uiText("No saved artists", "No hay artistas guardados"),
                 if (searching) uiText("No artists matching \"$searchQuery\"", "No hay artistas que coincidan con «$searchQuery»") else uiText("Follow an artist to build this shelf.", "Sigue a un artista para verlo aquí."),
@@ -153,7 +187,7 @@ fun LibraryScreen(
             )
             LibraryFilter.ALBUMS -> collections(
                 uiText("Saved albums", "Álbumes guardados"),
-                filterCatalogItems(library.savedAlbums.map { CatalogItem.Record(it) }, searchQuery),
+                visibleCollections,
                 Icons.Rounded.Album,
                 if (searching) uiText("No matching albums", "No hay álbumes que coincidan") else uiText("No saved albums", "No hay álbumes guardados"),
                 if (searching) uiText("No albums matching \"$searchQuery\"", "No hay álbumes que coincidan con «$searchQuery»") else uiText("Albums you save will be available here.", "Aquí aparecerán los álbumes que guardes."),
@@ -163,7 +197,7 @@ fun LibraryScreen(
             )
             LibraryFilter.SONGS -> tracks(
                 title = uiText("Liked songs", "Música que te gusta"),
-                values = filterTracks(library.likedTracks, searchQuery),
+                values = visibleTracks,
                 emptyIcon = Icons.Rounded.MusicNote,
                 emptyTitle = if (searching) uiText("No matching songs", "No hay canciones que coincidan") else uiText("No songs saved", "No hay canciones guardadas"),
                 emptyMessage = if (searching) uiText("No songs matching \"$searchQuery\"", "No hay canciones que coincidan con «$searchQuery»") else uiText("Save songs to your library to see them here", "Guarda canciones en tu biblioteca para verlas aquí"),
@@ -180,7 +214,7 @@ fun LibraryScreen(
             )
             LibraryFilter.RECENT -> tracks(
                 title = uiText("Recently played", "Reproducido recientemente"),
-                values = filterTracks(library.recentlyPlayed, searchQuery),
+                values = visibleTracks,
                 emptyIcon = Icons.Rounded.History,
                 emptyTitle = if (searching) uiText("No matching recent tracks", "No hay canciones recientes que coincidan") else uiText("Nothing played yet", "Todavía no has reproducido música"),
                 emptyMessage = if (searching) uiText("No recently played tracks matching \"$searchQuery\"", "No hay canciones recientes que coincidan con «$searchQuery»") else uiText("Start a song and NÜMA will remember it here.", "Reproduce una canción y NÜMA la recordará aquí."),
@@ -202,7 +236,7 @@ fun LibraryScreen(
                 } else {
                 collections(
                     uiText("Local playlists", "Listas locales"),
-                    filterCatalogItems(localSnapshot.playlists.map { CatalogItem.Collection(it.toPlaylist()) }, searchQuery),
+                    visibleCollections,
                     Icons.Rounded.LibraryMusic,
                     if (searching) uiText("No matching playlists", "No hay listas que coincidan") else uiText("No local playlists", "No hay listas locales"),
                     if (searching) uiText("No playlists matching \"$searchQuery\"", "No hay listas que coincidan con «$searchQuery»") else uiText("Make one with New playlist, then add songs from this phone.", "Crea una lista con Nueva lista y añade canciones del teléfono."),
@@ -211,7 +245,7 @@ fun LibraryScreen(
                 )
                 tracks(
                     title = uiText("Local songs", "Canciones locales"),
-                    values = filterTracks(localSnapshot.songs.map { it.toTrack() }, searchQuery),
+                    values = visibleTracks,
                     emptyIcon = Icons.Rounded.MusicNote,
                     emptyTitle = if (searching) uiText("No matching songs", "No hay canciones que coincidan") else uiText("No local songs", "No hay canciones locales"),
                     emptyMessage = if (searching) uiText("No songs matching \"$searchQuery\"", "No hay canciones que coincidan con «$searchQuery»") else uiText("Use Add local files to bring in music from this phone.", "Usa Añadir archivos locales para importar música del teléfono."),
@@ -224,16 +258,8 @@ fun LibraryScreen(
                 }
             }
             LibraryFilter.DOWNLOADS -> {
-                val query = normalizeSearchText(searchQuery)
-                val filtered = if (query.isNotBlank()) {
-                    downloads.filter {
-                        normalizeSearchText(it.track.title).contains(query) ||
-                            normalizeSearchText(it.track.artist).contains(query) ||
-                            normalizeSearchText(it.track.album).contains(query)
-                    }
-                } else downloads
                 downloadsList(
-                    downloads = filtered,
+                    downloads = visibleDownloads,
                     totalBytesUsed = totalBytesUsed,
                     onPlay = onPlay,
                     onRemoveDownload = { id -> onRemoveDownloadTrack?.invoke(id) },

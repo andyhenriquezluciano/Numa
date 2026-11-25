@@ -9,12 +9,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withTimeout
 
 internal suspend fun refreshHomeContent(graph: NumaGraph, state: MutableStateFlow<LoadState<List<CatalogSection>>>) {
-    state.value = LoadState.Loading
+    val previous = state.value as? LoadState.Content
+    if (previous == null) state.value = LoadState.Loading
     if (!graph.networkMonitor.refresh()) {
-        state.value = LoadState.Error("No hay una red con acceso a Internet. Comprueba Wi-Fi o datos móviles.")
+        state.value = previous ?: LoadState.Error("No hay una red con acceso a Internet. Comprueba Wi-Fi o datos móviles.")
         return
     }
-    state.value = try {
+    val refreshed = try {
         val sections = withTimeout(25_000) { graph.catalog.home().sections }
         if (sections.isEmpty()) LoadState.Empty("Todavía no hay recomendaciones disponibles.") else LoadState.Content(sections)
     } catch (_: TimeoutCancellationException) {
@@ -24,6 +25,7 @@ internal suspend fun refreshHomeContent(graph: NumaGraph, state: MutableStateFlo
     } catch (error: Exception) {
         LoadState.Error("No se pudo cargar el servicio de música. ${error.message.orEmpty()}")
     }
+    if (previous == null || refreshed !is LoadState.Error) state.value = refreshed
 }
 
 internal fun MutableStateFlow<LoadState<List<CatalogSection>>>.purgePlaylist(playlistId: String) {

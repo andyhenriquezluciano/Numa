@@ -94,8 +94,8 @@ internal fun SettingsHub(
     auth: AuthState,
     summaries: SettingsSummaries,
     onSettings: (NumaSettings) -> Unit,
-    onAutoplayEnabled: ((Boolean) -> Unit)?,
     onOpen: (SettingsPage) -> Unit,
+    onOpenResult: (SettingsEntry) -> Unit,
     onSignIn: () -> Unit,
     onSwitchAccount: () -> Unit,
     onSignOut: () -> Unit,
@@ -106,7 +106,7 @@ internal fun SettingsHub(
     SettingsSearchField(query) { query = it }
 
     if (query.isNotBlank()) {
-        SearchResults(query, onOpen)
+        SearchResults(query, onOpenResult)
         return
     }
 
@@ -125,7 +125,7 @@ internal fun SettingsHub(
         PanelDivider()
         ActionRow(
             title = SettingsPage.Audio.displayTitle(),
-            subtitle = uiText("Quality, volume, transitions and queue", "Calidad, volumen, transiciones y cola"),
+            subtitle = uiText("Quality, volume, and transitions", "Calidad, volumen y transiciones"),
             icon = SettingsPage.Audio.icon,
             iconTint = SettingsPage.Audio.iconTint(),
             onClick = { onOpen(SettingsPage.Audio) },
@@ -159,7 +159,7 @@ internal fun SettingsHub(
 }
 
 @Composable
-private fun SearchResults(query: String, onOpen: (SettingsPage) -> Unit) {
+private fun SearchResults(query: String, onOpen: (SettingsEntry) -> Unit) {
     val results = searchSettings(query)
     Column(Modifier.padding(top = 16.dp)) {
         if (results.isEmpty()) {
@@ -182,7 +182,7 @@ private fun SearchResults(query: String, onOpen: (SettingsPage) -> Unit) {
                     subtitle = "${entry.page.displayTitle()} · ${settingsText(entry.subtitle)}",
                     icon = entry.page.icon,
                     iconTint = entry.page.iconTint(),
-                    onClick = { onOpen(entry.page) },
+                    onClick = { onOpen(entry) },
                 )
             }
         }

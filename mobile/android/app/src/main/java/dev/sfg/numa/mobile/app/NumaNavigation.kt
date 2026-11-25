@@ -201,7 +201,6 @@ internal fun NumaNavigation(
                 },
                 onRefreshCacheSize = viewModel::refreshCacheSize,
                 onSettings = viewModel::updateSettings,
-                onAutoplayEnabled = viewModel::setAutoplayEnabled,
                 onSignIn = { nav.navigate(Routes.LOGIN) },
                 onSwitchAccount = { nav.navigate(Routes.ACCOUNT_SWITCH) },
                 onSignOut = viewModel::signOut,
@@ -298,7 +297,7 @@ internal fun NumaNavigation(
 
             // The hero is square, so the wide asset crops far better than the 9:16 one the
             // full player wants; vertical is only a fallback when there is nothing else.
-            val animatedArtworkUrl = if (settings.animatedArtwork) {
+            val animatedArtworkUrl = if (settings.animatedArtwork && dev.sfg.numa.mobile.ui.components.LocalMediaMotion.current) {
                 detailArtwork?.let { it.videoUrl.ifBlank { it.videoUrlVertical } }.orEmpty()
             } else ""
 
@@ -337,7 +336,7 @@ internal fun NumaNavigation(
                 }?.title ?: library.savedAlbums.firstOrNull { it.id == id }?.title.orEmpty(),
                 playback = playback,
                 onTogglePlayback = {
-                    viewModel.toggleCollectionPlayback((shownDetail as? LoadState.Content)?.value?.title.orEmpty())
+                    viewModel.togglePlayback()
                 },
                 localEdit = localEdit,
                 onDeletePlaylist = { id -> viewModel.deletePlaylist(id) { nav.popBackStack() } },

@@ -45,7 +45,7 @@ internal class WidgetArtworkLoader(
         val resolved = OfflineArtwork.usableArtworkUrl(url, 600)
         if (resolved.isBlank()) return@withContext null
         if (resolved.startsWith("file://")) {
-            return@withContext BitmapFactory.decodeFile(android.net.Uri.parse(resolved).path)?.fitInside(MAX_ARTWORK_EDGE)
+            return@withContext decodeArtwork { BitmapFactory.decodeFile(android.net.Uri.parse(resolved).path, it) }
         }
         val cached = directory.resolve("${resolved.sha256()}.webp")
         BitmapFactory.decodeFile(cached.path)?.let { return@withContext it }
@@ -57,8 +57,8 @@ internal class WidgetArtworkLoader(
                 response.body.byteStream().use { it.readBounded(MAX_DOWNLOAD_BYTES + 1) }.takeIf { it.size <= MAX_DOWNLOAD_BYTES }
             }
         }.getOrNull() ?: return@withContext null
-        val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return@withContext null
-        val scaled = decoded.fitInside(MAX_ARTWORK_EDGE)
+        val scaled = decodeArtwork { BitmapFactory.decodeByteArray(bytes, 0, bytes.size, it) }
+            ?: return@withContext null
         runCatching {
             cached.outputStream().use { output ->
                 scaled.compress(Bitmap.CompressFormat.WEBP_LOSSY, 88, output)
@@ -73,6 +73,17 @@ internal class WidgetArtworkLoader(
             .sortedByDescending(File::lastModified)
             .drop(MAX_CACHE_FILES)
             .forEach(File::delete)
+    }
+
+    private inline fun decodeArtwork(decode: (BitmapFactory.Options) -> Bitmap?): Bitmap? {
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        decode(options)
+        val edge = maxOf(options.outWidth, options.outHeight)
+        if (edge <= 0) return null
+        options.inSampleSize = Integer.highestOneBit((edge / MAX_ARTWORK_EDGE).coerceAtLeast(1))
+        options.inJustDecodeBounds = false
+        val bitmap = decode(options) ?: return null
+        return bitmap.fitInside(MAX_ARTWORK_EDGE).also { if (it !== bitmap) bitmap.recycle() }
     }
 
     private fun Bitmap.fitInside(maxEdge: Int): Bitmap {

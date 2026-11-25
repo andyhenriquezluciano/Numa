@@ -19,35 +19,37 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.theme.trackControlInk
+import dev.sfg.numa.mobile.ui.theme.LocalTrackAccent
+import dev.sfg.numa.mobile.ui.glass.glassPane
+import dev.sfg.numa.mobile.ui.glass.crystalControlSurface
+import dev.sfg.numa.mobile.ui.glass.GlassTone
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.Alignment
+import androidx.compose.material3.Icon
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.rounded.Translate
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 import dev.sfg.numa.mobile.ui.text.uiText
 
-
-
-import dev.sfg.numa.mobile.ui.glass.glassPane
-
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Translate
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -63,10 +65,10 @@ import dev.sfg.numa.mobile.model.LyricLine
 
 /** Registers [lines] as on screen, which is what lets the translator spend CPU on them. */
 @Composable
-internal fun rememberLyricTranslation(lines: List<LyricLine>, songId: String): LyricTranslationState {
+internal fun rememberLyricTranslation(lines: List<LyricLine>, songId: String, translate: Boolean): LyricTranslationState {
     val translator = NumaGraph.from(LocalContext.current).lyricTranslation
-    DisposableEffect(translator, lines, songId) {
-        translator.show(lines, songId)
+    DisposableEffect(translator, lines, songId, translate) {
+        translator.show(lines, songId, translate)
         onDispose { translator.hide(lines, songId) }
     }
     val state by translator.state.collectAsStateWithLifecycle()
@@ -116,10 +118,13 @@ internal fun TranslatedLyricLine(
 }
 
 @Composable
-internal fun LyricTranslateChip(modifier: Modifier = Modifier) {
+internal fun LyricTranslateChip(
+    enabled: Boolean,
+    onToggle: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val graph = NumaGraph.from(LocalContext.current)
     val settings by graph.settings.settings.collectAsStateWithLifecycle()
-    val enabled = settings.translateLyrics
     val state by graph.lyricTranslation.state.collectAsStateWithLifecycle()
     androidx.compose.runtime.LaunchedEffect(enabled, state.status, state.message) {
         if (enabled && state.lines != null && state.status in setOf(Status.FAILED, Status.WAITING)) {
@@ -128,8 +133,8 @@ internal fun LyricTranslateChip(modifier: Modifier = Modifier) {
     }
     val loading = enabled && state.status in setOf(Status.TRANSLATING, Status.DOWNLOADING)
     val rose = currentRosePine()
-    val tint = if (enabled) rose?.AccentInk ?: Color.White.copy(alpha = 0.95f)
-        else rose?.Text ?: Color.White.copy(alpha = 0.6f)
+    val accent = LocalTrackAccent.current
+    val tint = if (enabled) accent.trackControlInk() else rose?.Text ?: Color.White.copy(alpha = 0.75f)
     val shape = RoundedCornerShape(12.dp)
     val label = when {
         loading && state.status == Status.DOWNLOADING -> uiText("Preparing translation…", "Preparando traducción…")
@@ -151,23 +156,26 @@ internal fun LyricTranslateChip(modifier: Modifier = Modifier) {
             }
             .clickable(role = androidx.compose.ui.semantics.Role.Button) {
                 if (enabled && state.status in setOf(Status.FAILED, Status.WAITING)) graph.lyricTranslation.retry()
-                else graph.settings.updateSettings(settings.copy(translateLyrics = !enabled))
+                else onToggle(!enabled)
             },
         contentAlignment = Alignment.Center,
     ) {
-        Box(Modifier.size(34.dp)
-            .glassPane(shape, dev.sfg.numa.mobile.ui.glass.GlassTone.CONTROL)
-            .then(if (enabled) Modifier.background(rose?.Highlight ?: Color.White.copy(alpha = 0.06f), shape) else Modifier),
-            contentAlignment = Alignment.Center) {
-        if (loading) {
-            androidx.compose.material3.CircularProgressIndicator(
-                modifier = Modifier.size(16.dp), color = tint, strokeWidth = 1.5.dp,
-            )
-        } else {
-            Icon(Icons.Rounded.Translate,
-                contentDescription = if (enabled) uiText("Turn off translation", "Desactivar traducción") else uiText("Translate lyrics into English", "Traducir letras al español"),
-                tint = tint, modifier = Modifier.size(18.dp))
-        }
+        val surface = if (enabled) Modifier.clip(shape).background(accent)
+            else Modifier.crystalControlSurface(shape) { glassPane(shape, GlassTone.CONTROL) }
+        Box(Modifier.size(34.dp).then(surface), contentAlignment = Alignment.Center) {
+            if (loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp), color = tint, strokeWidth = 1.5.dp,
+                )
+            } else {
+                Icon(
+                    Icons.Rounded.Translate,
+                    contentDescription = if (enabled) uiText("Show original lyrics", "Mostrar letra original")
+                        else uiText("Translate lyrics", "Traducir letra"),
+                    tint = tint,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
         }
     }
 }

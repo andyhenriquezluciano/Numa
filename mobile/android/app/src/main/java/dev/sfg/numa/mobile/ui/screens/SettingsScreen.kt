@@ -106,11 +106,6 @@ fun SettingsScreen(
     onCheckForUpdates: () -> Unit = {},
     onInstallUpdate: (MobileUpdateMetadata) -> Unit = {},
     onHomeLayout: () -> Unit = {},
-    /**
-     * Separate from [onSettings] because switching Autoplay off also strips the tracks it added,
-     * which only the view model can do.
-     */
-    onAutoplayEnabled: ((Boolean) -> Unit)? = null,
     cacheSizeBytes: Long = 0L,
     isClearingCache: Boolean = false,
     onClearCache: () -> Unit = {},
@@ -120,6 +115,7 @@ fun SettingsScreen(
 ) {
     var page by rememberSaveable { mutableStateOf(SettingsPage.Home) }
     var connection by rememberSaveable { mutableStateOf<ConnectionService?>(null) }
+    var openAdvanced by rememberSaveable { mutableStateOf(false) }
     var showNotesDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -185,10 +181,15 @@ fun SettingsScreen(
                             auth = auth,
                             summaries = summaries,
                             onSettings = onSettings,
-                            onAutoplayEnabled = onAutoplayEnabled,
                             onOpen = {
                                 connection = null
+                                openAdvanced = false
                                 page = it
+                            },
+                            onOpenResult = { entry ->
+                                connection = null
+                                openAdvanced = entry.advanced
+                                page = entry.page
                             },
                             onSignIn = onSignIn,
                             onSwitchAccount = onSwitchAccount,
@@ -198,8 +199,8 @@ fun SettingsScreen(
                         )
                         SettingsPage.Accounts -> AccountSettingsPage(settings, auth, onSettings, onSignIn, onSwitchAccount, onSignOut)
                         SettingsPage.Lyrics -> LyricTranslationSection(settings, onSettings, labelIndex = 1)
-                        SettingsPage.Audio -> AudioPage(settings, onSettings, onAutoplayEnabled)
-                        SettingsPage.Appearance -> AppearancePage(settings, onSettings, onHomeLayout)
+                        SettingsPage.Audio -> AudioPage(settings, onSettings, openAdvanced)
+                        SettingsPage.Appearance -> AppearancePage(settings, onSettings, onHomeLayout, openAdvanced)
                         SettingsPage.Connections -> if (detail == null) {
                             ConnectionsList(statuses) { connection = it }
                             SectionLabel(uiText("Devices", "Dispositivos"))

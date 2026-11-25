@@ -88,7 +88,10 @@ class LyricTranslator(
     ))
     val apiKeyState: StateFlow<ApiKeyState> = mutableApiKeys.asStateFlow()
     private val generation = AtomicInteger()
-    private data class Viewer(val lines: List<LyricLine>, val count: Int, val songId: String)
+    private data class Viewer(
+        val lines: List<LyricLine>, val count: Int, val songId: String, val translate: Boolean? = null,
+    )
+    private data class ActiveViewer(val viewer: Viewer, val foreground: Boolean)
     private val viewers = MutableStateFlow<Viewer?>(null)
     private val playbackLyrics = MutableStateFlow<Viewer?>(null)
     private val nextLyrics = MutableStateFlow<Viewer?>(null)
@@ -119,7 +122,7 @@ class LyricTranslator(
             .distinctUntilChanged()
         scope.launch {
             val active = combine(viewers, playbackLyrics, settings.map { it.lyricTranslationProvider == LyricTranslationProvider.LOCAL }.distinctUntilChanged()) {
-                visible, playing, local -> (visible ?: playing.takeIf { local })?.let { Triple(it.lines, it.songId, visible != null) }
+                visible, playing, local -> (visible ?: playing.takeIf { local })?.let { ActiveViewer(it, visible != null) }
             }
                 .distinctUntilChanged()
             combine(active, wanted, retries, account.state.map { it.email }.distinctUntilChanged(), conditions) { shown, config, _, _, _ ->
@@ -129,8 +132,12 @@ class LyricTranslator(
                 .onEach { TranslationNative.takeIf { it.available }?.setGeneration(generation.incrementAndGet()) }
                 .collectLatest { (viewer, config) ->
                     foregroundBusy.value = true
-                    try { run(viewer?.first, config, viewer?.second.orEmpty(), viewer?.third == true) }
-                    finally { foregroundBusy.value = false }
+                    val requested = viewer?.viewer?.translate ?: config.enabled
+                    val available = config.provider != LyricTranslationProvider.LOCAL || TranslationNative.available
+                    try {
+                        run(viewer?.viewer?.lines, config.copy(enabled = requested && available),
+                            viewer?.viewer?.songId.orEmpty(), viewer?.foreground == true)
+                    } finally { foregroundBusy.value = false }
                 }
         }
         scope.launch {
@@ -152,8 +159,8 @@ class LyricTranslator(
     }
 
     /** Called while a lyrics view shows [lines]; pair every call with [hide]. */
-    fun show(lines: List<LyricLine>, songId: String) = viewers.update { current ->
-        Viewer(lines, if (current?.lines === lines && current.songId == songId) current.count + 1 else 1, songId)
+    fun show(lines: List<LyricLine>, songId: String, translate: Boolean? = null) = viewers.update { current ->
+        Viewer(lines, if (current?.lines === lines && current.songId == songId) current.count + 1 else 1, songId, translate)
     }
 
     fun hide(lines: List<LyricLine>, songId: String) = viewers.update { current ->

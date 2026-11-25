@@ -46,11 +46,11 @@ class LyricsLanguageTest {
         val previous = Locale.getDefault()
         try {
             Locale.setDefault(Locale.ENGLISH)
-            assertTrue(searchSettings("playback order").any { it.page == SettingsPage.Audio })
-            assertTrue(settingsHelp("Playback order")!!.startsWith("Choose the order"))
+            assertTrue(searchSettings("volume normalization").any { it.page == SettingsPage.Audio })
+            assertTrue(settingsHelp("Transition type")!!.startsWith("Off plays songs"))
             assertEquals("Off", settingsText("Desactivada"))
             Locale.setDefault(Locale.forLanguageTag("es"))
-            assertTrue(settingsHelp("Orden de reproducción")!!.startsWith("Elige el orden"))
+            assertTrue(settingsHelp("Tipo de transición")!!.startsWith("Desactivada"))
             assertEquals("Desactivada", settingsText("Desactivada"))
         } finally { Locale.setDefault(previous) }
     }

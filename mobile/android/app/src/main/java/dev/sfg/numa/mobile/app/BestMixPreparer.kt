@@ -45,10 +45,11 @@ internal class BestMixPreparer(private val graph: NumaGraph, cacheRoot: File) {
     suspend fun prepare(tracks: List<Track>, label: String, onProgress: (String) -> Unit) {
         val store = graph.bestMixFeatures
         val missing = withContext(Dispatchers.IO) {
-            tracks.distinctBy(Track::id).filter { track ->
-                val duration = track.durationMs / 1000.0
-                track.id.isNotBlank() && duration in 0.0..7200.0 && !store.has(track.id, duration)
+            val candidates = tracks.distinctBy(Track::id).filter { track ->
+                track.id.isNotBlank() && track.durationMs / 1000.0 in 0.0..7200.0
             }
+            val cached = store.matchingIds(candidates.associate { it.id to it.durationMs / 1000.0 })
+            candidates.filterNot { it.id in cached }
         }
         Log.i(TAG, "$label reused ${tracks.size - missing.size}/${tracks.size} cached analyses")
         if (missing.isEmpty()) return

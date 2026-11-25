@@ -167,7 +167,6 @@ fun TabletPlayerBody(
                                 is LoadState.Content -> LyricLines(
                                     lines = lyrics.value,
                                     songId = track.id,
-                                    playing = playback.isPlaying,
                                     onSeek = onSeek,
                                     contentPadding = PaddingValues(vertical = if (compact) 8.dp else 24.dp),
                                     accent = lyricAccent,

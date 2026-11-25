@@ -217,7 +217,6 @@ internal fun PhonePlayerBody(
                     is LoadState.Content -> LyricLines(
                         lines = lyrics.value,
                         songId = track.id,
-                        playing = playback.isPlaying,
                         onSeek = onSeek,
                         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
                         accent = lyricAccent,

@@ -104,7 +104,6 @@ internal class QueueLauncher(
         val revision = ++queueRevision
         cancelBestMix()
         val safeIndex = startIndex.coerceIn(tracks.indices)
-        val order = dev.sfg.numa.mobile.model.effectivePlaybackOrder(graph.settings.settings.value.playbackOrder, shuffle)
         val source = contextTitle.takeIf { it.isMeaningfulPlaybackSource() }
             ?: tracks[safeIndex].album.takeIf { it.isMeaningfulPlaybackSource() }
             ?: "Your queue"
@@ -114,12 +113,6 @@ internal class QueueLauncher(
             if (blockPlayback()) return@launch
             if (dev.sfg.numa.mobile.local.isLocalPlaylistId(playlistId) && graph.localLibrary.library.value.playlists.none { it.id == playlistId }) return@launch
             val start = tracks[safeIndex]
-            if (order == dev.sfg.numa.mobile.model.PlaybackOrder.BEST_MIX && tracks.size > 1) {
-                bestMixJobState.first { it == null }
-                if (revision != queueRevision) return@launch
-                playBestMix(listOf(start) + tracks.filter { it.id != start.id }, source, playlistId = playlistId)
-                return@launch
-            }
             Log.d(TAG, "playAll: starting playback with track ${start.id} ('${start.title}')")
             val edited = QueueEditor.replaceAndPlay(tracks, safeIndex)
             val queue = edited.tracks
@@ -127,7 +120,7 @@ internal class QueueLauncher(
             graph.automaticPlaylistCovers.rememberSource(playlistId, tracks)
             local.setShuffle(false)
             local.replaceQueue(queue, edited.currentIndex, contextTitle = source, playlistId = playlistId)
-            if (order == dev.sfg.numa.mobile.model.PlaybackOrder.SHUFFLE) local.setShuffle(true)
+            if (shuffle) local.setShuffle(true)
         }
     }
 

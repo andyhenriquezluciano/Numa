@@ -60,7 +60,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -106,24 +105,17 @@ val NumaChromeHeight = 122.dp
 private val BottomBarShape = RoundedCornerShape(24.dp)
 /** Bottom navigation bar: a frosted floating pane, inset from the sides and fully rounded. */
 @Composable
-fun NumaBottomBar(currentRoute: String?, onSelect: (String) -> Unit, showSettings: Boolean = false) {
+fun NumaBottomBar(currentRoute: String?, onSelect: (String) -> Unit) {
     val glassStyle = LocalGlass.current
     val theme = glassStyle.theme
     val showBorders = glassStyle.borders != GlassBorders.LIMPIO
     val isRosePine = (theme == GlassTheme.ROSE_PINE || theme == GlassTheme.ROSE_PINE_DAWN)
     val rose = if (isRosePine) rosePinePalette(theme) else null
     val isDarkGlass = theme == GlassTheme.CRISTAL_OSCURO
-    // 0 to 1 as the Settings tab grows in and out of the row.
-    val settingsReveal by animateFloatAsState(
-        targetValue = if (showSettings) 1f else 0f,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = 300f),
-        label = "BottomBarSettingsReveal",
-    )
-    val settingsVisible = showSettings || settingsReveal > 0.001f
-    val allDestinations = if (settingsVisible) destinations + settingsDestination else destinations
+    val allDestinations = destinations + settingsDestination
     val selectedIndex = remember(currentRoute, allDestinations) {
         allDestinations.indexOfFirst { it.route == currentRoute }.takeIf { it != -1 }
-            ?: if (currentRoute == Routes.SETTINGS_HOME_LAYOUT && settingsVisible) allDestinations.lastIndex else null
+            ?: if (currentRoute == Routes.SETTINGS_HOME_LAYOUT) allDestinations.lastIndex else null
     }
     var lastKnownIndex by remember { mutableIntStateOf(selectedIndex ?: 0) }
     LaunchedEffect(selectedIndex) {
@@ -170,7 +162,7 @@ fun NumaBottomBar(currentRoute: String?, onSelect: (String) -> Unit, showSetting
                 .fillMaxWidth()
                 .height(64.dp),
         ) {
-            val slotWidth = maxWidth / (destinations.size + settingsReveal)
+            val slotWidth = maxWidth / allDestinations.size
             val indicatorWidth = 28.dp
             val indicatorHeight = 3.dp
             val targetOffset = (slotWidth * (activeIndex.coerceAtMost(allDestinations.lastIndex) + 0.5f)) - (indicatorWidth / 2)
@@ -214,7 +206,6 @@ fun NumaBottomBar(currentRoute: String?, onSelect: (String) -> Unit, showSetting
                 modifier = Modifier.height(64.dp),
             ) {
                 allDestinations.forEach { destination ->
-                    val isSettings = destination === settingsDestination
                     val isSelected = selectedIndex == allDestinations.indexOf(destination)
                     val item: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {
                         NavigationBarItem(
@@ -250,17 +241,7 @@ fun NumaBottomBar(currentRoute: String?, onSelect: (String) -> Unit, showSetting
                             ),
                         )
                     }
-                    if (isSettings) {
-                        Box(
-                            Modifier
-                                .weight(settingsReveal.coerceAtLeast(0.001f))
-                                .fillMaxHeight()
-                                .alpha(settingsReveal)
-                                .clipToBounds(),
-                        ) { Row(Modifier.fillMaxSize()) { item() } }
-                    } else {
-                        item()
-                    }
+                    item()
                 }
             }
         }

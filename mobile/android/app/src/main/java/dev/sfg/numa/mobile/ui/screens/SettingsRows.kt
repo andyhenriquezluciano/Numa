@@ -341,8 +341,8 @@ internal fun NonMusicSkipRow(value: NonMusicSkipMode, onChange: (NonMusicSkipMod
         SettingsDropdownField(
             options = listOf(
                 NonMusicSkipMode.OFF to uiText("Off", "Desactivado"),
-                NonMusicSkipMode.BUTTON to uiText("Button", "Botón"),
-                NonMusicSkipMode.AUTO to uiText("Auto skip", "Automático"),
+                NonMusicSkipMode.BUTTON to uiText("Show skip button", "Mostrar botón para omitir"),
+                NonMusicSkipMode.AUTO to uiText("Skip automatically", "Omitir automáticamente"),
             ),
             selected = value,
             onSelect = onChange,

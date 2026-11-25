@@ -70,7 +70,8 @@ import dev.sfg.numa.mobile.ui.components.rememberHeroScrimProgress
 import dev.sfg.numa.mobile.ui.components.MessagePanel
 import dev.sfg.numa.mobile.ui.components.ReorderControls
 import dev.sfg.numa.mobile.ui.components.TrackRow
-import dev.sfg.numa.mobile.ui.components.filterTracks
+import dev.sfg.numa.mobile.ui.components.rememberMatching
+import dev.sfg.numa.mobile.ui.components.searchFields
 import dev.sfg.numa.mobile.ui.theme.CanopyColors
 
 /** Standard album and playlist presentation. */
@@ -135,13 +136,7 @@ internal fun CollectionDetailContent(
         else detail.tracks.firstOrNull { it.artistId.isNotBlank() }?.artistId
     }
 
-    val filteredTracks = remember(detail.tracks, searchQuery, isSearching) {
-        if (isSearching && searchQuery.isNotBlank()) {
-            filterTracks(detail.tracks, searchQuery)
-        } else {
-            detail.tracks
-        }
-    }
+    val filteredTracks = rememberMatching(detail.tracks, searchQuery.takeIf { isSearching }.orEmpty(), Track::searchFields)
 
     if (activeSectionSheet != null) {
         activeSectionSheet?.let { sheet ->

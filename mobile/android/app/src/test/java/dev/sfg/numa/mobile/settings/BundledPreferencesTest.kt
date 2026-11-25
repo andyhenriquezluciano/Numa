@@ -3,6 +3,7 @@ package dev.sfg.numa.mobile.settings
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.mutablePreferencesOf
+import androidx.datastore.preferences.core.stringPreferencesKey
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -15,7 +16,15 @@ class BundledPreferencesTest {
         assertEquals(false, values[booleanPreferencesKey("exponential_volume_enabled")])
         assertEquals(3, values[intPreferencesKey("crossfade_seconds")])
         assertEquals(1440, values[intPreferencesKey("video_max_height")])
-        assertEquals(9, values.asMap().size)
+        assertEquals(true, values[booleanPreferencesKey("download_wifi_only")])
+        assertEquals(false, values[booleanPreferencesKey("download_animated_artwork")])
+        assertEquals(false, values[booleanPreferencesKey("translate_lyrics")])
+        assertEquals(false, values[booleanPreferencesKey("send_youtube_history")])
+        assertEquals(false, values[booleanPreferencesKey("discord_presence_enabled")])
+        assertEquals(false, values[booleanPreferencesKey("autoplay_enabled")])
+        assertEquals("NORMAL", values[stringPreferencesKey("cellular_audio_quality")])
+        assertEquals("AUTOMATIC", values[stringPreferencesKey("motion_mode")])
+        assertEquals("BUTTON", values[stringPreferencesKey("non_music_skip")])
     }
 
     @Test fun existingProfilesAreNotChanged() {

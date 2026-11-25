@@ -6,6 +6,20 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LibraryBackupCodecTest {
+    @Test fun splitDeviceCacheKeepsLibraryMetadataAndUsesOnlyTheNewHistory() {
+        val song = Track("song", "Title", "Artist")
+        val previous = LibrarySnapshot(likedTracks = listOf(song), playCounts = mapOf("song" to 3))
+        val current = previous.copy(recentlyPlayed = listOf(song), playCounts = mapOf("song" to 4))
+        val history = LibraryBackupCodec.encodeHistory(current)
+        val metadata = LibraryBackupCodec.encodeMetadata(current)
+
+        assertFalse(metadata.has("playCounts"))
+        assertFalse(history.has("likedTracks"))
+        assertEquals(current, LibraryBackupCodec.decodeLocal(metadata, history, emptySet()))
+        assertEquals(current, LibraryBackupCodec.decodeLocal(LibraryBackupCodec.encode(previous), history, emptySet()))
+        assertEquals(previous, LibraryBackupCodec.decodeLocal(LibraryBackupCodec.encode(previous), null, emptySet()))
+    }
+
     @Test fun archiveRoundTripPreservesHistoryAndLibraryMetadata() {
         val song = Track("song", "Title", "Artist", album = "Album")
         val source = LibrarySnapshot(likedTracks = listOf(song), playedTracks = listOf(song),

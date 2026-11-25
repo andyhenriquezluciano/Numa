@@ -52,7 +52,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.Gradient
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.MultipleStop
@@ -248,13 +247,7 @@ internal fun WelcomeVisualsSection(
         title = "Visuals & Appearance",
         subtitle = uiText("Customize ambient lighting and animated artwork", "Personaliza la iluminación y las carátulas animadas"),
     ) {
-        WelcomeToggleRow(
-            icon = Icons.Rounded.Gradient,
-            title = uiText("Animated Background", "Fondo animado"),
-            subtitle = uiText("Drifting cover colors behind the app", "Los colores de la carátula se mueven detrás de la aplicación"),
-            checked = settings.animatedBackground,
-            onChecked = { onUpdateSettings(settings.copy(animatedBackground = it)) },
-        )
+        MotionSettings(settings, onUpdateSettings)
         WelcomeDivider()
         WelcomeToggleRow(
             icon = Icons.Rounded.Image,

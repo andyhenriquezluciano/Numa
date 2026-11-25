@@ -19,7 +19,7 @@ class ManualLibraryBackup(private val context: Context, private val graph: NumaG
         val description: String get() = "${library.likedTracks.size} canciones favoritas, ${library.savedArtists.size} artistas, " +
             "${library.savedAlbums.size} álbumes, ${covers.size} carátulas y ${library.playCounts.size} contadores."
     }
-    private val codec = LibraryCache(context)
+    private val codec = LibraryBackupCodec
 
     suspend fun export(uri: Uri) = withContext(Dispatchers.IO) {
         val library = codec.encode(graph.library.exportSnapshot())

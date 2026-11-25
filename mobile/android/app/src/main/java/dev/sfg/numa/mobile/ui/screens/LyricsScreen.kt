@@ -19,6 +19,7 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.glass.crystalControlSurface
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 
@@ -26,6 +27,7 @@ import dev.sfg.numa.mobile.ui.theme.currentRosePine
 import dev.sfg.numa.mobile.ui.glass.glassPane
 
 import dev.sfg.numa.mobile.ui.text.uiText
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -66,32 +68,36 @@ import kotlinx.coroutines.delay
 internal fun LyricLines(
     lines: List<LyricLine>,
     songId: String,
-    playing: Boolean,
     onSeek: (Long) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(horizontal = 24.dp, vertical = 32.dp),
     accent: Color = CanopyColors.LyricActive,
 ) {
     val rose = currentRosePine()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val graph = remember(context) { dev.sfg.numa.mobile.NumaGraph.from(context) }
+    val preferences by graph.settings.settings.collectAsStateWithLifecycle()
+    var translationChoice by androidx.compose.runtime.saveable.rememberSaveable(songId) { mutableStateOf<Boolean?>(null) }
+    val translate = translationChoice ?: preferences.translateLyrics
+    val offsetFlow = remember(graph, songId) { graph.settings.lyricOffset(songId) }
+    val offsetMs = offsetFlow.collectAsStateWithLifecycle(initialValue = 0)
+    var adjustingSync by androidx.compose.runtime.saveable.rememberSaveable(songId) { mutableStateOf(false) }
     // Project the sampled playhead on each frame and compensate for visual latency.
     val clock = dev.sfg.numa.mobile.ui.components.LocalPlayerClock.current
     val synced = remember(lines) { lines.any { it.startMs != null } }
-    val initialPosition = remember(lines, clock) {
-        androidx.compose.runtime.snapshots.Snapshot.withoutReadObservation {
-            lyricVisualPositionMs(clock.projected().positionMs, clock.playing).toFloat()
-        }
-    }
-    val smoothPosition = produceState(initialPosition, lines, clock) {
-        while (true) {
-            withFrameNanos {
-                value = lyricVisualPositionMs(clock.projected().positionMs, clock.playing).toFloat()
+    val animatePosition by remember(clock, synced) { derivedStateOf { synced && clock.playing } }
+    val frame = dev.sfg.numa.mobile.ui.components.rememberPlayheadTick(animatePosition, 0)
+    val smoothPosition = remember(clock, frame, synced) {
+        derivedStateOf {
+            if (!synced) 0f else {
+                frame.value
+                lyricVisualPositionMs(clock.projected().positionMs, clock.playing, offsetMs.value).toFloat()
             }
-            if (!clock.playing || !synced) kotlinx.coroutines.delay(50)
         }
     }
 
-    val translation = rememberLyricTranslation(lines, songId)
-    val translations = remember(translation, lines) { translation.translationsFor(lines) }
+    val translation = rememberLyricTranslation(lines, songId, translate)
+    val translations = remember(translation, lines, translate) { if (translate) translation.translationsFor(lines) else null }
 
     val displayItems = remember(lines, synced) {
         if (!synced) {
@@ -100,25 +106,11 @@ internal fun LyricLines(
             buildLyricDisplayItems(lines)
         }
     }
-    val highlightStarts = remember(lines) { lines.map(::lyricHighlightStartMs) }
+    val timeline = remember(displayItems, synced) { if (synced) LyricTimeline(displayItems) else null }
 
-    // Frame-clock reads stay in drawing. Only an item change invalidates the list composition.
-    val activeDisplayIndex by remember(displayItems, synced, highlightStarts) {
-        derivedStateOf {
-            if (!synced) return@derivedStateOf -1
-            val pos = smoothPosition.value
-            val activePauseIdx = displayItems.indexOfFirst { item ->
-                item is LyricDisplayItem.Pause && pos >= item.startMs && pos < item.endMs
-            }
-            if (activePauseIdx >= 0) {
-                activePauseIdx
-            } else {
-                displayItems.indexOfLast { item ->
-                    item is LyricDisplayItem.Line &&
-                    highlightStarts[item.originalIndex]?.toFloat()?.let { it <= pos } == true
-                }
-            }
-        }
+    // Only a line change invalidates the list. Word highlighting still reads the frame in drawing.
+    val activeDisplayIndex by remember(timeline, smoothPosition) {
+        derivedStateOf { timeline?.activeIndex(smoothPosition.value) ?: -1 }
     }
 
     val listState = rememberLazyListState()
@@ -189,7 +181,7 @@ internal fun LyricLines(
                             accent = accent,
                             onClick = {
                                 browsing = false
-                                onSeek(item.startMs)
+                                onSeek((item.startMs - offsetMs.value).coerceAtLeast(0))
                             },
                             alignment = if (isAlternate) Alignment.End else Alignment.Start,
                             modifier = Modifier
@@ -235,7 +227,7 @@ internal fun LyricLines(
                                 }
                                 .clickable(enabled = line.startMs != null) {
                                     browsing = false
-                                    line.startMs?.let(onSeek)
+                                    line.startMs?.let { onSeek((it - offsetMs.value).coerceAtLeast(0)) }
                                 }
                                 .padding(vertical = LINE_SPACING),
                             horizontalAlignment = if (isAlternate) Alignment.End else Alignment.Start,
@@ -287,8 +279,31 @@ internal fun LyricLines(
             }
         }
 
-        Row(Modifier.align(Alignment.TopEnd).padding(top = 8.dp, end = 16.dp)) {
-            LyricTranslateChip()
+        Row(
+            Modifier.align(Alignment.TopEnd).padding(top = 8.dp, end = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            LyricTranslateChip(translate, { translationChoice = it })
+            if (synced && songId.isNotBlank()) {
+                androidx.compose.material3.IconButton(onClick = { adjustingSync = true }) {
+                    val shape = RoundedCornerShape(12.dp)
+                    Box(
+                        Modifier.size(34.dp).crystalControlSurface(shape) {
+                            glassPane(shape, dev.sfg.numa.mobile.ui.glass.GlassTone.CONTROL)
+                        },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Icons.Rounded.Sync, uiText("Adjust lyric timing", "Ajustar sincronización de letras"),
+                            modifier = Modifier.size(18.dp))
+                    }
+                }
+            }
+        }
+        if (adjustingSync && synced) {
+            LyricTimingDialog(offsetMs.value, onClose = { adjustingSync = false }, onSave = {
+                graph.settings.setLyricOffset(songId, it)
+                adjustingSync = false
+            })
         }
 
         if (browsing && synced) {

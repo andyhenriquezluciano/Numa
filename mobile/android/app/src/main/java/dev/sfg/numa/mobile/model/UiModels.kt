@@ -67,20 +67,22 @@ data class NumaSettings(
     val animatedArtwork: Boolean = true,
     val expandedAnimatedArtwork: Boolean = true,
     val artworkSourceOrder: List<ArtworkSource> = ArtworkSource.entries,
-    val sendYouTubeHistory: Boolean = true,
+    val sendYouTubeHistory: Boolean = false,
     /** Save motion covers alongside newly downloaded songs for offline playback. */
-    val downloadAnimatedArtwork: Boolean = true,
+    val downloadAnimatedArtwork: Boolean = false,
+    val downloadWifiOnly: Boolean = true,
     /** Store new offline songs on removable storage when a card is mounted. */
     val downloadToSdCard: Boolean = false,
     /** Quality on Wi-Fi and other unmetered networks. */
     val audioQuality: AudioQuality = AudioQuality.HIGH,
     val downloadQuality: AudioQuality = AudioQuality.HIGH,
     /** Quality on mobile data and other metered networks. */
-    val cellularAudioQuality: AudioQuality = AudioQuality.HIGH,
+    val cellularAudioQuality: AudioQuality = AudioQuality.NORMAL,
     /** Take the accent from the system's wallpaper palette instead of NÜMA purple. */
     val useSystemColors: Boolean = false,
     /** Let the artwork-tinted background drift instead of holding still between tracks. */
     val animatedBackground: Boolean = true,
+    val motionMode: MotionMode = MotionMode.AUTOMATIC,
     /** Overlap the end of a track with the start of the next one. */
     val crossfadeEnabled: Boolean = false,
     val crossfadeSeconds: Int = DEFAULT_CROSSFADE_SECONDS,
@@ -90,7 +92,6 @@ data class NumaSettings(
      * back to the plain fade for any track it has no evidence about, so it is never worse.
      */
     val smartCrossfade: Boolean = false,
-    val playbackOrder: PlaybackOrder = PlaybackOrder.ORIGINAL,
     /** Ceiling on the on-disk stream cache, in megabytes. Whole tracks are kept, so this is the
      * difference between a few albums and a library, and between instant re-listens and refetching.
      */
@@ -98,7 +99,7 @@ data class NumaSettings(
     /** Whether the user has completed or dismissed the initial welcome/onboarding setup. */
     val onboardingCompleted: Boolean = false,
     /** Whether to broadcast now playing status to Discord via Rich Presence. */
-    val discordPresenceEnabled: Boolean = true,
+    val discordPresenceEnabled: Boolean = false,
     /** Whether to display animated artwork in Discord Rich Presence. */
     /** Whether to show stream bitrate under the player scrubber. */
     val showBitrate: Boolean = false,
@@ -109,16 +110,14 @@ data class NumaSettings(
     /** Whether to even out volume levels across played tracks. */
     val volumeNormalizationEnabled: Boolean = false,
     val exponentialVolumeEnabled: Boolean = false,
-    /** Keep playing related music once the queue runs out, matching desktop's default of on. */
-    val autoplayEnabled: Boolean = true,
+    /** Keep playing related music once the queue runs out. */
+    val autoplayEnabled: Boolean = false,
     /** What to do about talking intros, skits and applause that SponsorBlock volunteers marked. */
-    val nonMusicSkip: NonMusicSkipMode = NonMusicSkipMode.AUTO,
+    val nonMusicSkip: NonMusicSkipMode = NonMusicSkipMode.BUTTON,
     /** Configuration for the 10-band audio equalizer and audio effects. */
     val equalizerConfig: EqualizerConfig = EqualizerConfig(),
     /** Enable swipe and tap gestures on the player artwork. */
     val playerGesturesEnabled: Boolean = true,
-    /** Whether the phone bottom bar has a Settings tab. */
-    val showSettingsTab: Boolean = true,
     /** Online layout configuration. */
     val homeLayoutOnline: List<HomeSectionConfig> = listOf(
         HomeSectionConfig(BuiltInHomeSection.YOUR_PLAYLISTS, true),
@@ -148,7 +147,7 @@ data class NumaSettings(
     /** Tallest music video picture to fetch, in lines; 0 takes the best available. */
     val videoMaxHeight: Int = DEFAULT_VIDEO_MAX_HEIGHT,
     /** Traduce letras al español y conserva el resultado para usarlo sin conexión. */
-    val translateLyrics: Boolean = true,
+    val translateLyrics: Boolean = false,
     val lyricTranslationQuality: LyricTranslationQuality = LyricTranslationQuality.HIGH,
     val lyricTranslationProvider: LyricTranslationProvider = LyricTranslationProvider.GOOGLE,
     val lyricTranslationModels: Map<String, String> = emptyMap(),
@@ -203,6 +202,8 @@ enum class LyricTranslationProvider(val key: String, val label: String) {
 }
 
 /** How playback treats non-music sections; the same three choices as desktop. */
+enum class MotionMode { AUTOMATIC, FULL, REDUCED }
+
 enum class NonMusicSkipMode { OFF, BUTTON, AUTO }
 
 /** A span of the playing track that is not music, in full-song milliseconds. */

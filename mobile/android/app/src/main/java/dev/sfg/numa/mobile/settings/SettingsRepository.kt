@@ -34,6 +34,8 @@ import dev.sfg.numa.mobile.model.EqualizerConfig
 import dev.sfg.numa.mobile.model.LyricTranslationQuality
 import dev.sfg.numa.mobile.model.LyricTranslationProvider
 import dev.sfg.numa.mobile.model.NonMusicSkipMode
+import dev.sfg.numa.mobile.model.MotionMode
+import kotlinx.coroutines.flow.distinctUntilChanged
 import dev.sfg.numa.mobile.model.NumaSettings
 import dev.sfg.numa.mobile.model.GlassTheme
 import dev.sfg.numa.mobile.model.GlassBorders
@@ -63,6 +65,8 @@ class SettingsRepository(context: Context, private val scope: CoroutineScope) {
     val settings: StateFlow<NumaSettings> = store.data
         .catch { emit(androidx.datastore.preferences.core.emptyPreferences()) }
         .map { values ->
+            val fresh = values.asMap().isEmpty()
+            val defaults = NumaSettings()
             NumaSettings(
                 glassTheme = runCatching { GlassTheme.valueOf(values[GLASS_THEME].orEmpty()) }.getOrDefault(GlassTheme.CRISTAL),
                 playlistSongBackground = values[PLAYLIST_SONG_BACKGROUND] ?: false,
@@ -71,32 +75,34 @@ class SettingsRepository(context: Context, private val scope: CoroutineScope) {
                 animatedArtwork = values[ANIMATED_ARTWORK] ?: true,
                 expandedAnimatedArtwork = values[EXPANDED_ANIMATED_ARTWORK] ?: true,
                 artworkSourceOrder = decodeArtworkOrder(values[ARTWORK_SOURCE_ORDER]),
-                sendYouTubeHistory = values[SEND_YOUTUBE_HISTORY] ?: true,
-                downloadAnimatedArtwork = values[DOWNLOAD_ANIMATED_ARTWORK] ?: true,
+                sendYouTubeHistory = values[SEND_YOUTUBE_HISTORY] ?: if (fresh) defaults.sendYouTubeHistory else true,
+                downloadAnimatedArtwork = values[DOWNLOAD_ANIMATED_ARTWORK] ?: if (fresh) defaults.downloadAnimatedArtwork else true,
+                downloadWifiOnly = values[DOWNLOAD_WIFI_ONLY] ?: fresh,
                 downloadToSdCard = values[DOWNLOAD_TO_SD_CARD] ?: false,
                 audioQuality = runCatching { AudioQuality.valueOf(values[AUDIO_QUALITY].orEmpty()) }
                     .getOrDefault(AudioQuality.HIGH).let { if (it == AudioQuality.MAX) AudioQuality.HIGH else it },
                 downloadQuality = runCatching { AudioQuality.valueOf(values[DOWNLOAD_QUALITY].orEmpty()) }
                     .getOrDefault(AudioQuality.HIGH),
                 cellularAudioQuality = runCatching { AudioQuality.valueOf(values[CELLULAR_AUDIO_QUALITY].orEmpty()) }
-                    .getOrDefault(AudioQuality.HIGH).let { if (it == AudioQuality.MAX) AudioQuality.HIGH else it },
+                    .getOrDefault(if (fresh) defaults.cellularAudioQuality else AudioQuality.HIGH).let { if (it == AudioQuality.MAX) AudioQuality.HIGH else it },
                 useSystemColors = false,
                 animatedBackground = values[ANIMATED_BACKGROUND] ?: true,
+                motionMode = MotionMode.entries.firstOrNull { it.name == values[MOTION_MODE] }
+                    ?: if (fresh) defaults.motionMode else MotionMode.FULL,
                 crossfadeEnabled = values[CROSSFADE_ENABLED] ?: false,
                 crossfadeSeconds = values[CROSSFADE_SECONDS] ?: NumaSettings.DEFAULT_CROSSFADE_SECONDS,
                 smartCrossfade = values[SMART_CROSSFADE] ?: false,
-                playbackOrder = dev.sfg.numa.mobile.model.PlaybackOrder.entries.firstOrNull { it.name == values[PLAYBACK_ORDER] } ?: dev.sfg.numa.mobile.model.PlaybackOrder.ORIGINAL,
                 cacheSizeMb = values[CACHE_SIZE_MB] ?: NumaSettings.DEFAULT_CACHE_SIZE_MB,
                 onboardingCompleted = values[ONBOARDING_COMPLETED] ?: false,
-                discordPresenceEnabled = values[DISCORD_PRESENCE_ENABLED] ?: true,
+                discordPresenceEnabled = values[DISCORD_PRESENCE_ENABLED] ?: if (fresh) defaults.discordPresenceEnabled else true,
                 showBitrate = values[SHOW_BITRATE] ?: false,
                 spotifySpdc = values[SPOTIFY_SPDC] ?: "",
                 spotifyCanvasEnabled = values[SPOTIFY_CANVAS_ENABLED] ?: true,
                 volumeNormalizationEnabled = values[VOLUME_NORMALIZATION_ENABLED] ?: false,
                 exponentialVolumeEnabled = values[EXPONENTIAL_VOLUME_ENABLED] ?: false,
-                autoplayEnabled = values[AUTOPLAY_ENABLED] ?: true,
+                autoplayEnabled = values[AUTOPLAY_ENABLED] ?: if (fresh) defaults.autoplayEnabled else true,
                 nonMusicSkip = runCatching { NonMusicSkipMode.valueOf(values[NON_MUSIC_SKIP].orEmpty()) }
-                    .getOrDefault(NonMusicSkipMode.AUTO),
+                    .getOrDefault(if (fresh) defaults.nonMusicSkip else NonMusicSkipMode.AUTO),
                 equalizerConfig = EqualizerConfig(
                     enabled = values[EQUALIZER_ENABLED] ?: false,
                     presetId = values[EQUALIZER_PRESET] ?: "flat",
@@ -105,13 +111,12 @@ class SettingsRepository(context: Context, private val scope: CoroutineScope) {
                     bassBoost = values[EQUALIZER_BASS_BOOST] ?: 0f,
                 ),
                 playerGesturesEnabled = values[PLAYER_GESTURES_ENABLED] ?: true,
-                showSettingsTab = values[SHOW_SETTINGS_TAB] ?: true,
                 homeLayoutOnline = decodeHomeLayout(values[HOME_LAYOUT_ONLINE], true),
                 homeLayoutOffline = decodeHomeLayout(values[HOME_LAYOUT_OFFLINE], false),
                 customDeviceName = values[CUSTOM_DEVICE_NAME] ?: "",
                 betaChannelEnabled = values[BETA_CHANNEL_ENABLED] ?: false,
                 videoMaxHeight = values[VIDEO_MAX_HEIGHT] ?: 1080,
-                translateLyrics = values[TRANSLATE_LYRICS] ?: true,
+                translateLyrics = values[TRANSLATE_LYRICS] ?: if (fresh) defaults.translateLyrics else true,
                 lyricTranslationQuality = LyricTranslationQuality.entries
                     .firstOrNull { it.key == values[LYRIC_TRANSLATION_QUALITY] } ?: LyricTranslationQuality.HIGH,
                 lyricTranslationProvider = LyricTranslationProvider.entries
@@ -132,6 +137,19 @@ class SettingsRepository(context: Context, private val scope: CoroutineScope) {
         .map { decodeHistory(it[SEARCH_HISTORY].orEmpty()) }
         .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
+    fun lyricOffset(songId: String) = store.data.map {
+        it[intPreferencesKey("lyric_offset:$songId")] ?: 0
+    }.distinctUntilChanged()
+
+    fun setLyricOffset(songId: String, offsetMs: Int) {
+        if (songId.isBlank()) return
+        scope.launch {
+            val key = intPreferencesKey("lyric_offset:$songId")
+            val bounded = offsetMs.coerceIn(-5_000, 5_000)
+            store.edit { if (bounded == 0) it.remove(key) else it[key] = bounded }
+        }
+    }
+
     fun updateSettings(value: NumaSettings) {
         scope.launch {
             store.edit {
@@ -144,16 +162,17 @@ class SettingsRepository(context: Context, private val scope: CoroutineScope) {
                 it[ARTWORK_SOURCE_ORDER] = value.artworkSourceOrder.joinToString(",") { source -> source.name }
                 it[SEND_YOUTUBE_HISTORY] = value.sendYouTubeHistory
                 it[DOWNLOAD_ANIMATED_ARTWORK] = value.downloadAnimatedArtwork
+                it[DOWNLOAD_WIFI_ONLY] = value.downloadWifiOnly
                 it[DOWNLOAD_TO_SD_CARD] = value.downloadToSdCard
                 it[AUDIO_QUALITY] = value.audioQuality.name
                 it[DOWNLOAD_QUALITY] = value.downloadQuality.name
                 it[CELLULAR_AUDIO_QUALITY] = value.cellularAudioQuality.name
                 it[SYSTEM_COLORS] = false
                 it[ANIMATED_BACKGROUND] = value.animatedBackground
+                it[MOTION_MODE] = value.motionMode.name
                 it[CROSSFADE_ENABLED] = value.crossfadeEnabled
                 it[CROSSFADE_SECONDS] = value.crossfadeSeconds
                 it[SMART_CROSSFADE] = value.smartCrossfade
-                it[PLAYBACK_ORDER] = value.playbackOrder.name
                 it[CACHE_SIZE_MB] = value.cacheSizeMb
                 it[ONBOARDING_COMPLETED] = value.onboardingCompleted
                 it[DISCORD_PRESENCE_ENABLED] = value.discordPresenceEnabled
@@ -170,7 +189,6 @@ class SettingsRepository(context: Context, private val scope: CoroutineScope) {
                 it[EQUALIZER_PREAMP] = value.equalizerConfig.preampDb
                 it[EQUALIZER_BASS_BOOST] = value.equalizerConfig.bassBoost
                 it[PLAYER_GESTURES_ENABLED] = value.playerGesturesEnabled
-                it[SHOW_SETTINGS_TAB] = value.showSettingsTab
                 it[HOME_LAYOUT_ONLINE] = encodeHomeLayout(value.homeLayoutOnline)
                 it[HOME_LAYOUT_OFFLINE] = encodeHomeLayout(value.homeLayoutOffline)
                 it[CUSTOM_DEVICE_NAME] = value.customDeviceName
@@ -267,6 +285,8 @@ class SettingsRepository(context: Context, private val scope: CoroutineScope) {
         val EXPANDED_ANIMATED_ARTWORK = booleanPreferencesKey("expanded_animated_artwork")
         val ARTWORK_SOURCE_ORDER = stringPreferencesKey("artwork_source_order")
         val SEND_YOUTUBE_HISTORY = booleanPreferencesKey("send_youtube_history")
+        val DOWNLOAD_WIFI_ONLY = booleanPreferencesKey("download_wifi_only")
+        val MOTION_MODE = stringPreferencesKey("motion_mode")
         val DOWNLOAD_ANIMATED_ARTWORK = booleanPreferencesKey("download_animated_artwork")
         val DOWNLOAD_TO_SD_CARD = booleanPreferencesKey("download_to_sd_card")
         val AUDIO_QUALITY = stringPreferencesKey("audio_quality")
@@ -283,7 +303,6 @@ class SettingsRepository(context: Context, private val scope: CoroutineScope) {
         val CROSSFADE_ENABLED = booleanPreferencesKey("crossfade_enabled")
         val CROSSFADE_SECONDS = intPreferencesKey("crossfade_seconds")
         val SMART_CROSSFADE = booleanPreferencesKey("smart_crossfade")
-        val PLAYBACK_ORDER = stringPreferencesKey("playback_order")
         val CACHE_SIZE_MB = intPreferencesKey("cache_size_mb")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val DISCORD_PRESENCE_ENABLED = booleanPreferencesKey("discord_presence_enabled")
@@ -301,7 +320,6 @@ class SettingsRepository(context: Context, private val scope: CoroutineScope) {
         val EQUALIZER_PREAMP = floatPreferencesKey("equalizer_preamp")
         val EQUALIZER_BASS_BOOST = floatPreferencesKey("equalizer_bass_boost")
         val PLAYER_GESTURES_ENABLED = booleanPreferencesKey("player_gestures_enabled")
-        val SHOW_SETTINGS_TAB = booleanPreferencesKey("show_settings_tab")
         val HOME_LAYOUT_ONLINE = stringPreferencesKey("home_layout_online")
         val HOME_LAYOUT_OFFLINE = stringPreferencesKey("home_layout_offline")
         val CUSTOM_DEVICE_NAME = stringPreferencesKey("custom_device_name")

@@ -67,7 +67,7 @@ class DownloadStore(
                         if (file.exists() && file.length() > 0) {
                             result[item.track.id] = item
                         }
-                    } else if (item.status == DownloadStatus.FAILED) {
+                    } else if (item.status == DownloadStatus.FAILED || item.status == DownloadStatus.WAITING_FOR_WIFI) {
                         result[item.track.id] = item
                     }
                 }

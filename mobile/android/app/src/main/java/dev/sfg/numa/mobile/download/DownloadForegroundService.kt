@@ -66,6 +66,7 @@ class DownloadForegroundService : Service() {
         val summary = if (progress.total == 0) "Preparando descargas…"
             else "${progress.completed} / ${progress.total} canciones"
         val detail = when {
+            progress.waitingForWifi > 0 && !progress.active -> "En espera de Wi-Fi"
             progress.failed > 0 -> "${progress.failed} fallidas · ${progress.pending} pendientes"
             progress.active -> "Descargando en segundo plano"
             else -> "Descargas completadas"

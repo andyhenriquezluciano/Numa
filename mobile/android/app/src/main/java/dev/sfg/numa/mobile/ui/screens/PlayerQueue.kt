@@ -19,6 +19,7 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.glass.crystalSurfaceFill
 import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import dev.sfg.numa.mobile.ui.text.uiText
 
@@ -222,7 +223,7 @@ fun QueueTopControls(
         )
         if (onAutoplayEnabled != null) QueueModeTile(
             icon = Icons.Rounded.AllInclusive,
-            title = uiText("Autoplay", "Reproducción automática"),
+            title = uiText("Continue with similar music", "Seguir con música similar"),
             status = when {
                 !autoplayEnabled -> uiText("Off", "Desactivado")
                 autoplayLoading -> uiText("Finding songs…", "Buscando canciones…")
@@ -249,18 +250,20 @@ private fun QueueModeTile(
     val rose = currentRosePine()
     val activeTint = (if (automatic) rose?.InfoInk else rose?.AccentInk) ?: playbackAccent()
     val activeFill = if (automatic) rose?.InfoSurface else rose?.Highlight
-    val container = if (active) activeFill ?: activeTint.copy(alpha = 0.18f)
-        else rose?.HighlightLow ?: Color.White.copy(alpha = 0.07f)
+    val container = if (active) {
+        val highlight = activeTint.copy(alpha = 0.18f)
+        activeFill ?: crystalSurfaceFill(highlight, highlight)
+    } else rose?.HighlightLow ?: crystalSurfaceFill(Color.White.copy(alpha = 0.07f))
     val iconBackground = if (active) activeTint.copy(alpha = 0.25f)
-        else rose?.Surface ?: Color.White.copy(alpha = 0.10f)
+        else rose?.Surface ?: crystalSurfaceFill(Color.White.copy(alpha = 0.10f))
     Surface(
         onClick = onClick,
         color = container,
         shape = MaterialTheme.shapes.medium,
-        modifier = modifier.height(68.dp),
+        modifier = modifier.height(72.dp),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp),
+            modifier = Modifier.padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -282,7 +285,8 @@ private fun QueueModeTile(
                     title,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                     color = rose?.Text ?: Color.White,
-                    maxLines = 1,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     status,

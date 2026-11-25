@@ -64,6 +64,8 @@ import dev.sfg.numa.mobile.ui.theme.currentRosePine
 import dev.sfg.numa.mobile.ui.glass.crystalSearchSurface
 import java.text.Normalizer
 
+private val combiningDiacritics = "\\p{InCombiningDiacriticalMarks}+".toRegex()
+
 /**
  * Normalizes input string for search comparisons by stripping diacritics / accents
  * and converting to lowercase trimmed text.
@@ -71,66 +73,50 @@ import java.text.Normalizer
 fun normalizeSearchText(value: String?): String {
     if (value.isNullOrBlank()) return ""
     return Normalizer.normalize(value, Normalizer.Form.NFD)
-        .replace("\\p{InCombiningDiacriticalMarks}+".toRegex(), "")
+        .replace(combiningDiacritics, "")
         .lowercase()
         .trim()
 }
 
-/**
- * Filters a list of tracks against a search query across title, artist, and album.
- */
+internal fun Track.searchFields(): List<String> = listOf(title, artist, album)
+
+internal fun CatalogItem.searchFields(): List<String> = when (this) {
+    is CatalogItem.Song -> track.searchFields()
+    is CatalogItem.Record -> listOf(album.title, album.artist)
+    is CatalogItem.Performer -> listOf(artist.name, artist.subtitle)
+    is CatalogItem.Collection -> listOf(playlist.title, playlist.author, playlist.description)
+    is CatalogItem.Category -> listOf(title)
+}
+
+private class CollectionSearchIndex<T>(private val values: List<T>, fields: (T) -> List<String>) {
+    private val indexedFields by lazy(LazyThreadSafetyMode.NONE) {
+        values.map { fields(it).map(::normalizeSearchText) }
+    }
+
+    fun matching(normalizedQuery: String): List<T> {
+        if (normalizedQuery.isBlank()) return values
+        return values.filterIndexed { index, _ -> indexedFields[index].any { it.contains(normalizedQuery) } }
+    }
+}
+
+@Composable
+internal fun <T> rememberMatching(values: List<T>, query: String, fields: (T) -> List<String>): List<T> {
+    val normalized = remember(query) { normalizeSearchText(query) }
+    val index = remember(values) { CollectionSearchIndex(values, fields) }
+    if (normalized.isBlank()) return values
+    return remember(index, normalized) { index.matching(normalized) }
+}
+
 fun filterTracks(tracks: List<Track>, query: String): List<Track> {
-    val normalizedQuery = normalizeSearchText(query)
-    if (normalizedQuery.isBlank()) return tracks
-
-    return tracks.filter { track ->
-        val title = normalizeSearchText(track.title)
-        val artist = normalizeSearchText(track.artist)
-        val album = normalizeSearchText(track.album)
-
-        title.contains(normalizedQuery) ||
-            artist.contains(normalizedQuery) ||
-            album.contains(normalizedQuery)
-    }
+    val normalized = normalizeSearchText(query)
+    return if (normalized.isBlank()) tracks else CollectionSearchIndex(tracks, Track::searchFields).matching(normalized)
 }
 
-/**
- * Filters a list of catalog items against a search query across title, artist, author, and subtitle.
- */
 fun filterCatalogItems(items: List<CatalogItem>, query: String): List<CatalogItem> {
-    val normalizedQuery = normalizeSearchText(query)
-    if (normalizedQuery.isBlank()) return items
-
-    return items.filter { item ->
-        when (item) {
-            is CatalogItem.Song -> {
-                normalizeSearchText(item.track.title).contains(normalizedQuery) ||
-                    normalizeSearchText(item.track.artist).contains(normalizedQuery) ||
-                    normalizeSearchText(item.track.album).contains(normalizedQuery)
-            }
-            is CatalogItem.Record -> {
-                normalizeSearchText(item.album.title).contains(normalizedQuery) ||
-                    normalizeSearchText(item.album.artist).contains(normalizedQuery)
-            }
-            is CatalogItem.Performer -> {
-                normalizeSearchText(item.artist.name).contains(normalizedQuery) ||
-                    normalizeSearchText(item.artist.subtitle).contains(normalizedQuery)
-            }
-            is CatalogItem.Collection -> {
-                normalizeSearchText(item.playlist.title).contains(normalizedQuery) ||
-                    normalizeSearchText(item.playlist.author).contains(normalizedQuery) ||
-                    normalizeSearchText(item.playlist.description).contains(normalizedQuery)
-            }
-            is CatalogItem.Category -> {
-                normalizeSearchText(item.title).contains(normalizedQuery)
-            }
-        }
-    }
+    val normalized = normalizeSearchText(query)
+    return if (normalized.isBlank()) items else CollectionSearchIndex(items, CatalogItem::searchFields).matching(normalized)
 }
 
-/**
- * Frosted top search bar for collections (playlists, albums).
- */
 @Composable
 fun CollectionTopSearchBar(
     query: String,

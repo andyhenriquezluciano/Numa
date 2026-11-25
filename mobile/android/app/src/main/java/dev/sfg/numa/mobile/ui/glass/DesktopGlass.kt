@@ -19,7 +19,6 @@ object DesktopGlass {
     val PickerFieldFill = Color(0x10FFFFFF)
     val PickerSelectedFill = Color(0x20FFFFFF)
     val PickerPopupBase = Color(0xFF25292D)
-    const val PickerPopupOpacity = 0.48f
     val PressedFill = Color(0x2CFFFFFF)
     val Text = Color(0xFFF0EEE7)
 }

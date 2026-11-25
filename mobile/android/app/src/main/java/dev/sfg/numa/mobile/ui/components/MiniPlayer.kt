@@ -19,6 +19,7 @@
 
 package dev.sfg.numa.mobile.ui.components
 
+import dev.sfg.numa.mobile.ui.glass.crystalSurfaceFill
 import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import dev.sfg.numa.mobile.ui.theme.trackControlInk
 import dev.sfg.numa.mobile.ui.text.uiText
@@ -189,7 +190,7 @@ fun MiniPlayer(
     val accent = playbackAccent()
     val progressHeight = if (rose == null) 4.dp else 2.dp
     val progressRail = rose?.HighlightMed ?: Color.White.copy(alpha = 0.24f)
-    val skipFill = rose?.let { if (isDawn) it.Surface else it.Overlay } ?: DesktopGlass.TransportButtonFill
+    val skipFill = rose?.let { if (isDawn) it.Surface else it.Overlay } ?: crystalSurfaceFill(DesktopGlass.TransportButtonFill)
 
     val dragModifier = Modifier.draggable(
         enabled = dismissEnabled,

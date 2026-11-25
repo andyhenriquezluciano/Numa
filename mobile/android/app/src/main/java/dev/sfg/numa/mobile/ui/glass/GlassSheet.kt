@@ -59,6 +59,7 @@ fun GlassBottomSheet(
                         } else {
                             Modifier
                                 .glassPane(shape, GlassTone.OVERLAY)
+                                .then(if (isDark) Modifier.background(DarkCrystal.SheetWash) else Modifier)
                                 .then(
                                     if (showBorders) Modifier.border(
                                         1.dp,

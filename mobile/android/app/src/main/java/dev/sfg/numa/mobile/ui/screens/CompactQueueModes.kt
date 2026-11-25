@@ -1,5 +1,6 @@
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.glass.crystalSurfaceFill
 import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -29,7 +30,7 @@ internal fun CompactQueueModes(repeat: RepeatMode, onRepeat: (() -> Unit)?, auto
         )
         if (onAutoplay != null) QueueModeButton(
             Icons.Rounded.AllInclusive,
-            uiText("Autoplay", "Reproducción automática"),
+            uiText("Continue with similar music", "Seguir con música similar"),
             active = autoplay,
             onClick = { onAutoplay(!autoplay) },
             automatic = true,
@@ -43,7 +44,8 @@ private fun QueueModeButton(icon: ImageVector, label: String, active: Boolean, o
     val activeTint = if (automatic) rose?.InfoInk else rose?.AccentInk
     val tint = if (active) activeTint ?: playbackAccent() else rose?.SecondaryText ?: Color.White.copy(alpha = 0.65f)
     val fill = when {
-        rose == null -> tint.copy(alpha = if (active) 0.18f else 0.08f)
+        rose == null -> crystalSurfaceFill(tint.copy(alpha = if (active) 0.18f else 0.08f),
+            if (active) tint.copy(alpha = 0.18f) else Color.Transparent)
         !active -> rose.HighlightLow
         automatic -> rose.InfoSurface
         else -> rose.Highlight

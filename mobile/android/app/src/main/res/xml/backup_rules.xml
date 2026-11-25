@@ -2,6 +2,7 @@
 <!-- Only library metadata and playlist artwork participate in backup. -->
 <full-backup-content>
     <include domain="file" path="library-cache.json" requireFlags="clientSideEncryption|deviceToDeviceTransfer" />
+    <include domain="file" path="library-history.json" requireFlags="clientSideEncryption|deviceToDeviceTransfer" />
     <include domain="file" path="playlist-covers/" requireFlags="clientSideEncryption|deviceToDeviceTransfer" />
     <include domain="sharedpref" path="automatic-playlist-covers.xml" requireFlags="clientSideEncryption|deviceToDeviceTransfer" />
     <include domain="sharedpref" path="library-playlist-visibility.xml" requireFlags="clientSideEncryption|deviceToDeviceTransfer" />

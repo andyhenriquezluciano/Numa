@@ -63,18 +63,3 @@ internal fun CrossfadeRow(settings: NumaSettings, onSettings: (NumaSettings) -> 
         }
     }
 }
-
-@Composable
-internal fun PlaybackOrderRow(settings: NumaSettings, onSettings: (NumaSettings) -> Unit) {
-    Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-        RowTitle(uiText("Playback order", "Orden de reproducción"))
-        RowSubtitle(uiText("Order for newly started playlists", "Orden para las nuevas listas"))
-        SettingsDropdownField(options = PlaybackOrder.entries.map { it to it.label },
-            selected = settings.playbackOrder, onSelect = { onSettings(settings.copy(playbackOrder = it)) })
-        if (settings.playbackOrder == PlaybackOrder.BEST_MIX) {
-            Row(Modifier.padding(top = 8.dp)) {
-                RowTitle(uiText("Best Mix", "Mejor mezcla"))
-            }
-        }
-    }
-}

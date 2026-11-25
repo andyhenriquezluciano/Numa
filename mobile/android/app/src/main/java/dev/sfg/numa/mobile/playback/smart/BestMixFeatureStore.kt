@@ -37,18 +37,32 @@ class BestMixFeatureStore(context: Context) : SQLiteOpenHelper(
         onCreate(database)
     }
 
-    /** True when a row for [id] matches [duration] within a second; touches it for the trim. */
-    fun has(id: String, duration: Double): Boolean = runCatching {
-        val found = readableDatabase.rawQuery(
-            "SELECT 1 FROM features WHERE id=? AND ABS(duration-?)<=1 LIMIT 1",
-            arrayOf(id, duration.toString()),
-        ).use { it.moveToFirst() }
-        if (found) {
-            writableDatabase.execSQL("UPDATE features SET used_at=? WHERE id=?",
-                arrayOf<Any>(System.currentTimeMillis() / 1000, id))
+    /** Finds matching analyses in batches and updates their recency for the cache trim. */
+    internal fun matchingIds(durations: Map<String, Double>): Set<String> = buildSet {
+        durations.keys.chunked(QUERY_BATCH_SIZE).forEach { ids ->
+            val matched = runCatching {
+                val placeholders = ids.joinToString(",") { "?" }
+                readableDatabase.rawQuery(
+                    "SELECT id,duration FROM features WHERE id IN ($placeholders)",
+                    ids.toTypedArray(),
+                ).use { rows ->
+                    buildList {
+                        while (rows.moveToNext()) {
+                            val id = rows.getString(0)
+                            if (kotlin.math.abs(rows.getDouble(1) - durations.getValue(id)) <= 1) add(id)
+                        }
+                    }
+                }.also { matching ->
+                    if (matching.isNotEmpty()) {
+                        val selection = matching.joinToString(",") { "?" }
+                        val values = ContentValues().apply { put("used_at", System.currentTimeMillis() / 1000) }
+                        writableDatabase.update("features", values, "id IN ($selection)", matching.toTypedArray())
+                    }
+                }
+            }.getOrDefault(emptyList())
+            addAll(matched)
         }
-        found
-    }.getOrDefault(false)
+    }
 
     /** Stores a `bestMixAnalyze` result. False when it lacks an edge or a summary. */
     fun store(id: String, duration: Double, features: JSONObject): Boolean = runCatching {
@@ -100,6 +114,7 @@ class BestMixFeatureStore(context: Context) : SQLiteOpenHelper(
     }
 
     companion object {
+        private const val QUERY_BATCH_SIZE = 500
         private const val TAG = "NumaBestMixStore"
         internal const val DATABASE_NAME = "best-mix-analysis.db"
         // Version 3: saver-quality audio, the encode desktop analyzes for its feature version 2.

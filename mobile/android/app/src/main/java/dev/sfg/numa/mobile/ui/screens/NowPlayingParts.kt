@@ -19,6 +19,8 @@
 
 package dev.sfg.numa.mobile.ui.screens
 
+import dev.sfg.numa.mobile.ui.glass.isDarkCrystal
+import dev.sfg.numa.mobile.ui.glass.DarkCrystal
 import dev.sfg.numa.mobile.ui.glass.GlassAlertDialog
 
 import dev.sfg.numa.mobile.ui.text.uiText
@@ -380,8 +382,9 @@ internal fun PlayerBackdropLayer(
     if (lyricsRoom || roomAlpha.value > 0.001f) {
         LyricsRoom(track.artworkUrl, isPlaying, Modifier.graphicsLayer { alpha = roomAlpha.value })
     }
-    // Blur is a no-op below API 31, so darken as well to keep lyrics legible everywhere.
-    if (!lyricsRoom && (wideLayout || isFoldable || panel != PlayerPanel.NONE)) {
+    if (isDarkCrystal()) {
+        Box(Modifier.fillMaxSize().background(DarkCrystal.PlayerWash))
+    } else if (!lyricsRoom && (wideLayout || isFoldable || panel != PlayerPanel.NONE)) {
         val scrimAlpha = when {
             isFoldable && panel == PlayerPanel.NONE && hasRichArtwork -> 0.05f
             isFoldable && panel == PlayerPanel.NONE -> 0.15f

@@ -33,12 +33,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
-import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Image
-import androidx.compose.material.icons.rounded.Loop
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material.icons.rounded.SignalCellularAlt
@@ -69,7 +67,7 @@ import dev.sfg.numa.mobile.settings.CacheManager
 internal fun AudioPage(
     settings: NumaSettings,
     onSettings: (NumaSettings) -> Unit,
-    onAutoplayEnabled: ((Boolean) -> Unit)?,
+    openAdvanced: Boolean = false,
 ) {
     SectionLabel(uiText("Quality", "Calidad"))
     SettingsPanel(index = 1) {
@@ -88,14 +86,6 @@ internal fun AudioPage(
         EqualizerRow(settings, onSettings)
         PanelDivider()
         ToggleRow(
-            title = uiText("Exponential volume", "Volumen exponencial"),
-            subtitle = uiText("Finer control at low volume", "Control más preciso al escuchar a volumen bajo"),
-            icon = Icons.AutoMirrored.Rounded.VolumeUp,
-            checked = settings.exponentialVolumeEnabled,
-            onChecked = { onSettings(settings.copy(exponentialVolumeEnabled = it)) },
-        )
-        PanelDivider()
-        ToggleRow(
             title = uiText("Volume normalization", "Normalización de volumen"),
             subtitle = uiText("Balance volume between songs", "Equilibra el volumen entre canciones"),
             icon = Icons.AutoMirrored.Rounded.VolumeUp,
@@ -107,21 +97,6 @@ internal fun AudioPage(
     SectionLabel(uiText("Transitions", "Transiciones"), 4)
     SettingsPanel(index = 5) { CrossfadeRow(settings, onSettings) }
 
-    SectionLabel(uiText("Queue", "Cola"), 6)
-    SettingsPanel(index = 7) {
-        PlaybackOrderRow(settings, onSettings)
-        PanelDivider()
-        ToggleRow(
-            title = uiText("Autoplay", "Reproducción automática"),
-            subtitle = uiText("Add similar songs when the queue ends", "Añade canciones similares al terminar la cola"),
-            icon = Icons.Rounded.Loop,
-            checked = settings.autoplayEnabled,
-            onChecked = { enabled ->
-                onAutoplayEnabled?.invoke(enabled) ?: onSettings(settings.copy(autoplayEnabled = enabled))
-            },
-        )
-    }
-
     SectionLabel(uiText("Non-music parts", "Partes sin música"), 8)
     SettingsPanel(index = 7) {
         NonMusicSkipRow(settings.nonMusicSkip) { onSettings(settings.copy(nonMusicSkip = it)) }
@@ -129,6 +104,17 @@ internal fun AudioPage(
 
 
     PlayerInteractionSettings(settings, onSettings)
+    AdvancedSettings(showInitially = openAdvanced) {
+        SettingsPanel(index = 10) {
+            ToggleRow(
+                title = uiText("Exponential volume", "Volumen exponencial"),
+                subtitle = uiText("Finer control at low volume", "Control más preciso al escuchar a volumen bajo"),
+                icon = Icons.AutoMirrored.Rounded.VolumeUp,
+                checked = settings.exponentialVolumeEnabled,
+                onChecked = { onSettings(settings.copy(exponentialVolumeEnabled = it)) },
+            )
+        }
+    }
 
 }
 
@@ -137,6 +123,7 @@ internal fun AppearancePage(
     settings: NumaSettings,
     onSettings: (NumaSettings) -> Unit,
     onHomeLayout: () -> Unit,
+    openAdvanced: Boolean = false,
 ) {
     SectionLabel(uiText("Glass and style", "Cristales y estilo"), 1)
     SettingsPanel(index = 2) {
@@ -153,23 +140,6 @@ internal fun AppearancePage(
         )
     }
 
-    SectionLabel(uiText("Navigation", "Navegación"), 4)
-    SettingsPanel(index = 5) {
-        ToggleRow(
-            title = uiText("Settings tab", "Pestaña de Ajustes"),
-            subtitle = uiText("Show Settings in the bottom bar", "Muestra Ajustes en la barra inferior"),
-            icon = Icons.Rounded.Settings,
-            checked = settings.showSettingsTab,
-            onChecked = { onSettings(settings.copy(showSettingsTab = it)) },
-        )
-    }
-
-    SectionLabel(uiText("Player bar", "Barra del reproductor"), 6)
-    SettingsPanel(index = 7) {
-        ToggleRow(title = "Mostrar tasa de bits del audio", subtitle = uiText("Show the stream bitrate in the player.", "Muestra la tasa de transmisión en el reproductor."),
-            icon = Icons.Rounded.Speed, checked = settings.showBitrate,
-            onChecked = { onSettings(settings.copy(showBitrate = it)) })
-    }
     SectionLabel(uiText("Animated artwork", "Carátulas animadas"), 10)
     SettingsPanel(index = 11) {
         ToggleRow(
@@ -179,25 +149,32 @@ internal fun AppearancePage(
             checked = settings.animatedArtwork,
             onChecked = { onSettings(settings.copy(animatedArtwork = it)) },
         )
-        SettingsDropdownField(
-            options = listOf(true to uiText("Full", "Completa"), false to uiText("Normal size", "Tamaño normal")),
-            selected = settings.expandedAnimatedArtwork,
-            onSelect = { onSettings(settings.copy(expandedAnimatedArtwork = it)) },
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-        )
-        PanelDivider()
-        ArtworkSourceOrder(settings, onSettings)
+        if (settings.animatedArtwork) {
+            PanelDivider()
+            ArtworkSizePreview(settings.expandedAnimatedArtwork) {
+                onSettings(settings.copy(expandedAnimatedArtwork = it))
+            }
+        }
     }
 
-    SectionLabel(uiText("Immersive background", "Fondo inmersivo"), 12)
+    SectionLabel(uiText("Motion", "Movimiento"), 12)
     SettingsPanel(index = 9) {
-        ToggleRow(
-            title = uiText("Use artwork background", "Usar fondo de la carátula"),
-            subtitle = uiText("Animate the background with artwork colors", "Anima el fondo con los colores de la carátula"),
-            icon = Icons.Rounded.AutoAwesome,
-            checked = settings.animatedBackground,
-            onChecked = { onSettings(settings.copy(animatedBackground = it)) },
-        )
+        MotionSettings(settings, onSettings)
+    }
+    AdvancedSettings(showInitially = openAdvanced) {
+        SettingsPanel(index = 7) {
+            ToggleRow(
+                title = uiText("Show audio bitrate", "Mostrar tasa de bits del audio"),
+                subtitle = uiText("Show the stream bitrate in the player.", "Muestra la tasa de transmisión en el reproductor."),
+                icon = Icons.Rounded.Speed,
+                checked = settings.showBitrate,
+                onChecked = { onSettings(settings.copy(showBitrate = it)) },
+            )
+            if (settings.animatedArtwork) {
+                PanelDivider()
+                ArtworkSourceOrder(settings, onSettings)
+            }
+        }
     }
 
 }
@@ -229,6 +206,14 @@ internal fun StoragePage(
                 onSelect = { onSettings(settings.copy(downloadQuality = it)) },
             )
         }
+        PanelDivider()
+        ToggleRow(
+            title = uiText("Wi-Fi only", "Solo por Wi-Fi"),
+            subtitle = uiText("Downloads wait when Wi-Fi is unavailable.", "Las descargas esperan cuando no hay Wi-Fi."),
+            icon = Icons.Rounded.Download,
+            checked = settings.downloadWifiOnly,
+            onChecked = { onSettings(settings.copy(downloadWifiOnly = it)) },
+        )
         PanelDivider()
         ToggleRow(title = uiText("Download animated artwork", "Descargar carátulas animadas"),
             subtitle = uiText("Save animated covers. Uses more storage.", "Guarda las portadas en movimiento. Ocupa más espacio."),

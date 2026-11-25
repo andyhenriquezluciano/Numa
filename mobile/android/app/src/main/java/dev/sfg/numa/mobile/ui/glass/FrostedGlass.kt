@@ -134,6 +134,8 @@ private class GlassPaneNode(
     private val seed = SEEDS[System.identityHashCode(this).mod(SEEDS.size)]
 
     private var blur: GraphicsLayer? = null
+    private var cropSource: GraphicsLayer? = null
+    private var cropOffset = Offset.Unspecified
     private var lens: LiquidLens? = null
 
     /** Held rather than re-required on the way out: releasing is not worth a detach-order risk. */
@@ -291,11 +293,17 @@ private class GlassPaneNode(
         // The full-resolution finish below supplies the antialiased mask and crisp rim.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val painter = lens ?: LiquidLens().also { lens = it }
-            layer.renderEffect = painter.effect(size, corners, density, downscale)
+            val effect = painter.effect(size, corners, density, downscale)
+            if (layer.renderEffect !== effect) layer.renderEffect = effect
         }
-        layer.record(IntSize(width + 8, height + 8)) {
-            translate(SAMPLE_PADDING - offset.x / downscale,
-                SAMPLE_PADDING - offset.y / downscale) { drawLayer(source) }
+        val cropSize = IntSize(width + 8, height + 8)
+        if (cropSource !== source || cropOffset != offset || layer.size != cropSize) {
+            layer.record(cropSize) {
+                translate(SAMPLE_PADDING - offset.x / downscale,
+                    SAMPLE_PADDING - offset.y / downscale) { drawLayer(source) }
+            }
+            cropSource = source
+            cropOffset = offset
         }
         val paint: DrawScope.() -> Unit = {
             scale(downscale, pivot = Offset.Zero) {
@@ -345,6 +353,8 @@ private class GlassPaneNode(
         screenPosition = Offset.Unspecified
         blur?.let { layer -> graphics?.releaseGraphicsLayer(layer) }
         blur = null
+        cropSource = null
+        cropOffset = Offset.Unspecified
         graphics = null
         lens = null
         frost = null

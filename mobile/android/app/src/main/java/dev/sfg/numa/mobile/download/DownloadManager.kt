@@ -65,6 +65,7 @@ class DownloadManager(
     private val lyricsResolver: suspend (Track) -> List<LyricLine>? = { null },
     private val lyricIdentity: (Track) -> String = { dev.sfg.numa.mobile.lyrics.lyricCacheIdentity(it) },
     private val lyricTranslationResolver: suspend (Track, List<LyricLine>) -> List<String?>? = { _, _ -> null },
+    private val downloadAllowed: StateFlow<Boolean> = MutableStateFlow(true),
     downloadQualityProvider: () -> dev.sfg.numa.mobile.model.AudioQuality = { dev.sfg.numa.mobile.model.AudioQuality.HIGH },
 ) {
     private val context = context.applicationContext
@@ -96,6 +97,7 @@ class DownloadManager(
         val initial = store.loadAll()
         synchronized(stateLock) {
             mutableDownloads.value = initial
+            batchIds.addAll(initial.values.filter { it.status == DownloadStatus.WAITING_FOR_WIFI }.map { it.track.id })
             updateDerivedStates(initial)
         }
         refreshTotalBytesUsed()
@@ -114,6 +116,9 @@ class DownloadManager(
                 catch (error: Exception) { Log.w(TAG, "Download operation failed", error) }
             }
         }
+        scope.launch(Dispatchers.IO) {
+            downloadAllowed.collect { allowed -> command { updateDownloadAvailability(allowed) } }
+        }
         // Start worker coroutines for queued downloads
         repeat(MAX_CONCURRENT_DOWNLOADS) {
             scope.launch(Dispatchers.IO) {
@@ -123,7 +128,7 @@ class DownloadManager(
                         val videoId = item.track.id
                         val job = launch(start = CoroutineStart.LAZY) { processDownload(item) }
                         synchronized(stateLock) {
-                            if (mutableDownloads.value[videoId]?.status != DownloadStatus.QUEUED || activeJobs.containsKey(videoId)) {
+                            if (!downloadAllowed.value || mutableDownloads.value[videoId]?.status != DownloadStatus.QUEUED || activeJobs.containsKey(videoId)) {
                                 job.cancel()
                                 return@coroutineScope
                             }
@@ -173,22 +178,68 @@ class DownloadManager(
 
         val item = DownloadItem(
             track = track,
-            status = DownloadStatus.QUEUED,
+            status = if (downloadAllowed.value) DownloadStatus.QUEUED else DownloadStatus.WAITING_FOR_WIFI,
             progress = 0f,
         )
         val startService = synchronized(stateLock) {
             if (mutableDownloads.value[track.id]?.isDownloading == true) return
             val start = !mutableBatchProgress.value.active
-            if (start) batchIds.clear()
+            if (mutableBatchProgress.value.pending == 0) batchIds.clear()
             batchIds.add(track.id)
             updateItemState(item, allowNew = true)
             start
         }
-        if (startService) runCatching {
+        if (item.status == DownloadStatus.WAITING_FOR_WIFI) {
+            store.save(item)
+        } else {
+            if (startService) startDownloadService()
+            downloadQueue.trySend(item)
+        }
+    }
+
+    private fun startDownloadService() {
+        runCatching {
             androidx.core.content.ContextCompat.startForegroundService(context,
                 android.content.Intent(context, DownloadForegroundService::class.java))
         }.onFailure { Log.w(TAG, "Could not start download foreground service", it) }
-        downloadQueue.trySend(item)
+    }
+
+    private suspend fun updateDownloadAvailability(allowed: Boolean) {
+        if (allowed != downloadAllowed.value) return
+        if (allowed) {
+            val resumed = synchronized(stateLock) {
+                mutableDownloads.value.values.filter { it.status == DownloadStatus.WAITING_FOR_WIFI }
+                    .map { it.copy(status = DownloadStatus.QUEUED) }
+                    .also { items ->
+                        batchIds.addAll(items.map { it.track.id })
+                        items.forEach { updateItemState(it) }
+                    }
+            }
+            if (resumed.isNotEmpty()) startDownloadService()
+            // Also re-submit queued rows that a worker skipped after connectivity changed.
+            mutableDownloads.value.values.filter { it.status == DownloadStatus.QUEUED }
+                .forEach { downloadQueue.trySend(it) }
+            return
+        }
+
+        val waiting = synchronized(stateLock) {
+            mutableDownloads.value.values.filter { it.isDownloading && it.status != DownloadStatus.WAITING_FOR_WIFI }
+                .map { it.copy(status = DownloadStatus.WAITING_FOR_WIFI) }
+                .also { items -> items.forEach { updateItemState(it) } }
+        }
+        val jobs = waiting.mapNotNull { item -> activeJobs[item.track.id]?.let { item.track.id to it } }
+        jobs.forEach { (_, job) -> job.cancel() }
+        jobs.forEach { (id, job) ->
+            job.join()
+            activeJobs.remove(id, job)
+        }
+        val saved = store.loadAll()
+        val pending = waiting.filter { item ->
+            val completed = saved[item.track.id]?.takeIf { it.completedFileOrNull() != null }
+            if (completed != null) updateItemState(completed)
+            completed == null && mutableDownloads.value[item.track.id]?.status == DownloadStatus.WAITING_FOR_WIFI
+        }
+        if (pending.isNotEmpty()) store.saveAll(pending)
     }
 
     /** Enqueue a list of tracks for downloading (e.g. playlist or album). */
@@ -212,8 +263,10 @@ class DownloadManager(
         }
         command {
             jobs.forEach { it.join() }
-            mutableDownloads.value.values.filter { it.status == DownloadStatus.PAUSED }
-                .forEach { store.removeTemp(it.track.id) }
+            mutableDownloads.value.values.filter { it.status == DownloadStatus.PAUSED }.forEach {
+                if (store.loadAll()[it.track.id]?.status == DownloadStatus.WAITING_FOR_WIFI) store.remove(it.track.id)
+                else store.removeTemp(it.track.id)
+            }
         }
     }
 
@@ -311,7 +364,7 @@ class DownloadManager(
     private suspend fun processDownload(queuedItem: DownloadItem) {
         val videoId = queuedItem.track.id
         val downloadingItem = synchronized(stateLock) {
-            if (mutableDownloads.value[videoId]?.status != DownloadStatus.QUEUED) return
+            if (!downloadAllowed.value || mutableDownloads.value[videoId]?.status != DownloadStatus.QUEUED) return
             queuedItem.copy(status = DownloadStatus.DOWNLOADING).also { updateItemState(it) }
         }
 
@@ -336,6 +389,8 @@ class DownloadManager(
         }
 
         if (result.status == DownloadStatus.COMPLETED) {
+            // Audio is already available. Keep it if Wi-Fi drops while fetching extras.
+            store.save(result)
             result = coroutineScope {
                 val motion = async {
                     if (downloadAnimatedArtworkProvider()) downloadAnimatedArtwork(result) else result
@@ -354,10 +409,8 @@ class DownloadManager(
         }
 
         currentCoroutineContext().ensureActive()
-        if (result.status == DownloadStatus.COMPLETED) {
-            store.save(result)
-            refreshTotalBytesUsed()
-        }
+        store.save(result)
+        if (result.status == DownloadStatus.COMPLETED) refreshTotalBytesUsed()
         updateItemState(result)
     }
 
@@ -470,7 +523,8 @@ class DownloadManager(
     private fun updateItemState(item: DownloadItem, allowNew: Boolean = false) {
         synchronized(stateLock) {
             val current = mutableDownloads.value[item.track.id]
-            if (!allowNew && (current == null || current.status == DownloadStatus.PAUSED)) return
+            if (!allowNew && (current == null || current.status == DownloadStatus.PAUSED ||
+                (current.status == DownloadStatus.WAITING_FOR_WIFI && item.status == DownloadStatus.DOWNLOADING))) return
             val map = mutableDownloads.value.toMutableMap()
             map[item.track.id] = item
             mutableDownloads.value = map

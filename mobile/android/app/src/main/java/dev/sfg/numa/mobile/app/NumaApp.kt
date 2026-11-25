@@ -19,6 +19,7 @@
 
 package dev.sfg.numa.mobile.app
 
+import dev.sfg.numa.mobile.ui.glass.DarkCrystal
 import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -91,6 +92,7 @@ fun NumaApp(viewModel: NumaViewModel) {
     val targets by viewModel.targets.collectAsStateWithLifecycle()
     val library by viewModel.library.collectAsStateWithLifecycle()
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val mediaMotion = dev.sfg.numa.mobile.ui.components.mediaMotionAllowed(settings.motionMode)
     val listeningParty by viewModel.listeningParty.collectAsStateWithLifecycle()
     val shareState by viewModel.shareState.collectAsStateWithLifecycle()
     val warning by viewModel.warning.collectAsStateWithLifecycle()
@@ -187,7 +189,7 @@ fun NumaApp(viewModel: NumaViewModel) {
     val idleBackdrop = !isDetail && playerPlayback.currentTrack == null && playerPlayback.queue.isEmpty()
     val roseTheme = settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE ||
         settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.ROSE_PINE_DAWN
-    val animateBackdrop = settings.animatedBackground && !playerOpen && !roseTheme
+    val animateBackdrop = mediaMotion && settings.animatedBackground && !playerOpen && !roseTheme
     val glassClock = rememberGlassAnimationClock(
         animateBackdrop && (idleBackdrop || playerPlayback.isPlaying || isDetail),
     )
@@ -246,8 +248,11 @@ fun NumaApp(viewModel: NumaViewModel) {
                             dev.sfg.numa.mobile.ui.components.HomeBackdrop(
                                 visible = !playerOpen && (isDetail || route == Routes.HOME || route == Routes.SETTINGS || route == Routes.SETTINGS_HOME_LAYOUT || route == Routes.LIBRARY || route == Routes.ROOMS),
                                 artworkUrl = activeCoverUrl,
-                                isPlaying = (isDetail || playerPlayback.isPlaying) && settings.animatedBackground,
+                                isPlaying = (isDetail || playerPlayback.isPlaying) && animateBackdrop,
                             )
+                            if (settings.glassTheme == dev.sfg.numa.mobile.model.GlassTheme.CRISTAL_OSCURO) {
+                                Box(Modifier.fillMaxSize().background(DarkCrystal.ArtworkWash))
+                            }
                         }
                     }
                 }
@@ -288,7 +293,7 @@ fun NumaApp(viewModel: NumaViewModel) {
                             CanopyReadout(
                                 dismissEnabled = !listeningParty.isActive,
                                 playback = playerPlayback,
-                                animatedArtworkEnabled = settings.animatedArtwork && !playerOpen,
+                                animatedArtworkEnabled = mediaMotion && settings.animatedArtwork && !playerOpen,
                                 transition = playerMarker,
                                 mixProgress = playerPresentation.mixProgress,
                                 modifier = Modifier
@@ -313,7 +318,7 @@ fun NumaApp(viewModel: NumaViewModel) {
                                 CanopyReadout(
                                     dismissEnabled = !listeningParty.isActive,
                                     playback = playerPlayback,
-                                    animatedArtworkEnabled = settings.animatedArtwork && !playerOpen,
+                                    animatedArtworkEnabled = mediaMotion && settings.animatedArtwork && !playerOpen,
                                     transition = playerMarker,
                                     mixProgress = playerPresentation.mixProgress,
                                     modifier = Modifier.onGloballyPositioned { readoutBounds = it.boundsInRoot() },
@@ -329,7 +334,7 @@ fun NumaApp(viewModel: NumaViewModel) {
                                         }
                                     },
                                 )
-                                NumaBottomBar(chromeRoute, selectTopLevel, showSettings = settings.showSettingsTab)
+                                NumaBottomBar(chromeRoute, selectTopLevel)
                             }
                         }
                     }
@@ -344,7 +349,7 @@ fun NumaApp(viewModel: NumaViewModel) {
                     viewModel = viewModel,
                     library = library,
                     backdropArtworkUrl = playerPlayback.currentTrack?.artworkUrl.orEmpty(),
-                    backdropPlaying = playerPlayback.isPlaying && settings.animatedBackground,
+                    backdropPlaying = playerPlayback.isPlaying && animateBackdrop,
                     // These routes already draw this backdrop underneath.
                     showBackdrop = route != Routes.HOME && route != Routes.SETTINGS && route != Routes.LIBRARY,
                     onOpenPlayer = { playerOpen = true },
@@ -369,7 +374,9 @@ fun NumaApp(viewModel: NumaViewModel) {
                     mixProgress = playerPresentation.mixProgress,
                     targets = targets,
                     library = library,
-                    settings = settings,
+                    settings = if (mediaMotion) settings else settings.copy(
+                        animatedArtwork = false, animatedBackground = false,
+                    ),
                     modifier = Modifier.zIndex(50f),
                 )
 
@@ -411,6 +418,7 @@ fun NumaApp(viewModel: NumaViewModel) {
     }
 
     CompositionLocalProvider(
+        dev.sfg.numa.mobile.ui.components.LocalMediaMotion provides mediaMotion,
         dev.sfg.numa.mobile.ui.components.LocalLibraryUiLocal provides localLibraryUi,
         dev.sfg.numa.mobile.ui.support.LocalSupportUi provides supportUi,
         LocalGlass provides glass,

@@ -6,24 +6,42 @@ import org.json.JSONObject
 
 internal object LibraryBackupCodec {
     private fun devicePlaylist(id: String): Boolean = libraryPlaylistId(id).startsWith("local-playlist:")
-    fun encode(snapshot: LibrarySnapshot): JSONObject {
-        val countsObj = JSONObject()
-        snapshot.playCounts.forEach { (id, count) -> countsObj.put(id, count) }
+    fun encode(snapshot: LibrarySnapshot): JSONObject =
+        encodeMetadata(snapshot).apply {
+            val history = encodeHistory(snapshot)
+            historyKeys.forEach { key -> put(key, history.get(key)) }
+        }
+
+    internal fun encodeMetadata(snapshot: LibrarySnapshot): JSONObject = JSONObject()
+        .put("version", 1)
+        .put("likedTracks", CatalogJson.tracks(snapshot.likedTracks))
+        .put("savedAlbums", array(snapshot.savedAlbums, CatalogJson::album))
+        .put("savedArtists", array(snapshot.savedArtists, CatalogJson::artist))
+        .put("savedPlaylists", array(snapshot.savedPlaylists.filterNot { devicePlaylist(it.id) }, CatalogJson::playlist))
+        .put("hiddenPlaylistIds", JSONArray(snapshot.hiddenPlaylistIds.filterNot(::devicePlaylist)))
+
+    internal fun encodeHistory(snapshot: LibrarySnapshot): JSONObject {
+        val counts = JSONObject()
+        snapshot.playCounts.forEach { (id, count) -> counts.put(id, count) }
         return JSONObject()
-            .put("version", 1)
-            .put("likedTracks", CatalogJson.tracks(snapshot.likedTracks))
-            .put("savedAlbums", array(snapshot.savedAlbums, CatalogJson::album))
-            .put("savedArtists", array(snapshot.savedArtists, CatalogJson::artist))
-            .put("savedPlaylists", array(snapshot.savedPlaylists.filterNot { devicePlaylist(it.id) }, CatalogJson::playlist))
             .put("recentlyPlayed", CatalogJson.tracks(snapshot.recentlyPlayed))
-            .put("playCounts", countsObj)
+            .put("playCounts", counts)
             .put("listeningTotalMs", snapshot.listeningTotalMs)
             .put("playedTracks", CatalogJson.tracks(snapshot.playedTracks))
             .put("listeningDays", array(snapshot.listeningDays) {
                 JSONObject().put("date", it.date).put("trackId", it.trackId).put("listens", it.listens).put("heardMs", it.heardMs)
             })
-            .put("hiddenPlaylistIds", JSONArray(snapshot.hiddenPlaylistIds.filterNot(::devicePlaylist)))
     }
+
+    internal fun decodeLocal(metadata: JSONObject, history: JSONObject?, hidden: Set<String>): LibrarySnapshot {
+        // v1 installations have both sets of fields in the metadata file.
+        if (history != null && historyKeys.all(history::has)) {
+            historyKeys.forEach { key -> metadata.put(key, history.get(key)) }
+        }
+        return decode(metadata, hidden)
+    }
+
+    private val historyKeys = listOf("recentlyPlayed", "playCounts", "listeningTotalMs", "playedTracks", "listeningDays")
 
     fun decode(root: JSONObject, hidden: Set<String> = root.optJSONArray("hiddenPlaylistIds")?.let { values ->
         (0 until values.length()).map { values.getString(it) }.toSet()

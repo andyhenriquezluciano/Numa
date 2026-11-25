@@ -32,7 +32,7 @@ internal fun ArtistPageStyle(palette: ArtworkPalette, content: @Composable () ->
 @Composable
 internal fun ArtistAnimatedBackdrop(url: String, palette: ArtworkPalette) {
     val settings by NumaGraph.from(LocalContext.current).settings.settings.collectAsStateWithLifecycle()
-    KawarpArtworkBackdrop(url, settings.animatedBackground, Modifier.fillMaxSize(), renderScale = 0.5f)
+    KawarpArtworkBackdrop(url, settings.animatedBackground && dev.sfg.numa.mobile.ui.components.LocalMediaMotion.current, Modifier.fillMaxSize(), renderScale = 0.5f)
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(
         0f to palette.deep.copy(alpha = 0.08f),
         0.5f to palette.deep.copy(alpha = 0.24f),

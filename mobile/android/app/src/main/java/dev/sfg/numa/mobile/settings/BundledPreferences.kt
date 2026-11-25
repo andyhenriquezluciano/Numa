@@ -20,6 +20,13 @@ internal fun seedBundledPreferences(values: MutablePreferences): Boolean {
     values[stringPreferencesKey("non_music_skip")] = defaults.nonMusicSkip.name
     values[intPreferencesKey("video_max_height")] = defaults.videoMaxHeight
     values[stringPreferencesKey("lyric_translation_quality")] = defaults.lyricTranslationQuality.key
-    values[booleanPreferencesKey("show_bitrate")] = false
+    values[booleanPreferencesKey("show_bitrate")] = defaults.showBitrate
+    values[booleanPreferencesKey("download_wifi_only")] = defaults.downloadWifiOnly
+    values[booleanPreferencesKey("send_youtube_history")] = defaults.sendYouTubeHistory
+    values[booleanPreferencesKey("discord_presence_enabled")] = defaults.discordPresenceEnabled
+    values[booleanPreferencesKey("autoplay_enabled")] = defaults.autoplayEnabled
+    values[booleanPreferencesKey("translate_lyrics")] = defaults.translateLyrics
+    values[stringPreferencesKey("cellular_audio_quality")] = defaults.cellularAudioQuality.name
+    values[stringPreferencesKey("motion_mode")] = defaults.motionMode.name
     return true
 }

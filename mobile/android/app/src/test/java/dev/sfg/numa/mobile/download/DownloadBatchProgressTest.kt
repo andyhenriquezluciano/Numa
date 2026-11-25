@@ -19,4 +19,14 @@ class DownloadBatchProgressTest {
         assertEquals(DownloadBatchProgress(1, 2, 1, 0), result)
         assertFalse(result.active)
     }
+
+    @Test fun `items waiting for wifi stay pending without keeping the foreground batch active`() {
+        val track = item("one", DownloadStatus.WAITING_FOR_WIFI)
+        val restored = DownloadItem.fromJson(track.toJson())
+        val progress = downloadBatchProgress(setOf("one"), mapOf("one" to restored))
+        assertTrue(restored.isDownloading)
+        assertEquals(1, progress.pending)
+        assertEquals(1, progress.waitingForWifi)
+        assertFalse(progress.active)
+    }
 }

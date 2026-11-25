@@ -21,6 +21,7 @@ package dev.sfg.numa.mobile.ui.screens
 
 
 
+import dev.sfg.numa.mobile.ui.glass.crystalSurfaceFill
 import dev.sfg.numa.mobile.ui.theme.playbackAccent
 import dev.sfg.numa.mobile.ui.theme.trackControlInk
 import dev.sfg.numa.mobile.ui.components.RoundedControlButton
@@ -197,7 +198,7 @@ private fun TransportPill(
         shape = MaterialTheme.shapes.medium,
         color = if (rose != null) {
             if (enabled) rose.Overlay else rose.Surface
-        } else Color.White.copy(alpha = if (enabled) 0.14f else 0.06f),
+        } else crystalSurfaceFill(Color.White.copy(alpha = if (enabled) 0.14f else 0.06f)),
         contentColor = (rose?.Text ?: Color.White).copy(alpha = if (enabled) 1f else 0.35f),
         interactionSource = interactionSource,
         modifier = modifier.height(PILL_HEIGHT),

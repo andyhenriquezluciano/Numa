@@ -29,6 +29,8 @@
 
 package dev.sfg.numa.mobile.ui.components
 
+import dev.sfg.numa.mobile.ui.glass.isDarkCrystal
+import dev.sfg.numa.mobile.ui.glass.DarkCrystal
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -149,6 +151,7 @@ fun DetailHeroFrame(
     // Art settles from a slight zoom as the page opens, like a camera finding focus.
     val rose = currentRosePine()
     val solidTheme = rose != null
+    val darkCrystal = isDarkCrystal()
     val titleOverlap = if (solidTheme) 32.dp else HeroTitleOverlap
     var settled by rememberSaveable { mutableStateOf(false) }
     val settle = remember { Animatable(if (settled) 1f else 1.12f) }
@@ -189,6 +192,9 @@ fun DetailHeroFrame(
             else ArtworkTile(url = artworkUrl, description = description, modifier = Modifier.fillMaxSize(), radius = 0)
             if (animatedArtworkUrl.isNotBlank()) {
                 AnimatedArtworkVideo(url = animatedArtworkUrl, active = true, modifier = Modifier.fillMaxSize())
+            }
+            if (darkCrystal && artworkPlaceholder == null) {
+                Box(Modifier.fillMaxSize().background(DarkCrystal.ArtworkWash))
             }
         }
         if (rose != null) {

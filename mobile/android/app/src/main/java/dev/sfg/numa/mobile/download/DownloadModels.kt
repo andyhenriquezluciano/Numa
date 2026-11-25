@@ -25,6 +25,7 @@ import org.json.JSONObject
 /** Lifecycle status for an offline download request. */
 enum class DownloadStatus {
     QUEUED,
+    WAITING_FOR_WIFI,
     DOWNLOADING,
     COMPLETED,
     FAILED,
@@ -50,7 +51,8 @@ data class DownloadItem(
     val sourceVideoId: String = "",
 ) {
     val isFinished: Boolean get() = status == DownloadStatus.COMPLETED
-    val isDownloading: Boolean get() = status == DownloadStatus.DOWNLOADING || status == DownloadStatus.QUEUED
+    val isDownloading: Boolean get() = status == DownloadStatus.DOWNLOADING || status == DownloadStatus.QUEUED ||
+        status == DownloadStatus.WAITING_FOR_WIFI
 
     fun toJson(): JSONObject = JSONObject().apply {
         put("id", track.id)
