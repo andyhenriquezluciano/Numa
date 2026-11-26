@@ -69,6 +69,9 @@ import dev.sfg.numa.mobile.ui.components.TrackActionsPopup
 /** Which mode, if any, has taken over the middle of the player. */
 enum class PlayerPanel { NONE, LYRICS, QUEUE }
 
+internal val PlayerTransportGap = 20.dp
+internal val PlayerDestinationsGap = 24.dp
+
 /**
  * Everything below the track title: scrubber, transport, remote volume, destinations.
  *
@@ -118,7 +121,7 @@ fun PlayerControlStack(
         bitrateKbps = bitrateKbps,
         isQobuz = isQobuz,
     )
-    gap(20.dp)
+    gap(PlayerTransportGap)
     PlayerTransportControls(
         isPlaying = playback.isPlaying,
         status = playback.status,
@@ -133,7 +136,7 @@ fun PlayerControlStack(
         showModes = false,
         compact = compact,
     )
-    gap(24.dp)
+    gap(PlayerDestinationsGap)
     // The phone has volume keys; a slider only earns its row when they cannot reach the speaker.
     if (!localControls) {
         DeviceVolumeSlider(

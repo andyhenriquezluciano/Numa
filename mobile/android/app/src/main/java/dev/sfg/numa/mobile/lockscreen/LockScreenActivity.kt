@@ -72,7 +72,7 @@ class LockScreenActivity : FragmentActivity() {
             val playback = LocalPlaybackController(this@LockScreenActivity, lifecycleScope)
             controller = playback
             setContent {
-                val state by playback.snapshot.collectAsStateWithLifecycle()
+                val snapshot = playback.snapshot.collectAsStateWithLifecycle()
                 val preferences by graph.settings.settings.collectAsStateWithLifecycle()
                 val mediaMotion = dev.sfg.numa.mobile.ui.components.mediaMotionAllowed(preferences.motionMode)
                 val lightBackground = preferences.glassTheme == GlassTheme.ROSE_PINE_DAWN
@@ -82,7 +82,7 @@ class LockScreenActivity : FragmentActivity() {
                     bars.isAppearanceLightNavigationBars = lightBackground
                 }
                 NumaTheme(settings = preferences) {
-                    LockScreenContent(state, graph, interactive, mediaMotion && preferences.animatedArtwork,
+                    LockScreenContent(snapshot, graph, interactive, mediaMotion && preferences.animatedArtwork,
                         preferences.expandedAnimatedArtwork, mediaMotion && preferences.animatedBackground,
                         playback::toggle, playback::previous, playback::next, playback::seek,
                         onClose = { finish() }, onOpenApp = ::unlockAndOpen)

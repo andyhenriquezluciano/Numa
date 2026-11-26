@@ -45,6 +45,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -75,6 +76,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
@@ -320,6 +323,8 @@ fun TrackInfoRow(
     }
 }
 
+internal val PlayerDestinationsHeight = 56.dp
+
 /** Playback modes, Chromecast, lyrics and queue. */
 @Composable
 fun PlayerBottomDestinations(
@@ -332,7 +337,7 @@ fun PlayerBottomDestinations(
 ) {
     val rose = currentRosePine()
     Row(
-        modifier = modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier = modifier.fillMaxWidth().heightIn(min = PlayerDestinationsHeight).padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -340,10 +345,10 @@ fun PlayerBottomDestinations(
         PlayerCastButton()
 
         // Lyrics Action Button
-        RoundedControlButton(onClick = onLyrics, modifier = Modifier.size(44.dp)) {
+        RoundedControlButton(onClick = onLyrics, modifier = Modifier.size(44.dp).semantics { selected = lyricsActive }) {
             Icon(
                 painter = painterResource(R.drawable.ic_desktop_lyrics),
-                contentDescription = if (lyricsActive) uiText("Hide lyrics", "Ocultar letras") else uiText("Lyrics", "Letras"),
+                contentDescription = uiText("Lyrics", "Letras"),
                 tint = if (lyricsActive) rose?.CategoryInk ?: playbackAccent() else rose?.SecondaryText ?: Color.White.copy(alpha = 0.75f),
                 modifier = Modifier.size(24.dp),
             )

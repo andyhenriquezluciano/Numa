@@ -32,7 +32,7 @@ internal fun Modifier.crystalSearchSurface(roseSurface: @Composable Modifier.() 
     crystalControlSurface(MaterialTheme.shapes.medium, DesktopGlass.TransportButtonFill, roseSurface)
 
 internal object DarkCrystal {
-    val Surface = Color(0xAA111519)
+    val Surface = Color(0x55111519)
     val ArtworkWash = Color(0x440C0E11)
     val PlayerWash = Color(0x800C0E11)
     val SheetWash = Color(0x660C0E11)

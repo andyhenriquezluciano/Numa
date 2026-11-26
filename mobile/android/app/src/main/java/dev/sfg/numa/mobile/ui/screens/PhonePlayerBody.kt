@@ -151,7 +151,7 @@ internal fun PhonePlayerBody(
             .fillMaxSize()
             .onGloballyPositioned { bodyTop = it.positionInRoot().y }
             .systemBarsPadding()
-            .padding(bottom = BODY_BOTTOM_PADDING),
+            .padding(bottom = PhonePlayerBottomPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         PlayerHeader(
@@ -325,7 +325,7 @@ internal fun PhonePlayerBody(
     }
 }
 
-private val BODY_BOTTOM_PADDING = 20.dp
+internal val PhonePlayerBottomPadding = 20.dp
 
 /** Dissolves the queue into the header and title at either end. */
 private fun Modifier.queueEdgeFade(): Modifier = this

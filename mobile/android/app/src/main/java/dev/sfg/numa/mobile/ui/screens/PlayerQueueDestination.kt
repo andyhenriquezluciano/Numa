@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -24,9 +26,9 @@ import dev.sfg.numa.mobile.ui.theme.currentRosePine
 internal fun PlayerQueueDestination(count: Int, active: Boolean, onClick: () -> Unit) {
     val rose = currentRosePine()
     Box(Modifier.size(48.dp)) {
-        RoundedControlButton(onClick, Modifier.matchParentSize()) {
+        RoundedControlButton(onClick, Modifier.matchParentSize().semantics { selected = active }) {
             Icon(painterResource(R.drawable.ic_desktop_queue),
-                if (active) uiText("Hide queue", "Ocultar cola") else uiText("Queue", "Cola"),
+                uiText("Queue", "Cola"),
                 Modifier.size(24.dp), tint = if (rose != null) {
                     if (active) rose.GoldInk else rose.SecondaryText
                 } else if (active) playbackAccent() else Color.White.copy(alpha = 0.75f))

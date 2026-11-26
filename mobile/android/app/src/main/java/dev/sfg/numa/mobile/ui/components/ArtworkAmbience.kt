@@ -95,6 +95,7 @@ fun rememberArtworkPalette(
         val formattedUrl = highResolutionArtworkUrl(artworkUrl, 128)
         val request = ImageRequest.Builder(context)
             .data(formattedUrl)
+            .size(128, 128)
             .allowHardware(false)
             .build()
 
@@ -102,6 +103,7 @@ fun rememberArtworkPalette(
         if (imageResult == null && formattedUrl != artworkUrl) {
             val fallbackRequest = ImageRequest.Builder(context)
                 .data(artworkUrl)
+                .size(128, 128)
                 .allowHardware(false)
                 .build()
             imageResult = SingletonImageLoader.get(context).execute(fallbackRequest).image

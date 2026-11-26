@@ -134,9 +134,12 @@ fun NowPlayingScreen(
     // Only one can hold the panel at a time.
     var panel by remember { mutableStateOf(PlayerPanel.NONE) }
     var sleepTimerDialogOpen by remember { mutableStateOf(false) }
-    val lyricsOpen = panel == PlayerPanel.LYRICS
-    val queueOpen = panel == PlayerPanel.QUEUE
-    val onQueue = { panel = if (queueOpen) PlayerPanel.NONE else PlayerPanel.QUEUE }
+    val selectPanel: (PlayerPanel) -> Unit = { destination ->
+        if (musicVideo.playing) onToggleMusicVideo()
+        panel = destination
+    }
+    val onLyrics = { selectPanel(PlayerPanel.LYRICS) }
+    val onQueue = { selectPanel(PlayerPanel.QUEUE) }
     
     val context = LocalContext.current
     // Hinge posture only exists on foldables; elsewhere the subscription is pure open-time cost.
@@ -211,9 +214,16 @@ fun NowPlayingScreen(
     // the flying artwork clear of that fade, so the cover itself carries the motion all
     // the way onto the pill's thumbnail.
     CompositionLocalProvider(LocalPlayerVideoOptions provides PlayerVideoOptions(
-        musicVideo, onToggleMusicVideo, targets,
-        { if (musicVideo.playing) onToggleMusicVideo(); panel = if (lyricsOpen) PlayerPanel.NONE else PlayerPanel.LYRICS },
-        { if (musicVideo.playing) onToggleMusicVideo(); onQueue() },
+        state = musicVideo,
+        targets = targets,
+        artworkSelected = panel == PlayerPanel.NONE && !musicVideo.playing,
+        onSong = { selectPanel(PlayerPanel.NONE) },
+        onVideo = {
+            panel = PlayerPanel.NONE
+            onToggleMusicVideo()
+        },
+        onLyrics = onLyrics,
+        onQueue = onQueue,
     )) {
     Box(
         modifier = modifier
@@ -327,7 +337,7 @@ fun NowPlayingScreen(
                     onShare = onShare,
                     onOpenCollection = onOpenCollection,
                     onOpenArtist = onOpenArtist,
-                    onLyricsPanel = { panel = if (lyricsOpen) PlayerPanel.NONE else PlayerPanel.LYRICS },
+                    onLyricsPanel = onLyrics,
                     onQueuePanel = onQueue,
                     sleepTimerRemainingSeconds = sleepTimerRemainingSeconds,
                     sleepTimerEndOfTrack = sleepTimerEndOfTrack,
@@ -382,7 +392,7 @@ fun NowPlayingScreen(
                     onShare = onShare,
                     onOpenCollection = onOpenCollection,
                     onOpenArtist = onOpenArtist,
-                    onLyricsPanel = { panel = if (lyricsOpen) PlayerPanel.NONE else PlayerPanel.LYRICS },
+                    onLyricsPanel = onLyrics,
                     onQueuePanel = onQueue,
                     sleepTimerRemainingSeconds = sleepTimerRemainingSeconds,
                     sleepTimerEndOfTrack = sleepTimerEndOfTrack,
@@ -440,7 +450,7 @@ fun NowPlayingScreen(
                 onShare = onShare,
                 onOpenCollection = onOpenCollection,
                 onOpenArtist = onOpenArtist,
-                onLyricsPanel = { panel = if (lyricsOpen) PlayerPanel.NONE else PlayerPanel.LYRICS },
+                onLyricsPanel = onLyrics,
                 onQueuePanel = onQueue,
                 sleepTimerRemainingSeconds = sleepTimerRemainingSeconds,
                 sleepTimerEndOfTrack = sleepTimerEndOfTrack,

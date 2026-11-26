@@ -14,13 +14,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.sfg.numa.mobile.NumaGraph
 import dev.sfg.numa.mobile.model.LyricLine
+import dev.sfg.numa.mobile.model.PlaybackClock
 import dev.sfg.numa.mobile.model.PlaybackSnapshot
 import dev.sfg.numa.mobile.ui.text.uiText
 import dev.sfg.numa.mobile.ui.theme.currentRosePine
 import kotlinx.coroutines.CancellationException
 
 @Composable
-internal fun LockScreenLyrics(state: PlaybackSnapshot, graph: NumaGraph, modifier: Modifier = Modifier) {
+internal fun LockScreenLyrics(
+    state: PlaybackSnapshot,
+    clock: State<PlaybackClock>,
+    graph: NumaGraph,
+    modifier: Modifier = Modifier,
+) {
     val rose = currentRosePine()
     val track = state.currentTrack?.let { if (state.durationMs > 0) it.copy(durationMs = state.durationMs) else it }
     val lines by produceState<List<LyricLine>?>(null, track?.id, track?.durationMs) {
@@ -33,22 +39,29 @@ internal fun LockScreenLyrics(state: PlaybackSnapshot, graph: NumaGraph, modifie
             emptyList()
         }
     }
-    val available = lines.orEmpty()
-    val position = state.positionMs
-    val index = available.indexOfLast { it.startMs?.let { start -> start <= position } == true }
-    val current = available.getOrNull(index)
-    val expired = current?.endMs?.let { position > it + 1_500L } == true
-    val text = when {
-        track == null -> ""
-        lines == null -> uiText("Finding lyrics…", "Buscando letra…")
-        available.isEmpty() -> uiText("Lyrics unavailable", "Letra no disponible")
-        available.none { it.startMs != null } -> available.first().text
-        current == null || expired -> "♪"
-        else -> current.text.ifBlank { "♪" }
+    val loadingText = uiText("Finding lyrics…", "Buscando letra…")
+    val unavailableText = uiText("Lyrics unavailable", "Letra no disponible")
+    val lyricState by remember(clock, track?.id, loadingText, unavailableText) {
+        derivedStateOf(structuralEqualityPolicy()) {
+            val available = lines.orEmpty()
+            val position = clock.value.positionMs
+            val index = available.indexOfLast { it.startMs?.let { start -> start <= position } == true }
+            val current = available.getOrNull(index)
+            val expired = current?.endMs?.let { position > it + 1_500L } == true
+            val text = when {
+                track == null -> ""
+                lines == null -> loadingText
+                available.isEmpty() -> unavailableText
+                available.none { it.startMs != null } -> available.first().text
+                current == null || expired -> "♪"
+                else -> current.text.ifBlank { "♪" }
+            }
+            val next = if (index >= 0) available.getOrNull(index + 1)?.text.orEmpty() else ""
+            text to next
+        }
     }
-    val next = if (index >= 0) available.getOrNull(index + 1)?.text.orEmpty() else ""
     Box(modifier, contentAlignment = Alignment.TopCenter) {
-        AnimatedContent(text to next, label = "LockScreenLyric") { (line, upcoming) ->
+        AnimatedContent(lyricState, label = "LockScreenLyric") { (line, upcoming) ->
             Column(horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(line, color = rose?.Text ?: Color.White.copy(alpha = 0.9f),

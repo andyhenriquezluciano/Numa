@@ -34,8 +34,10 @@ import dev.sfg.numa.mobile.ui.theme.currentRosePine
 
 internal data class PlayerVideoOptions(
     val state: MusicVideoState,
-    val onToggle: () -> Unit,
     val targets: PlaybackTargetState,
+    val artworkSelected: Boolean,
+    val onSong: () -> Unit,
+    val onVideo: () -> Unit,
     val onLyrics: () -> Unit,
     val onQueue: () -> Unit,
 )
@@ -61,11 +63,11 @@ internal fun PlayerVideoMenu() {
         PlayerModeButton(
             icon = Icons.Rounded.MusicNote,
             label = uiText("Song", "Canción"),
-            selected = !state.playing,
-            enabled = availability.song,
+            selected = options.artworkSelected,
+            enabled = !state.playing || availability.song,
             unavailable = if (blockedByRoom) uiText("Only the room host can change the mode", "Solo el anfitrión puede cambiar el modo")
                 else uiText("Unavailable on this output", "No disponible en esta salida"),
-            onClick = { if (state.playing) options.onToggle() },
+            onClick = options.onSong,
         )
         PlayerModeButton(
             icon = Icons.Rounded.Videocam,
@@ -80,7 +82,7 @@ internal fun PlayerVideoMenu() {
                 state.checking -> uiText("Looking for video", "Buscando vídeo")
                 else -> uiText("No video available for this song", "Sin vídeo disponible para esta canción")
             },
-            onClick = { if (!state.playing) options.onToggle() },
+            onClick = { if (!state.playing) options.onVideo() },
         )
     }
 }
