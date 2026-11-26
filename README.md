@@ -180,11 +180,18 @@ Los instalables están en [GitHub Releases](https://github.com/andyhenriquezluci
 
 | Plataforma | Descarga | Requisitos |
 | --- | --- | --- |
-| **Android 2.8.6** | [Numa-2.8.6.apk](https://github.com/andyhenriquezluciano/Numa/releases/download/v2.8.6-android/Numa-2.8.6.apk) | Android 12 o posterior, ARM64 |
-| **Windows 2.6.1** | [Numa-Setup-2.6.1.exe](https://github.com/andyhenriquezluciano/Numa/releases/download/v2.6.1/Numa-Setup-2.6.1.exe) | Windows x64 |
+| **Android 2.9** | [Numa-2.9.apk](https://github.com/andyhenriquezluciano/Numa/releases/download/v2.9/Numa-2.9.apk) | Android 12 o posterior, ARM64 |
+| **Windows 2.9** | [Numa-Setup-2.9-Windows.exe](https://github.com/andyhenriquezluciano/Numa/releases/download/v2.9/Numa-Setup-2.9-Windows.exe) | Windows x64 |
 
 ## Licencia
 
 [AGPL-3.0](LICENSE), [excepciones](LICENSE-EXCEPTION.md), [condiciones adicionales](LICENSE-OOL) y [avisos de terceros](THIRD_PARTY_NOTICES.md).
+
+## Origen y créditos
+
+NÜMA comenzó a partir de [Orchard](https://github.com/SFG5453/Orchard), un proyecto de código abierto.
+Desde esa base, he desarrollado y ampliado el reproductor con una gran cantidad de cambios y funciones
+propias para darle una identidad y una experiencia distintas. Se reconoce a Orchard como punto de partida;
+los créditos y avisos de terceros aplicables se detallan en [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 NÜMA es independiente de los proveedores de contenido. Las marcas, letras y carátulas de las capturas pertenecen a sus titulares.
