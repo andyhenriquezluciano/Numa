@@ -52,7 +52,7 @@ rounded_svg = Image.open(io.BytesIO(resvg_py.svg_to_bytes(svg_path=str(SOURCE.wi
 assert ImageChops.difference(rounded, rounded_svg).getbbox(alpha_only=False) is None, 'Rounded Android and SVG differ'
 assert rounded.getpixel((0, 0))[3] == 0
 assert rounded.getpixel((512, 30))[3] == 255
-for file in ['app/qml/assets/numa-logo.png', 'mobile/android/app/src/main/res/drawable-nodpi/numa_logo.png', 'mobile/assets/icon.png']:
+for file in ['app/qml/assets/numa-logo.png', 'mobile/android/app/src/main/res/drawable-nodpi/numa_logo.png', 'mobile/android/app/src/main/assets/numa-logo.png']:
     assert ImageChops.difference(approved, Image.open(ROOT / file).convert('RGBA')).getbbox(alpha_only=False) is None, file
 for file in ['app/qml/assets/numa.ico', 'app/src/platform/windows/numa.ico', 'bootstrapper/src/platform/windows/numa.ico']:
     assert (256, 256) in Image.open(ROOT / file).info['sizes'], file
@@ -67,5 +67,6 @@ for x, name, background in [(0, 'numa_mark.xml', '#eeeeF4'), (240, 'numa_launche
     preview.paste(icon, (x + 20, 20), icon)
     ImageDraw.Draw(preview).text((x + 50, 235), name.removesuffix('.xml'), fill='#15151d')
 output = ROOT / 'outputs/numa-vector/integrado.png'
+output.parent.mkdir(parents=True, exist_ok=True)
 preview.save(output)
 print('SVG, Android vector, 3 PNGs, 3 ICOs and monochrome cutouts: OK')

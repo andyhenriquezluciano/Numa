@@ -26,7 +26,6 @@ from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parents[2]
-ASSETS = ROOT / "mobile" / "assets"
 SOURCE = ROOT / "app" / "qml" / "assets" / "numa-logo.svg"
 sys.path.insert(0, str(ROOT / '.tmp/icon-vector-tools'))
 import resvg_py
@@ -122,29 +121,13 @@ def vector_resources():
     export('numa_launcher_layer.xml', launcher=True, size=108)
     export('ic_launcher_monochrome.xml', monochrome=True, launcher=True, size=108)
     export('ic_notification.xml', monochrome=True, size=24)
-    compound = ' '.join(absolute_path(p.get('d'), x, y) for p, x, y in paths)
-    monochrome_svg = ET.Element('svg', xmlns=SVG['s'], viewBox='0 0 1254 1254')
-    ET.SubElement(monochrome_svg, 'path', d=compound, fill='white', **{'fill-rule': 'evenodd'})
-    png = resvg_py.svg_to_bytes(svg_string=ET.tostring(monochrome_svg, encoding='unicode'), width=1024, height=1024)
-    Image.open(io.BytesIO(png)).save(ASSETS / 'android-icon-monochrome.png')
 
 
 def resized(size):
     return Image.open(io.BytesIO(resvg_py.svg_to_bytes(svg_path=str(SOURCE), width=size, height=size))).convert('RGBA')
 
 
-def save(img, name):
-    img.save(ASSETS / name)
-    print("wrote", name, img.size)
-
-
 foreground = resized(1024)
-
-save(foreground, "android-icon-foreground.png")
-save(Image.new("RGBA", (1024, 1024), (116, 116, 255, 255)), "android-icon-background.png")
-save(foreground.copy(), "icon.png")
-save(resized(48), "favicon.png")
-save(foreground.copy(), "splash-icon.png")
 vector_resources()
 for path in [ROOT / 'app/qml/assets/numa-logo.png', ANDROID / 'res/drawable-nodpi/numa_logo.png',
              ANDROID / 'assets/numa-logo.png']:

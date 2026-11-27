@@ -1,7 +1,10 @@
 /build*/
+/core/js/build/
 /third_party/.wraplock
 /target/
 /.cache/
+/.wrangler/
+/mobile/android/.cache/
 /.qt/
 node_modules/
 *.user
